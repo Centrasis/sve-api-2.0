@@ -1,4 +1,4 @@
-import {BasicUserInitializer, SVEProject, SVEDataInitializer, ProjectInitializer, SVEAccount as SVEBaseAccount, isProjectInitializer, SVEDataType} from 'svebaselib';
+import {BasicUserInitializer, SVEProject, SVEDataInitializer, ProjectInitializer, SVEAccount as SVEBaseAccount, isProjectInitializer, SVEProjectState} from 'svebaselib';
 import {SVEServerGroup as SVEGroup} from './SVEServerGroup';
 import {SVEServerAccount as SVEAccount} from './SVEServerAccount';
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
@@ -10,7 +10,7 @@ export class SVEServerProject extends SVEProject {
         super(idx, handler, (self) => {
             // if get by id from DB
             if (!isProjectInitializer(idx) && SVESystemInfo.getIsServer()) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM projects WHERE id = ?", [idx as number], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, results_uri, begin_point, end_point FROM projects LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
                     if(err) {
                         this.id = NaN;
                         console.log("SQL ERROR ON GET PROJECT BY ID ON SERVER: " + JSON.stringify(err));
@@ -24,7 +24,19 @@ export class SVEServerProject extends SVEProject {
                         } else {
                             this.id = idx as number;
                             this.name = results[0].name;
+                            this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
+                            if (results[0].splash_img !== undefined && results[0].splash_img !== null) {
+                                this.splashImgID = Number(results[0].splash_img);
+                            } else {
+                                this.splashImgID = 0;
+                            }
                             this.handler = handler;
+                            if (results[0].begin_point != null && results[0].begin_point != undefined) {
+                                this.dateRange = {
+                                    begin: new Date(results[0].begin_point),
+                                    end: (results[0].end_point != null && results[0].end_point != undefined) ? new Date(results[0].end_point) : new Date()
+                                };
+                            }
                             this.group = new SVEGroup(results[0].context, handler, (s) => {
                                 this.owner = results[0].owner as number;
                                 if (onReady !== undefined)
@@ -42,6 +54,52 @@ export class SVEServerProject extends SVEProject {
 
     public getGroup(): SVEGroup {
         return this.group! as SVEGroup;
+    }
+
+    public store(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.group!.getRightsForUser(this.handler!).then(rights => {
+                if (rights.write) {
+                    if (this.id === NaN) {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`name`, `context`, `owner`, `state`, `data_path`) VALUES (?, ?, ?, ?, ?)", [this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name], (err, results) => {
+                            if(err) {
+                                reject(err);
+                            } else {
+                                resolve(true);
+                            }
+                        });
+                    } else {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE projects SET `name`=?, `state`=? WHERE id = ?", [this.name, (this.state === SVEProjectState.Open) ? 'open' : 'closed', this.id], (err, results) => {
+                            if(err) {
+                                reject(err);
+                            } else {
+                                resolve(true);
+                            }
+                        });
+                    }
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    public remove(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.group!.getRightsForUser(this.handler!).then(rights => {
+                if (rights.admin) {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM projects WHERE id = ?", [this.id], (err, results) => {
+                        if(err) {
+                            reject(err);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                } else {
+                    resolve(false);
+                }
+            });
+        });
     }
 
     public getDataById(fid: number): Promise<SVEData> {

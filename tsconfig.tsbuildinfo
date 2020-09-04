@@ -182,8 +182,8 @@
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/svegroup.d.ts": {
-        "version": "bcf714176a2acc1e89e972ddbd776b2399c3146cc47c98337d411b2854368afc",
-        "signature": "bcf714176a2acc1e89e972ddbd776b2399c3146cc47c98337d411b2854368afc",
+        "version": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
+        "signature": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
         "affectsGlobalScope": false
       },
       "./node_modules/@types/node/globals.d.ts": {
@@ -452,8 +452,8 @@
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/sveproject.d.ts": {
-        "version": "c0727716543f6b99f2be1b8459bac2667826a13de9b226494f77d7b57a157c6b",
-        "signature": "c0727716543f6b99f2be1b8459bac2667826a13de9b226494f77d7b57a157c6b",
+        "version": "e42aeb568d5820509753fe4d6e0dd6301a72802b8ecf38362d0b0390631def25",
+        "signature": "e42aeb568d5820509753fe4d6e0dd6301a72802b8ecf38362d0b0390631def25",
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/index.d.ts": {
@@ -502,8 +502,8 @@
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserverproject.ts": {
-        "version": "4b2f04c630a3538b91b445d35efee411049ebe1a1dab6641c5e45dc930a4576b",
-        "signature": "4128fda2ea79f71c51eb9f138df22b7c975457f9fa002a70caaf0ca75f153840",
+        "version": "989e3cf8e707b1b8869c391c90183296a82a287cedd7fdf2542b60e9fc86514d",
+        "signature": "ed2897299f77c917c345cc50b9c1d52978ae8e2c28777cd3f74c71e961d568a9",
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserverdata.ts": {
@@ -512,7 +512,7 @@
         "affectsGlobalScope": false
       },
       "./src/sveapi.ts": {
-        "version": "2ec8f8d2586f30724efe7bbd1657f26773770a940deba166520691955c94b409",
+        "version": "80fcdc43186f6262c61e1c8feb5570f5c2417707d54e310ce03733d2c0b20ed1",
         "signature": "b6faa138519a6c5a2ce6be038044be9c6e915bc801523d37f6c9f4b6da3d6f8e",
         "affectsGlobalScope": false
       },

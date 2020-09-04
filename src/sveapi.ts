@@ -149,7 +149,30 @@ router.get('/group/:id', function (req: any, res: any) {
     }
 });
 
-router.get('/project/:id', function (req: any, res: any) {
+router.put('/project/:prj(\\d+|new)', function (req: any, res: any) {
+    res.sendStatus(401);
+});
+
+router.delete('/project/:prj(\\d+)', function (req: any, res: any) {
+    if (req.session.user) {
+        let idx: number = Number(req.params.id);
+        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+            new SVEProject(idx as number, user, (self) => {
+                self.remove().then(success => {
+                    if(success) {
+                        res.sendStatus(200);
+                    } else {
+                        res.sendStatus(401);
+                    }
+                }, err => res.sendStatus(500));
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.get('/project/:id(\\d+)', function (req: any, res: any) {
     if (req.session.user) {
         let idx: number = Number(req.params.id);
         new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
@@ -165,7 +188,10 @@ router.get('/project/:id', function (req: any, res: any) {
                                     group: self.getGroup().getID(),
                                     owner: (self as SVEProject).getOwnerID(),
                                     type: self.getType(),
-                                    name: self.getName()
+                                    name: self.getName(),
+                                    splashImgID: self.getSplashImgID(),
+                                    dateRange: self.getDateRange(),
+                                    state: self.getState()
                                 });
                             } else {
                                 res.sendStatus(401);
@@ -390,14 +416,22 @@ router.get('/user/:id', function (req: any, res: any) {
 router.post('/doLogin', function (req: any, res: any) {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
-        acc.setSessionID(req.session.id);
-        req.session.user = acc;
-        console.log("Logged in user: " + req.session.user.getName());
-        res.json({
-            success: user.getState() !== LoginState.NotLoggedIn,
-            user: acc.getName(),
-            id: acc.getID()
-        });
+        if (user.getState() !== LoginState.NotLoggedIn) {
+            acc.setSessionID(req.session.id);
+            req.session.user = acc;
+            console.log("Logged in user: " + req.session.user.getName());
+            res.json({
+                success: user.getState() !== LoginState.NotLoggedIn,
+                user: acc.getName(),
+                id: acc.getID()
+            });
+        } else {
+            req.session.user = undefined;
+            res.json({
+                success: false,
+                user: ""
+            });
+        }
     };
 
     if (req.body.user && typeof req.body.user === "string") {
@@ -413,7 +447,7 @@ router.post('/doLogin', function (req: any, res: any) {
             }, onLogin);
         }
     } else {
-        res.sendStatus(401);
+        res.sendStatus(400);
     }
 });
 
