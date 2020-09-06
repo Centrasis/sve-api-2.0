@@ -289,7 +289,7 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
                             (self as SVEProject).getDataById(fid).then(file => {
                                 file.getStream(
                                     (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
-                                    (range !== undefined && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
+                                    (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
                                 ).then(stream => {
                                     setFileRequestHeaders(file, fetchType, res);
                                     stream.pipe(res);window.localStorage.getItem("sve_user")

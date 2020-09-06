@@ -567,7 +567,7 @@
         "affectsGlobalScope": false
       },
       "./src/sveapi.ts": {
-        "version": "e0d3c29e350e84a517541bd57f10e80ccf9a988be9dc68b802dadc3d84f7eb49",
+        "version": "1666a581ab835f6678f134994c139d4c29573098f91f8997355ee8170ad0e1a6",
         "signature": "6175f8561d39b1be26646338a3b14189371d1ac6d14ea2cda64ef34b72ea15b9",
         "affectsGlobalScope": false
       },
