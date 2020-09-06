@@ -7,11 +7,12 @@ import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
 import {apiVersion as authVersion} from './authenticator';
-import { Stream } from 'stream';
-import { Console } from 'console';
 
-var express = require('express');
-var router = express.Router();
+import express, { Request, Response, Router } from "express";
+
+import {Ranges} from "range-parser";
+
+var router = Router();
 var resumable = require("resumable");
 const apiVersion = 1.0;
 
@@ -28,7 +29,7 @@ interface APIStatus {
     loggedInAs?: SessionUserInitializer
 }
 
-router.get('/check', function (req: any, res: any) {
+router.get('/check', function (req: Request, res: Response) {
     let status: APIStatus = {
         status: SVESystemInfo.getSystemStatus(),
         version: {
@@ -37,8 +38,8 @@ router.get('/check', function (req: any, res: any) {
         } 
     };
 
-    if (req.session.user) {
-        new SVEAccount(req.session.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+    if (req.session!.user) {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             status.loggedInAs = {
                 id: user.getID(),
                 loginState: user.getLoginState(),
@@ -52,9 +53,9 @@ router.get('/check', function (req: any, res: any) {
     }
 });
 
-router.get('/groups', function (req: any, res: any) {
-    if (req.session.user) {
-        SVEGroup.getGroupsOf(new SVEAccount(req.session.user as SessionUserInitializer)).then((val: SVEBaseGroup[]) => {
+router.get('/groups', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        SVEGroup.getGroupsOf(new SVEAccount(req.session!.user as SessionUserInitializer)).then((val: SVEBaseGroup[]) => {
             let list: number[] = [];
             val.forEach((g: SVEBaseGroup) => list.push(g.getID()));
             res.json(list);
@@ -66,11 +67,11 @@ router.get('/groups', function (req: any, res: any) {
     }
 });
 
-router.get('/group/:id/rights', function (req: any, res: any) {
-    if (req.session.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+router.get('/group/:id/rights', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         res.json(rights);
@@ -85,11 +86,11 @@ router.get('/group/:id/rights', function (req: any, res: any) {
     }
 });
 
-router.get('/group/:id/users', function (req: any, res: any) {
-    if (req.session.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+router.get('/group/:id/users', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
@@ -110,11 +111,11 @@ router.get('/group/:id/users', function (req: any, res: any) {
     }
 });
 
-router.get('/group/:id', function (req: any, res: any) {
-    if (req.session.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+router.get('/group/:id', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
@@ -149,14 +150,14 @@ router.get('/group/:id', function (req: any, res: any) {
     }
 });
 
-router.put('/project/:prj(\\d+|new)', function (req: any, res: any) {
+router.put('/project/:prj(\\d+|new)', function (req: Request, res: Response) {
     res.sendStatus(401);
 });
 
-router.delete('/project/:prj(\\d+)', function (req: any, res: any) {
-    if (req.session.user) {
+router.delete('/project/:prj(\\d+)', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx: number = Number(req.params.id);
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 self.remove().then(success => {
                     if(success) {
@@ -172,10 +173,10 @@ router.delete('/project/:prj(\\d+)', function (req: any, res: any) {
     }
 });
 
-router.get('/project/:id(\\d+)', function (req: any, res: any) {
-    if (req.session.user) {
+router.get('/project/:id(\\d+)', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx: number = Number(req.params.id);
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 if (self.getID() === NaN) {
                     res.sendStatus(404);
@@ -208,10 +209,10 @@ router.get('/project/:id(\\d+)', function (req: any, res: any) {
     }
 });
 
-router.get('/project/:id/data', function (req: any, res: any) {
-    if (req.session.user) {
+router.get('/project/:id/data', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx = Number(req.params.id);
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
                     self.getGroup().getRightsForUser(user).then(val => {
@@ -242,7 +243,7 @@ router.get('/project/:id/data', function (req: any, res: any) {
     }
 });
 
-function setFileRequestHeaders(file: SVEData, fetchType: string, res: any) {
+function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response) {
     res.set({
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(),
@@ -252,12 +253,12 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: any) {
     });
 }
 
-router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: any, res: any) {
-    if (req.session.user) {
+router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
         let fetchType = req.params.fetchType as string || "full";
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
                     self.getGroup().getRightsForUser(user).then(val => {
@@ -273,22 +274,22 @@ router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', f
     } 
 });
 
-router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: any, res: any) {
-    if (req.session.user) {
+router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
         let fetchType = req.params.fetchType as string || "full";
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.read) {
                             // check range request
-                            let range = req.range();
+                            let range: Ranges | undefined | -1 | -2 = req.range(1e+9); // max one GB
                             (self as SVEProject).getDataById(fid).then(file => {
                                 file.getStream(
                                     (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
-                                    (range !== undefined && range.length > 0) ? range[0] : undefined
+                                    (range !== undefined && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
                                 ).then(stream => {
                                     setFileRequestHeaders(file, fetchType, res);
                                     stream.pipe(res);window.localStorage.getItem("sve_user")
@@ -311,11 +312,11 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
     }
 });
 
-router.post('/project/:id/data/upload', function (req: any, res: any) {
-    if (req.session.user) {
+router.post('/project/:id/data/upload', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx = Number(req.params.id);
         let fileType: SVEDataType = req.body.type as SVEDataType;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (prj) => {
                 prj.getGroup()!.getRightsForUser(user).then(val => {
                     if (val.write) {
@@ -326,12 +327,10 @@ router.post('/project/:id/data/upload', function (req: any, res: any) {
                                     parentProject: prj,
                                     type: fileType
                                 }, (data) => {
-                                    res.send(status, {
-                                    });
+                                    res.send(status);
                                 });
                             } else {
-                                res.send(status, {
-                                });
+                                res.send(status);
                             }
                         });  
                     } else {
@@ -345,17 +344,17 @@ router.post('/project/:id/data/upload', function (req: any, res: any) {
     }
 });
 
-router.get('/project/:id/data/upload', function (req: any, res: any) {
+router.get('/project/:id/data/upload', function (req: Request, res: Response) {
     resumable.get(req, function(status: string, filename: string, original_filename: string, identifier: string){
         console.log('GET', status);
-        res.send((status == 'found' ? 200 : 404), status);
+        res.send((status == 'found' ? 200 : 404));
     });
 });
 
-router.get('/data/:id', function (req: any, res: any) {
-    if (req.session.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+router.get('/data/:id', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
                     res.sendStatus(401);
@@ -376,10 +375,10 @@ router.get('/data/:id', function (req: any, res: any) {
     }
 });
 
-/*router.get('/data/:id/stream', function (req: any, res: any) {
-    if (req.session.user) {
+/*router.get('/data/:id/stream', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
                     res.sendStatus(401);
@@ -403,10 +402,10 @@ router.get('/data/:id', function (req: any, res: any) {
     }
 });
 
-router.get('/data/:id/download', function (req: any, res: any) {
-    if (req.session.user) {
+router.get('/data/:id/download', function (req: Request, res: Response) {
+    if (req.session!.user) {
         let idx = req.params.id as number;
-        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
                     res.sendStatus(401);
@@ -430,9 +429,9 @@ router.get('/data/:id/download', function (req: any, res: any) {
     }
 });*/
 
-router.get('/user/:id', function (req: any, res: any) {
-    if (req.session.user) {
-        let idx = req.params.id as number;
+router.get('/user/:id', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
         let user = new SVEAccount({id: idx} as BasicUserInitializer, (state) => {
             res.json({
                 id: user.getID(),
@@ -445,20 +444,20 @@ router.get('/user/:id', function (req: any, res: any) {
     }
 });
 
-router.post('/doLogin', function (req: any, res: any) {
+router.post('/doLogin', function (req: Request, res: Response) {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
-            acc.setSessionID(req.session.id);
-            req.session.user = acc;
-            console.log("Logged in user: " + req.session.user.getName());
+            acc.setSessionID(req.session!.id);
+            req.session!.user = acc;
+            console.log("Logged in user: " + req.session!.user.getName());
             res.json({
                 success: user.getState() !== LoginState.NotLoggedIn,
                 user: acc.getName(),
                 id: acc.getID()
             });
         } else {
-            req.session.user = undefined;
+            req.session!.user = undefined;
             res.json({
                 success: false,
                 user: ""

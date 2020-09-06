@@ -2,6 +2,7 @@ import {BasicUserInitializer, SVEAccount, SVEDataVersion, SVEData, SVELocalDataI
 import { Stream } from 'stream';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
+import {Range} from "range-parser";
 
 export class SVEServerData extends SVEData {
     protected static fs = require('fs');
@@ -59,7 +60,7 @@ export class SVEServerData extends SVEData {
         return size;
     }
 
-    public getStream(version: SVEDataVersion, fileRange?: any): Promise<Stream> {
+    public getStream(version: SVEDataVersion, fileRange?: Range): Promise<Stream> {
         if(this.localDataInfo !== undefined) {
             this.currentDataVersion = version;
             this.data = SVEServerData.fs.createReadStream(

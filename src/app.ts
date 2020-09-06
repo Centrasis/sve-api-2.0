@@ -1,5 +1,6 @@
 import { router } from './authenticator';
 import { router as sve } from './sveapi';
+import express, { Request, Response } from "express";
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 
 var fs = require('fs');
@@ -29,7 +30,6 @@ SVESystemInfo.initSystem().then((val) => {
     console.log('SVE System initialization failed: ' + JSON.stringify(val) + '!');
 });
 
-var express = require('express');
 const app = express();
 const httpApp = express();
 const port = process.env.PORT || 443;
@@ -51,7 +51,7 @@ app.use('/api', sve);
 
 app.use(express.static('public'));
 
-httpApp.get("*", function(req: any, res: any) {
+httpApp.get("*", function(req: Request, res: Response) {
     res.redirect('https://' + req.headers.host + req.url);
 });
 

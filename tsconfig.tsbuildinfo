@@ -166,26 +166,6 @@
         "signature": "89bf2b7a601b73ea4311eda9c41f86a58994fec1bee3b87c4a14d68d9adcdcbd",
         "affectsGlobalScope": true
       },
-      "./src/serverhelper.ts": {
-        "version": "b2e2ecacf8029e5d5f4d93f551495346bbe9ffab5e1d7436848bcd3b3b1e6417",
-        "signature": "d6c2cd5d3657b25a35e3127d1a4a7aa965b4b6bf260caf35169cee84d8f554bc",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/svebaselib/dist/sveaccount.d.ts": {
-        "version": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
-        "signature": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/svebaselib/dist/svesysteminfo.d.ts": {
-        "version": "d247f1c8f7f8becb288aab19feb55b4bda61d325c75f0804e94ca1390b10026e",
-        "signature": "d247f1c8f7f8becb288aab19feb55b4bda61d325c75f0804e94ca1390b10026e",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/svebaselib/dist/svegroup.d.ts": {
-        "version": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
-        "signature": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
-        "affectsGlobalScope": false
-      },
       "./node_modules/@types/node/globals.d.ts": {
         "version": "c7e7b89f371a6af12ab460b75fba60c95bbea84c094583087aff14b76b86ce7d",
         "signature": "c7e7b89f371a6af12ab460b75fba60c95bbea84c094583087aff14b76b86ce7d",
@@ -446,6 +426,81 @@
         "signature": "d522314e80ed71b57e3c2939d3c9594eaae63a4adf028559e6574f6b270b0fee",
         "affectsGlobalScope": false
       },
+      "./node_modules/@types/engine.io/index.d.ts": {
+        "version": "2bc5a885dc91b4006192c477dfae4f2856e5809c6ffbf62cc242ac010f15ab51",
+        "signature": "2bc5a885dc91b4006192c477dfae4f2856e5809c6ffbf62cc242ac010f15ab51",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/socket.io/index.d.ts": {
+        "version": "7d666a6623022683b640930047127f754d79393a29c0f51f3447325f8435809f",
+        "signature": "7d666a6623022683b640930047127f754d79393a29c0f51f3447325f8435809f",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/range-parser/index.d.ts": {
+        "version": "4e88b833be14c7f384e0dcd57bb30acd799e8e34d212635d693e41a75a71164b",
+        "signature": "4e88b833be14c7f384e0dcd57bb30acd799e8e34d212635d693e41a75a71164b",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/qs/index.d.ts": {
+        "version": "adec64722d7da7581f6137c69426fc6e3859609e3c2ceeffb311f0be9a5ba4ae",
+        "signature": "adec64722d7da7581f6137c69426fc6e3859609e3c2ceeffb311f0be9a5ba4ae",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/express-serve-static-core/index.d.ts": {
+        "version": "b6be0ba4d5bf5aec9b420843774393a8b245c337cc55e0134663d6cffe68178b",
+        "signature": "b6be0ba4d5bf5aec9b420843774393a8b245c337cc55e0134663d6cffe68178b",
+        "affectsGlobalScope": true
+      },
+      "./node_modules/@types/mime/index.d.ts": {
+        "version": "be27a64e821a3e5af838650e4aa25805c60f057d0c37a9762c378d19d364b3e6",
+        "signature": "be27a64e821a3e5af838650e4aa25805c60f057d0c37a9762c378d19d364b3e6",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/serve-static/index.d.ts": {
+        "version": "adde1c915ab3b61a2821c72f226546c6c119a061a2ff4d6f90b3d61c005ae1f8",
+        "signature": "adde1c915ab3b61a2821c72f226546c6c119a061a2ff4d6f90b3d61c005ae1f8",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/connect/index.d.ts": {
+        "version": "e6ffa74698f0a1d23e4223242ed7dcdb89d02bbbb063a1930e9f91d0385abe16",
+        "signature": "e6ffa74698f0a1d23e4223242ed7dcdb89d02bbbb063a1930e9f91d0385abe16",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/body-parser/index.d.ts": {
+        "version": "ebddbd167c2fabd0151f50e5df94ca6d845149c47521280d8867afe3429dd078",
+        "signature": "ebddbd167c2fabd0151f50e5df94ca6d845149c47521280d8867afe3429dd078",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/express/index.d.ts": {
+        "version": "088d420a09a36d241f1ddbdcb553951c02ef0844014727a29712d2ced57edd22",
+        "signature": "088d420a09a36d241f1ddbdcb553951c02ef0844014727a29712d2ced57edd22",
+        "affectsGlobalScope": false
+      },
+      "./src/fileuploadhandler.ts": {
+        "version": "bf0a78a2db95551715bf3d8f8785c78e39edda65fb8329fb1ff3ac66c1a1fe1b",
+        "signature": "5ee71ade3177bb75c863c87bd2acdcc194ad54afa17f8c5920dbd1775d6ac71c",
+        "affectsGlobalScope": false
+      },
+      "./src/serverhelper.ts": {
+        "version": "b2e2ecacf8029e5d5f4d93f551495346bbe9ffab5e1d7436848bcd3b3b1e6417",
+        "signature": "d6c2cd5d3657b25a35e3127d1a4a7aa965b4b6bf260caf35169cee84d8f554bc",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/svebaselib/dist/sveaccount.d.ts": {
+        "version": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
+        "signature": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/svebaselib/dist/svesysteminfo.d.ts": {
+        "version": "d247f1c8f7f8becb288aab19feb55b4bda61d325c75f0804e94ca1390b10026e",
+        "signature": "d247f1c8f7f8becb288aab19feb55b4bda61d325c75f0804e94ca1390b10026e",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/svebaselib/dist/svegroup.d.ts": {
+        "version": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
+        "signature": "6a9cd6f29ea136c9d076f2b1ed2b280932207bf20016d0ff9d958b289747730d",
+        "affectsGlobalScope": false
+      },
       "./node_modules/svebaselib/dist/svedata.d.ts": {
         "version": "1a407716c093f859c427e1f3e6ce0e8dffeb32eba84c22c274fee6e0c4fc212f",
         "signature": "1a407716c093f859c427e1f3e6ce0e8dffeb32eba84c22c274fee6e0c4fc212f",
@@ -507,58 +562,18 @@
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserverdata.ts": {
-        "version": "573a6225d3745daec8ba62d0b15ea416b5ce73e2b08a231d8d07f0223dc17747",
-        "signature": "5fc23664ac5709e2e7732397c46b96bb5f987757a9b65cfa547789bff8b7bf8b",
+        "version": "2cb3cfae643fd1ee1323c4db1f7726c0107442983e6b2d1835fd55ef853ef904",
+        "signature": "9921593a4253a938a253d9933298b02b80fe45b641c2e074a270c46bb21258b6",
         "affectsGlobalScope": false
       },
       "./src/sveapi.ts": {
-        "version": "682ea719adef88f8bd662a79b4355569e1830a085823bab69e4bd69c6a73fc42",
-        "signature": "b6faa138519a6c5a2ce6be038044be9c6e915bc801523d37f6c9f4b6da3d6f8e",
+        "version": "e0d3c29e350e84a517541bd57f10e80ccf9a988be9dc68b802dadc3d84f7eb49",
+        "signature": "6175f8561d39b1be26646338a3b14189371d1ac6d14ea2cda64ef34b72ea15b9",
         "affectsGlobalScope": false
       },
       "./src/app.ts": {
-        "version": "99e4885dd6018e0f04e22e3105fdff3eb3d994ac1f613cdffaa530b3b2448228",
+        "version": "902809691a1a1c082857ffcd8a36b4bec208c0b24fb7a1a717bfdd9d20cbf1b0",
         "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/connect/index.d.ts": {
-        "version": "e6ffa74698f0a1d23e4223242ed7dcdb89d02bbbb063a1930e9f91d0385abe16",
-        "signature": "e6ffa74698f0a1d23e4223242ed7dcdb89d02bbbb063a1930e9f91d0385abe16",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/body-parser/index.d.ts": {
-        "version": "ebddbd167c2fabd0151f50e5df94ca6d845149c47521280d8867afe3429dd078",
-        "signature": "ebddbd167c2fabd0151f50e5df94ca6d845149c47521280d8867afe3429dd078",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/range-parser/index.d.ts": {
-        "version": "4e88b833be14c7f384e0dcd57bb30acd799e8e34d212635d693e41a75a71164b",
-        "signature": "4e88b833be14c7f384e0dcd57bb30acd799e8e34d212635d693e41a75a71164b",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/qs/index.d.ts": {
-        "version": "adec64722d7da7581f6137c69426fc6e3859609e3c2ceeffb311f0be9a5ba4ae",
-        "signature": "adec64722d7da7581f6137c69426fc6e3859609e3c2ceeffb311f0be9a5ba4ae",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/express-serve-static-core/index.d.ts": {
-        "version": "343113a79319b75b3b735323d4c8667faed0a1fbe4ba696ecbd89eb3518ab244",
-        "signature": "343113a79319b75b3b735323d4c8667faed0a1fbe4ba696ecbd89eb3518ab244",
-        "affectsGlobalScope": true
-      },
-      "./node_modules/@types/mime/index.d.ts": {
-        "version": "be27a64e821a3e5af838650e4aa25805c60f057d0c37a9762c378d19d364b3e6",
-        "signature": "be27a64e821a3e5af838650e4aa25805c60f057d0c37a9762c378d19d364b3e6",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/serve-static/index.d.ts": {
-        "version": "adde1c915ab3b61a2821c72f226546c6c119a061a2ff4d6f90b3d61c005ae1f8",
-        "signature": "adde1c915ab3b61a2821c72f226546c6c119a061a2ff4d6f90b3d61c005ae1f8",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/express/index.d.ts": {
-        "version": "46453f63ea6f9197248ffb80839f423b14f8d8d7dbb2c4902b8797b44d259859",
-        "signature": "46453f63ea6f9197248ffb80839f423b14f8d8d7dbb2c4902b8797b44d259859",
         "affectsGlobalScope": false
       },
       "./node_modules/@types/keygrip/index.d.ts": {
@@ -639,6 +654,18 @@
         "./node_modules/@types/node/ts3.2/fs.d.ts",
         "./node_modules/@types/node/ts3.2/process.d.ts",
         "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/util.d.ts"
+      ],
+      "./node_modules/@types/engine.io/index.d.ts": [
+        "./node_modules/@types/node/events.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/http.d.ts",
+        "./node_modules/@types/node/net.d.ts",
+        "./node_modules/@types/node/process.d.ts",
+        "./node_modules/@types/node/ts3.2/fs.d.ts",
+        "./node_modules/@types/node/ts3.2/process.d.ts",
+        "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/ts3.7/index.d.ts",
         "./node_modules/@types/node/util.d.ts"
       ],
       "./node_modules/@types/express-serve-static-core/index.d.ts": [
@@ -1264,6 +1291,19 @@
         "./node_modules/@types/node/ts3.2/fs.d.ts",
         "./node_modules/@types/node/ts3.2/process.d.ts",
         "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/util.d.ts"
+      ],
+      "./node_modules/@types/socket.io/index.d.ts": [
+        "./node_modules/@types/engine.io/index.d.ts",
+        "./node_modules/@types/node/events.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/http.d.ts",
+        "./node_modules/@types/node/https.d.ts",
+        "./node_modules/@types/node/process.d.ts",
+        "./node_modules/@types/node/ts3.2/fs.d.ts",
+        "./node_modules/@types/node/ts3.2/process.d.ts",
+        "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/ts3.7/index.d.ts",
         "./node_modules/@types/node/util.d.ts"
       ],
       "./node_modules/svebaselib/dist/index.d.ts": [
@@ -1594,6 +1634,7 @@
         "./node_modules/@types/node/util.d.ts"
       ],
       "./src/app.ts": [
+        "./node_modules/@types/express/index.d.ts",
         "./node_modules/@types/node/fs.d.ts",
         "./node_modules/@types/node/process.d.ts",
         "./node_modules/@types/node/ts3.2/fs.d.ts",
@@ -1613,6 +1654,17 @@
         "./node_modules/@types/node/util.d.ts",
         "./node_modules/svebaselib/dist/index.d.ts",
         "./src/serverhelper.ts"
+      ],
+      "./src/fileuploadhandler.ts": [
+        "./node_modules/@types/express/index.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/path.d.ts",
+        "./node_modules/@types/node/process.d.ts",
+        "./node_modules/@types/node/ts3.2/fs.d.ts",
+        "./node_modules/@types/node/ts3.2/process.d.ts",
+        "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/util.d.ts",
+        "./node_modules/@types/socket.io/index.d.ts"
       ],
       "./src/serverbaselib/sveserveraccount.ts": [
         "./node_modules/@types/mysql/index.d.ts",
@@ -1634,6 +1686,7 @@
         "./node_modules/@types/node/ts3.2/process.d.ts",
         "./node_modules/@types/node/ts3.2/util.d.ts",
         "./node_modules/@types/node/util.d.ts",
+        "./node_modules/@types/range-parser/index.d.ts",
         "./node_modules/svebaselib/dist/index.d.ts",
         "./src/serverbaselib/sveserverproject.ts"
       ],
@@ -1682,14 +1735,14 @@
         "./node_modules/@types/node/util.d.ts"
       ],
       "./src/sveapi.ts": [
-        "./node_modules/@types/node/console.d.ts",
+        "./node_modules/@types/express/index.d.ts",
         "./node_modules/@types/node/fs.d.ts",
         "./node_modules/@types/node/process.d.ts",
-        "./node_modules/@types/node/stream.d.ts",
         "./node_modules/@types/node/ts3.2/fs.d.ts",
         "./node_modules/@types/node/ts3.2/process.d.ts",
         "./node_modules/@types/node/ts3.2/util.d.ts",
         "./node_modules/@types/node/util.d.ts",
+        "./node_modules/@types/range-parser/index.d.ts",
         "./node_modules/svebaselib/dist/index.d.ts",
         "./src/authenticator.ts",
         "./src/serverbaselib/sveserveraccount.ts",
@@ -1739,6 +1792,18 @@
         "./node_modules/@types/node/ts3.2/fs.d.ts",
         "./node_modules/@types/node/ts3.2/process.d.ts",
         "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/util.d.ts"
+      ],
+      "./node_modules/@types/engine.io/index.d.ts": [
+        "./node_modules/@types/node/events.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/http.d.ts",
+        "./node_modules/@types/node/net.d.ts",
+        "./node_modules/@types/node/process.d.ts",
+        "./node_modules/@types/node/ts3.2/fs.d.ts",
+        "./node_modules/@types/node/ts3.2/process.d.ts",
+        "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/ts3.7/index.d.ts",
         "./node_modules/@types/node/util.d.ts"
       ],
       "./node_modules/@types/express-serve-static-core/index.d.ts": [
@@ -2366,6 +2431,19 @@
         "./node_modules/@types/node/ts3.2/util.d.ts",
         "./node_modules/@types/node/util.d.ts"
       ],
+      "./node_modules/@types/socket.io/index.d.ts": [
+        "./node_modules/@types/engine.io/index.d.ts",
+        "./node_modules/@types/node/events.d.ts",
+        "./node_modules/@types/node/fs.d.ts",
+        "./node_modules/@types/node/http.d.ts",
+        "./node_modules/@types/node/https.d.ts",
+        "./node_modules/@types/node/process.d.ts",
+        "./node_modules/@types/node/ts3.2/fs.d.ts",
+        "./node_modules/@types/node/ts3.2/process.d.ts",
+        "./node_modules/@types/node/ts3.2/util.d.ts",
+        "./node_modules/@types/node/ts3.7/index.d.ts",
+        "./node_modules/@types/node/util.d.ts"
+      ],
       "./node_modules/svebaselib/dist/index.d.ts": [
         "./node_modules/@types/node/fs.d.ts",
         "./node_modules/@types/node/process.d.ts",
@@ -2693,11 +2771,15 @@
         "./node_modules/@types/node/ts3.2/util.d.ts",
         "./node_modules/@types/node/util.d.ts"
       ],
+      "./src/fileuploadhandler.ts": [
+        "./node_modules/@types/socket.io/index.d.ts"
+      ],
       "./src/serverbaselib/sveserveraccount.ts": [
         "./node_modules/svebaselib/dist/index.d.ts"
       ],
       "./src/serverbaselib/sveserverdata.ts": [
         "./node_modules/@types/node/stream.d.ts",
+        "./node_modules/@types/range-parser/index.d.ts",
         "./node_modules/svebaselib/dist/index.d.ts"
       ],
       "./src/serverbaselib/sveservergroup.ts": [
@@ -2710,6 +2792,9 @@
       ],
       "./src/serverbaselib/sveserversysteminfo.ts": [
         "./node_modules/svebaselib/dist/index.d.ts"
+      ],
+      "./src/sveapi.ts": [
+        "./node_modules/@types/express-serve-static-core/index.d.ts"
       ]
     },
     "semanticDiagnosticsPerFile": [
@@ -2717,6 +2802,7 @@
       "./node_modules/@types/bson/index.d.ts",
       "./node_modules/@types/connect/index.d.ts",
       "./node_modules/@types/cookie-session/index.d.ts",
+      "./node_modules/@types/engine.io/index.d.ts",
       "./node_modules/@types/express-serve-static-core/index.d.ts",
       "./node_modules/@types/express-session/index.d.ts",
       "./node_modules/@types/express/index.d.ts",
@@ -2780,6 +2866,7 @@
       "./node_modules/@types/qs/index.d.ts",
       "./node_modules/@types/range-parser/index.d.ts",
       "./node_modules/@types/serve-static/index.d.ts",
+      "./node_modules/@types/socket.io/index.d.ts",
       "./node_modules/svebaselib/dist/index.d.ts",
       "./node_modules/svebaselib/dist/sveaccount.d.ts",
       "./node_modules/svebaselib/dist/svedata.d.ts",
@@ -2821,6 +2908,7 @@
       "./node_modules/typescript/lib/lib.esnext.intl.d.ts",
       "./src/app.ts",
       "./src/authenticator.ts",
+      "./src/fileuploadhandler.ts",
       "./src/serverbaselib/sveserveraccount.ts",
       "./src/serverbaselib/sveserverdata.ts",
       "./src/serverbaselib/sveservergroup.ts",
