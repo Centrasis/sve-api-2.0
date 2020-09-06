@@ -20,6 +20,7 @@
     "querystring": "^0.2.0",
     "resumable": "0.0.1-1",
     "socket.io": "^2.3.0",
+    "socketio-file-upload": "^0.7.2",
     "sql": "^0.78.0",
     "svebaselib": "github:ftl999/svebaselib",
     "typescript": "^3.9.7",

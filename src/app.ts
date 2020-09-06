@@ -34,6 +34,7 @@ SVESystemInfo.initSystem().then((val) => {
 const app = express();
 const httpApp = express();
 const port = process.env.PORT || 443;
+var siofu = require("socketio-file-upload");
 
 app.use(cookieSession({
     name: 'sve-session',
@@ -49,6 +50,7 @@ app.use(cookieSession({
 app.use('/auth', router);
 
 app.use('/api', sve);
+app.use('/api/upload', siofu.router);
 
 app.use(express.static('public'));
 
