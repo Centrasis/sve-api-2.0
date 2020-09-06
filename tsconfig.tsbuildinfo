@@ -447,8 +447,8 @@
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/svedata.d.ts": {
-        "version": "3d8d1fa5f0dcbd9fcc34bb7547220e41ccdd8a0c81d4ac273942fdb9a2f2d0b7",
-        "signature": "3d8d1fa5f0dcbd9fcc34bb7547220e41ccdd8a0c81d4ac273942fdb9a2f2d0b7",
+        "version": "1a407716c093f859c427e1f3e6ce0e8dffeb32eba84c22c274fee6e0c4fc212f",
+        "signature": "1a407716c093f859c427e1f3e6ce0e8dffeb32eba84c22c274fee6e0c4fc212f",
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/sveproject.d.ts": {
@@ -507,12 +507,12 @@
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserverdata.ts": {
-        "version": "b5d488d7b15864e66d44993328f37786915ff13ac9cc29a06b9b65a5438795f6",
-        "signature": "7ad2e9a7d072301220e6a4b956e702717b0953b89727958d4349208727754b30",
+        "version": "573a6225d3745daec8ba62d0b15ea416b5ce73e2b08a231d8d07f0223dc17747",
+        "signature": "5fc23664ac5709e2e7732397c46b96bb5f987757a9b65cfa547789bff8b7bf8b",
         "affectsGlobalScope": false
       },
       "./src/sveapi.ts": {
-        "version": "80fcdc43186f6262c61e1c8feb5570f5c2417707d54e310ce03733d2c0b20ed1",
+        "version": "682ea719adef88f8bd662a79b4355569e1830a085823bab69e4bd69c6a73fc42",
         "signature": "b6faa138519a6c5a2ce6be038044be9c6e915bc801523d37f6c9f4b6da3d6f8e",
         "affectsGlobalScope": false
       },

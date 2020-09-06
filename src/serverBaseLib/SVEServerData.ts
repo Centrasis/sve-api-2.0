@@ -4,6 +4,8 @@ import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
 
 export class SVEServerData extends SVEData {
+    protected static fs = require('fs');
+
     // gets the data by index if initInfo is number. Else a new data record is created on server
     public constructor(handler: SVEAccount, initInfo: number | SVEDataInitializer, onComplete: (self: SVEData) => void) {
         super(handler, initInfo, (self) => {
@@ -41,18 +43,32 @@ export class SVEServerData extends SVEData {
 
     public getBLOB(version: SVEDataVersion): Promise<ArrayBuffer> {
         if(this.localDataInfo !== undefined && this.data === undefined) {
-            var fs = require('fs');
             this.currentDataVersion = version;
-            this.data = fs.readFileSync(this.localDataInfo.filePath);
+            this.data = SVEServerData.fs.readFileSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
         }
         return super.getBLOB(version);
     }
 
-    public getStream(version: SVEDataVersion): Promise<Stream> {
+    public getSize(version: SVEDataVersion): number {
+        let size = 0;
         if(this.localDataInfo !== undefined) {
-            var fs = require('fs');
+            let stats = SVEServerData.fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
+            size = stats["size"];
+        }
+
+        return size;
+    }
+
+    public getStream(version: SVEDataVersion, fileRange?: any): Promise<Stream> {
+        if(this.localDataInfo !== undefined) {
             this.currentDataVersion = version;
-            this.data = fs.createReadStream((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
+            this.data = SVEServerData.fs.createReadStream(
+                (version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath, 
+                {
+                    start: (fileRange !== undefined) ? fileRange.start : undefined,
+                    end: (fileRange !== undefined) ? fileRange.end : undefined,
+                }
+            );
         }
         
         return super.getStream(version);

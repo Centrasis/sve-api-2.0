@@ -242,6 +242,37 @@ router.get('/project/:id/data', function (req: any, res: any) {
     }
 });
 
+function setFileRequestHeaders(file: SVEData, fetchType: string, res: any) {
+    res.set({
+        'Cache-Control': file.getCacheType(),
+        'Content-Type': file.getContentType(),
+        'Accept-Ranges': 'bytes',
+        'Content-Length': file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview),
+        'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
+    });
+}
+
+router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: any, res: any) {
+    if (req.session.user) {
+        let pid = Number(req.params.id);
+        let fid = Number(req.params.fid);
+        let fetchType = req.params.fetchType as string || "full";
+        new SVEAccount(req.session.user as SessionUserInitializer, (user) => {
+            new SVEProject(pid, user, (self) => {
+                if(self !== undefined && self.getID() != NaN) {
+                    self.getGroup().getRightsForUser(user).then(val => {
+                        (self as SVEProject).getDataById(fid).then(file => {
+                            setFileRequestHeaders(file, fetchType, res);
+                        });
+                    });
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    } 
+});
+
 router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: any, res: any) {
     if (req.session.user) {
         let pid = Number(req.params.id);
@@ -252,16 +283,17 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
                 if(self !== undefined && self.getID() != NaN) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.read) {
+                            // check range request
+                            let range = req.range();
                             (self as SVEProject).getDataById(fid).then(file => {
-                                file.getStream((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview).then(stream => {
-                                    res.set({
-                                        'Cache-Control': file.getCacheType(),
-                                        'Content-Type': file.getContentType(),
-                                        'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
-                                    });
-                                    stream.pipe(res);
+                                file.getStream(
+                                    (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
+                                    (range !== undefined && range.length > 0) ? range[0] : undefined
+                                ).then(stream => {
+                                    setFileRequestHeaders(file, fetchType, res);
+                                    stream.pipe(res);window.localStorage.getItem("sve_user")
                                 }, err => {
-                                    console.log("Error in stream of file: " + fid + "!");
+                                    console.log("Error in stream of file: " + fid + " (" + JSON.stringify(err) + ")!");
                                     res.sendStatus(500)
                                 });
                             }, err => res.sendStatus(404));
