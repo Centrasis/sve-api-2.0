@@ -3,9 +3,9 @@ import { Stream } from 'stream';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
 import {Range} from "range-parser";
+import * as fs from "fs";
 
 export class SVEServerData extends SVEData {
-    protected static fs = require('fs');
 
     // gets the data by index if initInfo is number. Else a new data record is created on server
     public constructor(handler: SVEAccount, initInfo: number | SVEDataInitializer, onComplete: (self: SVEData) => void) {
@@ -45,7 +45,7 @@ export class SVEServerData extends SVEData {
     public getBLOB(version: SVEDataVersion): Promise<ArrayBuffer> {
         if(this.localDataInfo !== undefined && this.data === undefined) {
             this.currentDataVersion = version;
-            this.data = SVEServerData.fs.readFileSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
+            this.data = fs.readFileSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
         }
         return super.getBLOB(version);
     }
@@ -53,7 +53,7 @@ export class SVEServerData extends SVEData {
     public getSize(version: SVEDataVersion): number {
         let size = 0;
         if(this.localDataInfo !== undefined) {
-            let stats = SVEServerData.fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
+            let stats = fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
             size = stats["size"];
         }
 
@@ -63,7 +63,7 @@ export class SVEServerData extends SVEData {
     public getStream(version: SVEDataVersion, fileRange?: Range): Promise<Stream> {
         if(this.localDataInfo !== undefined) {
             this.currentDataVersion = version;
-            this.data = SVEServerData.fs.createReadStream(
+            this.data = fs.createReadStream(
                 (version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath, 
                 {
                     start: (fileRange !== undefined) ? fileRange.start : undefined,

@@ -8,7 +8,7 @@ import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
 import {apiVersion as authVersion} from './authenticator';
 
-import express, { Request, Response, Router } from "express";
+import { Request, Response, Router } from "express";
 
 import {Ranges} from "range-parser";
 

@@ -1,11 +1,12 @@
 import { router } from './authenticator';
 import { router as sve } from './sveapi';
+import { FileUploadHandler } from './FileUploadHandler';
 import express, { Request, Response } from "express";
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
+import { Server as HttpServer, createServer as createHTTPServer } from 'http';
+import { Server as HttpsServer, createServer as createHTTPSServer } from 'https';
+import * as fs from "fs";
 
-var fs = require('fs');
-var https = require('https');
-var http = require('http');
 var privateKey  = fs.readFileSync('sslcert/server.key', 'utf8');
 var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
 var credentials = {key: privateKey, cert: certificate};
@@ -55,20 +56,17 @@ httpApp.get("*", function(req: Request, res: Response) {
     res.redirect('https://' + req.headers.host + req.url);
 });
 
-var httpsServer: any;
+var httpsServer: HttpServer;
 if (secureServer) {
     console.log('Secure server: on');
-    httpsServer = https.createServer(credentials, app);
+    httpsServer = createHTTPSServer(credentials, app);
 } else {
     console.log('WARNING: Secure server: off');
-    httpsServer = http.createServer(app);
+    httpsServer = createHTTPServer(app);
 }
+
+var filehandler: FileUploadHandler = new FileUploadHandler(httpsServer);
 
 httpsServer.listen(port, function () {
     console.log('App is listening on port ' + port + '!');
 });
-
-/*if (httpPort !== undefined) {
-    var httpServer = http.createServer(httpApp);
-    httpServer.listen(httpPort);
-}*/ 
