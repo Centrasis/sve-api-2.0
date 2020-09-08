@@ -45,6 +45,13 @@ export class SVEServerProject extends SVEProject {
                                 } else {
                                     this.splashImgID = 0;
                                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT min(id) as id FROM `files` WHERE projects.id = ?", [idx as number], (err, results) => {
+                                        if (err || results === undefined) {
+                                            if (onReady !== undefined)
+                                                onReady!(self);
+
+                                                return;
+                                        }
+                                        
                                         if(results.length > 0) {
                                             this.splashImgID = Number(results[0].id);
                                         }

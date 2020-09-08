@@ -572,7 +572,7 @@
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserverproject.ts": {
-        "version": "885967461c3db2c3ab305a7cf44e61fa7f1a3ddf707ec83c2d706eeb826d9354",
+        "version": "01b83f9881bd40b4ebc05b1ff04db6337122d1869e549e87eac39ceebc2d1097",
         "signature": "ed2897299f77c917c345cc50b9c1d52978ae8e2c28777cd3f74c71e961d568a9",
         "affectsGlobalScope": false
       },
