@@ -1,9 +1,12 @@
-import {BasicUserInitializer, SVEAccount, SVEDataVersion, SVEData, SVELocalDataInfo, SVEProject as SVEBaseProject, SVEGroup, SVESystemInfo, SVEDataInitializer} from 'svebaselib';
+import {BasicUserInitializer, SVEAccount, SVEDataVersion, SVEData, SVELocalDataInfo, SVEProject as SVEBaseProject, SVEGroup, SVESystemInfo, SVEDataInitializer, SVEDataType} from 'svebaselib';
 import { Stream } from 'stream';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
 import {Range} from "range-parser";
 import * as fs from "fs";
+import * as sharp from "sharp";
+import ThumbnailGenerator from 'video-thumbnail-generator';
+import { basename, dirname, join } from 'path';
 
 export class SVEServerData extends SVEData {
 
@@ -58,6 +61,96 @@ export class SVEServerData extends SVEData {
         }
 
         return size;
+    }
+
+    public remove(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE id = ?", [this.id], (err, res) => {
+                if(err || res.length == 0) {
+                    resolve(false);
+                } else {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE id = ?", [this.id], (err, res) => {
+                        fs.unlink(this.localDataInfo!.filePath, (err) => {
+                            if (this.localDataInfo!.thumbnailPath.length > 0) {
+                                fs.unlink(this.localDataInfo!.thumbnailPath, (err) => {
+                                    resolve(true);
+                                });
+                            } else {
+                                resolve(true);
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    }
+
+    public store(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            if(this.localDataInfo === undefined) {
+                reject();
+            }
+            if (this.localDataInfo!.thumbnailPath.length == 0 && (this.type === SVEDataType.Image || this.type === SVEDataType.Video)) {
+                this.localDataInfo!.thumbnailPath = join(dirname(this.localDataInfo!.filePath), "thumbnails", basename(this.localDataInfo!.filePath), ".png");
+                fs.mkdir(dirname(this.localDataInfo!.thumbnailPath), {recursive: true}, async (err) => {
+                    if(err) {
+                        console.log("Error creating thumbnail dir: " + JSON.stringify(err));
+                    }
+                    if(this.type === SVEDataType.Image) {
+                        const sizeOf = require('image-size');
+                        let dim = sizeOf(this.localDataInfo!.filePath);
+                        let size = [0, 0];
+                        if(dim.height < dim.width) {
+                            size = [320, Math.round(320 * dim.height / dim.width)];
+                        } else {
+                            size = [Math.round(320 * dim.width / dim.height), 320];
+                        }
+
+                        sharp.default(this.localDataInfo!.filePath).resize(size[0], size[1]).png().toFile(this.localDataInfo!.thumbnailPath, 
+                            (err, info) => {
+                                if (err) {
+                                    console.log("Image resize error: " + JSON.stringify(err));
+                                }
+                            });
+                    } else {
+                        const getDimensions = require('get-video-dimensions');
+                        let dim = await getDimensions(this.localDataInfo!.filePath);
+                        let size = "";
+                        if(dim.height < dim.width) {
+                            size = "320x" + String(Math.round(320 * dim.height / dim.width));
+                        } else {
+                            size = String(Math.round(320 * dim.width / dim.height)) + "x320";
+                        }
+
+                        const tg = new ThumbnailGenerator({
+                            sourcePath: this.localDataInfo!.filePath,
+                            thumbnailPath: this.localDataInfo!.thumbnailPath,
+                            size: size
+                        });
+                        tg.generate();
+                    }
+                });
+            }
+
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                    [
+                        this.parentProject!.getID(), 
+                        this.getOwnerID(), 
+                        SVEData.type2Str(this.getType()), 
+                        this.localDataInfo!.filePath, 
+                        this.localDataInfo!.thumbnailPath,
+                        new Date(),
+                        (this.creation !== undefined) ? this.creation : new Date()
+                ], (err, results) => {
+                    if(err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
+        });
     }
 
     public getStream(version: SVEDataVersion, fileRange?: Range): Promise<Stream> {

@@ -10,8 +10,18 @@ import {apiVersion as authVersion} from './authenticator';
 
 import { Request, Response, Router } from "express";
 
+import * as fs from "fs";
+
 import {Ranges} from "range-parser";
 
+import * as formidable from "formidable";
+import {Fields, File, Files, Part, } from "formidable";
+import HugeUploader from 'huge-uploader-nodejs';
+import { copyFile, mkdir } from 'fs';
+import { dirname } from 'path';
+
+const tmpDir = './tmp';
+mkdir(tmpDir, (err) => {});
 var router = Router();
 var resumable = require("resumable");
 const apiVersion = 1.0;
@@ -292,7 +302,7 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
                                     (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
                                 ).then(stream => {
                                     setFileRequestHeaders(file, fetchType, res);
-                                    stream.pipe(res);window.localStorage.getItem("sve_user")
+                                    stream.pipe(res);
                                 }, err => {
                                     console.log("Error in stream of file: " + fid + " (" + JSON.stringify(err) + ")!");
                                     res.sendStatus(500)
@@ -312,27 +322,149 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
     }
 });
 
+router.get('/project/:id/data/upload/progress', function (req: Request, res: Response) {
+    if (req.session!.user && req.session!.uploadProgress) {
+        res.json({
+            progress: req.session!.uploadProgress
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
+    fs.mkdir(dirname(newPath), {recursive: true}, (err) => {
+        fs.rename(oldPath, newPath, function (err) {
+            if (err) {
+                if (err.code === 'EXDEV') {
+                    copy();
+                } else {
+                    callback(err);
+                }
+                return;
+            }
+            callback();
+        });
+    
+        function copy() {
+            var readStream = fs.createReadStream(oldPath);
+            var writeStream = fs.createWriteStream(newPath);
+    
+            readStream.on('error', callback);
+            writeStream.on('error', callback);
+    
+            readStream.on('close', function () {
+                fs.unlink(oldPath, callback);
+            });
+    
+            readStream.pipe(writeStream);
+        }
+    });
+}
+
+router.delete('/project/:id/data/:fid(\\d+)', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let pid = Number(req.params.id);
+        let fid = Number(req.params.fid);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            new SVEProject(pid, user, (self) => {
+                if(self !== undefined && self.getID() != NaN) {
+                    self.getGroup().getRightsForUser(user).then(val => {
+                        if (val.write) {
+                            (self as SVEProject).getDataById(fid).then(file => {
+                                file.remove().then(val => {
+                                    res.sendStatus((val) ? 200 : 500);
+                                });
+                            });
+                        } else {
+                            res.sendStatus(401);
+                        }
+                    });
+                } else {
+                    res.sendStatus(404);
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.post('/project/:id/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        let fileType: SVEDataType = req.body.type as SVEDataType;
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (prj) => {
                 prj.getGroup()!.getRightsForUser(user).then(val => {
                     if (val.write) {
-                        resumable.post(req, (status: string, filename: string, original_filename: string, identifier: string) => {
-                            if (status === "complete") {
-                                new SVEData(user, {
-                                    data: new ArrayBuffer(0),
-                                    parentProject: prj,
-                                    type: fileType
-                                }, (data) => {
-                                    res.send(status);
-                                });
-                            } else {
-                                res.send(status);
+                        HugeUploader(req, tmpDir, 9999, 50).then((assembleChunks) => {
+                            res.writeHead(204, 'No Content');
+                            res.end();
+                            if (assembleChunks) {
+                                assembleChunks().then(data => {
+                                    let postProcessing = async() => {
+                                        let fileDest = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getName() + "/" + user.getName() + "/" + data.postParams.fileName;
+                                        move(data.filePath, fileDest, (err) => {
+                                            if(err) {
+                                                console.log("Error on copy: " + JSON.stringify(err));
+                                            } else {
+                                                new SVEData(user, {
+                                                    type: SVEData.getTypeFromExt(fileDest), 
+                                                    owner: user, parentProject: prj, 
+                                                    path: {filePath: fileDest, thumbnailPath: ""},
+                                                    creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? data.postParams.created : new Date()
+                                                } as SVEDataInitializer, (data: SVEData) => {
+                                                    data.store().then(val => {
+                                                        if(!val)
+                                                            console.log("Error on file post-processing!");
+                                                    }, err => console.log(err));
+                                                });
+                                            }
+                                        });
+                                    };
+                                    postProcessing().catch(err => {});
+                                }).catch(err => console.log(err));
                             }
-                        });  
+                        }).catch((err) => {
+                            console.log("File receive error: " + JSON.stringify(err));
+                            res.status(400);
+                        });
+
+                        /*const form = new formidable.IncomingForm({ captureRejections: true });
+                        form.keepExtensions = true;
+                        form.uploadDir = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getName() + "/" + user.getName();
+                        form.type = 'multipart';
+                        form.once('error', console.error);
+                        form.on('progress', (bytesReceived, bytesExpected) => {
+                            req.session!.uploadProgress = bytesReceived / bytesExpected;
+                        });
+                        let uploadfile: any;
+                        let uploadfilename: string;
+                        form.on('fileBegin', (filename, file) => {
+                            uploadfile = file;
+                            uploadfilename = filename;
+                            form.emit('data', { name: 'fileBegin', filename, value: file });
+                        });
+                        form.once('end', () => {
+                            console.log("End upload: " + JSON.stringify(uploadfile));
+                            new SVEData(user, {type: SVEData.getTypeFromExt(uploadfilename), owner: user, parentProject: prj, path: {filePath: form.uploadDir, thumbnailPath: ""}} as SVEDataInitializer, (data: SVEData) => {
+                                data.store();
+                            });
+                        });
+
+                        mkdir(form.uploadDir, {recursive: true}, (err) => {
+                            if(err) {
+                                console.log("Error on creating upload dir: " + JSON.stringify(err));
+                            }
+
+                            form.parse(req, (err, fields, files) => {
+                                if (err) {
+                                    console.log("File upload error: " + JSON.stringify(err));
+                                    return;
+                                }
+                                res.json({ fields, files });
+                            });
+                        });*/
                     } else {
                         res.sendStatus(401);
                     }
@@ -374,60 +506,6 @@ router.get('/data/:id', function (req: Request, res: Response) {
         res.sendStatus(401);
     }
 });
-
-/*router.get('/data/:id/stream', function (req: Request, res: Response) {
-    if (req.session!.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
-            new SVEData(user, idx, (self) => {
-                if (self.getID() < 0) {
-                    res.sendStatus(401);
-                } else {
-                    self.getStream().then((val: Stream) => {
-                        res.sendStatus(200);
-                        res.set({
-                            'Cache-Control': self.getCacheType(),
-                            'Content-Type': self.getContentType(),
-                            'Content-Disposition': 'inline'
-                        });
-                        val.pipe(res);
-                    }, (err) => {
-                        res.sendStatus(500);
-                    });
-                }
-            });
-        });
-    } else {
-        res.sendStatus(401);
-    }
-});
-
-router.get('/data/:id/download', function (req: Request, res: Response) {
-    if (req.session!.user) {
-        let idx = req.params.id as number;
-        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
-            new SVEData(user, idx, (self) => {
-                if (self.getID() < 0) {
-                    res.sendStatus(401);
-                } else {
-                    self.getBLOB().then((val: ArrayBuffer) => {
-                        res.sendStatus(200);
-                        res.set({
-                            'Cache-Control': self.getCacheType(),
-                            'Content-Type': self.getContentType(),
-                            'Content-Length': val.byteLength,
-                            'Content-Disposition': 'attachment; filename=' + self.getName()
-                        });
-                    }, (err) => {
-                        res.sendStatus(500);
-                    });
-                }
-            });
-        });
-    } else {
-        res.sendStatus(401);
-    }
-});*/
 
 router.get('/user/:id', function (req: Request, res: Response) {
     if (req.session!.user) {

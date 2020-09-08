@@ -25,22 +25,33 @@ export class SVEServerProject extends SVEProject {
                             this.id = idx as number;
                             this.name = results[0].name;
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
-                            if (results[0].splash_img !== undefined && results[0].splash_img !== null) {
-                                this.splashImgID = Number(results[0].splash_img);
-                            } else {
-                                this.splashImgID = 0;
-                            }
-                            this.handler = handler;
+
                             if (results[0].begin_point != null && results[0].begin_point != undefined) {
                                 this.dateRange = {
                                     begin: new Date(results[0].begin_point),
                                     end: (results[0].end_point != null && results[0].end_point != undefined) ? new Date(results[0].end_point) : new Date()
                                 };
                             }
+
+                            this.handler = handler;
+
                             this.group = new SVEGroup(results[0].context, handler, (s) => {
                                 this.owner = results[0].owner as number;
-                                if (onReady !== undefined)
-                                    onReady!(self);
+
+                                if (results[0].splash_img !== undefined && results[0].splash_img !== null) {
+                                    this.splashImgID = Number(results[0].splash_img);
+                                    if (onReady !== undefined)
+                                        onReady!(self);
+                                } else {
+                                    this.splashImgID = 0;
+                                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT min(id) as id FROM `files` WHERE projects.id = ?", [idx as number], (err, results) => {
+                                        if(results.length > 0) {
+                                            this.splashImgID = Number(results[0].id);
+                                        }
+                                        if (onReady !== undefined)
+                                            onReady!(self);
+                                    });
+                                }
                             });
                         }
                     }

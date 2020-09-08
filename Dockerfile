@@ -9,9 +9,15 @@ RUN echo "build webapp..."
 COPY ./webapp/www/ ./api/public/
 COPY ./webAssets/ ./api/public/
 COPY ./api/package.json ./api/package.json
-RUN echo "copy package .json!"
-#RUN npm install --prefix ./api
-COPY . .
+COPY ./api/src/ ./api/src/
+COPY ./api/sslcert/ ./api/sslcert/
+COPY ./api/dist/ ./api/dist/
+COPY ./api/package-lock.json ./api/package-lock.json
+COPY ./api/tsconfig.json ./api/tsconfig.json
+COPY ./api/tsconfig.tsbuildinfo ./api/tsconfig.tsbuildinfo
+RUN echo "copy package files!"
+RUN npm install --prefix ./api
+#COPY . .
 
 EXPOSE 3000
 CMD [ "npm", "start", "--prefix", "./api"]

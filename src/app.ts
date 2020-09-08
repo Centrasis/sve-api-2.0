@@ -1,17 +1,20 @@
 import { router } from './authenticator';
 import { router as sve } from './sveapi';
-import { FileUploadHandler } from './FileUploadHandler';
-import express, { Request, Response } from "express";
+import { SocketHandler } from './SocketHandler';
+import { UploadHandler } from './UploadHandler';
+import express, { Request, Response, RequestHandler } from "express";
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import { Server as HttpServer, createServer as createHTTPServer } from 'http';
 import { Server as HttpsServer, createServer as createHTTPSServer } from 'https';
 import * as fs from "fs";
+import {SessionOptions} from 'express-session';
+import * as session from "express-session";
+import { exit } from 'process';
+import { SVEData } from 'svebaselib';
 
-var privateKey  = fs.readFileSync('sslcert/server.key', 'utf8');
-var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
+var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
+var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
 var credentials = {key: privateKey, cert: certificate};
-var cookieSession = require('express-session')
-
 const secureServer = (process.env.secure !== undefined && (Boolean(process.env.secure)) || process.env.secure == "1");
 
 SVESystemInfo.getInstance().SQLCredentials = {
@@ -29,28 +32,29 @@ SVESystemInfo.initSystem().then((val) => {
     console.log('SVE System status: ' + JSON.stringify(SVESystemInfo.getSystemStatus()) + ' and isServer = ' + SVESystemInfo.getIsServer() + '!');
 }, (val) => {
     console.log('SVE System initialization failed: ' + JSON.stringify(val) + '!');
+    exit(-1);
 });
 
 const app = express();
 const httpApp = express();
 const port = process.env.PORT || 443;
-var siofu = require("socketio-file-upload");
 
-app.use(cookieSession({
+let opts: SessionOptions = {
     name: 'sve-session',
     secret: "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
-    cookie: { 
+    cookie: {
         secure: true,
-        SameSite: true
+        sameSite: true
     },
     resave: true,
     saveUninitialized: true
-}));
+};
+var sess: RequestHandler = session.default(opts);
+app.use(sess);
 
 app.use('/auth', router);
 
 app.use('/api', sve);
-app.use('/api/upload', siofu.router);
 
 app.use(express.static('public'));
 
@@ -67,7 +71,7 @@ if (secureServer) {
     httpsServer = createHTTPServer(app);
 }
 
-var filehandler: FileUploadHandler = new FileUploadHandler(httpsServer);
+//var sockethandler: SocketHandler = new UploadHandler("/project/:id/data/upload", new SocketHandler(httpsServer, sess));
 
 httpsServer.listen(port, function () {
     console.log('App is listening on port ' + port + '!');
