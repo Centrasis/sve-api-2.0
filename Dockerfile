@@ -2,13 +2,15 @@ FROM node:latest
 
 RUN echo "setting work dir..."
 WORKDIR /usr/src/app
-RUN echo "setting up webapp..."
-COPY ./webapp/ ./webapp/
-RUN echo "build webapp..."
+#RUN echo "setting up webapp..."
+#COPY ./webapp/ ./webapp/
+#RUN echo "build webapp..."
 #RUN npm run build-dev --prefix ./webapp
-COPY ./webapp/www/ ./api/public/
-COPY ./webAssets/ ./api/public/
+#COPY ./webapp/www/ ./api/public/
+#COPY ./webAssets/ ./api/public/
 COPY ./api/package.json ./api/package.json
+#RUN chmod -R 777 ./api/public/
+#RUN chown www-data:www-data ./api/public/*
 COPY ./api/src/ ./api/src/
 COPY ./api/sslcert/ ./api/sslcert/
 COPY ./api/dist/ ./api/dist/

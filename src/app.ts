@@ -56,7 +56,7 @@ app.use('/auth', router);
 
 app.use('/api', sve);
 
-app.use(express.static('public'));
+//app.use(express.static('public'));
 
 httpApp.get("*", function(req: Request, res: Response) {
     res.redirect('https://' + req.headers.host + req.url);

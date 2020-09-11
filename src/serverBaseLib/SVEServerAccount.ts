@@ -9,25 +9,20 @@ export class SVEServerAccount extends SVEAccount {
     }
 
     protected getByID(id: number): Promise<boolean> {
-        if (SVESystemInfo.getIsServer()) {
-            return new Promise<boolean>((resolve, reject) => {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM user WHERE id = ?", [id], (err, results) => {
-                    if(err) {
-                        console.log("SQL error: " + JSON.stringify(err));
-                        this.loginState = LoginState.NotLoggedIn;
-                        reject(err);
-                    } else {
-                        this.init({
-                            name: results[0].name,
-                            id: id
-                        }, LoginState.NotLoggedIn);
-                        resolve(true);
-                    }
-                });
+        return new Promise<boolean>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM user WHERE id = ?", [id], (err, results) => {
+                if(err) {
+                    console.log("SQL error: " + JSON.stringify(err));
+                    this.init(LoginState.NotLoggedIn);
+                    reject(err);
+                } else {
+                    this.init(LoginState.NotLoggedIn);
+                    this.name = results[0].name;
+                    this.id = id;
+                    resolve(true);
+                }
             });
-        } else {
-            return super.getByID(id);
-        }
+        });
     }
 
     protected doLogin(info: BasicUserLoginInfo): Promise<LoginState> {

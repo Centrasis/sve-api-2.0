@@ -482,8 +482,8 @@
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/sveaccount.d.ts": {
-        "version": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
-        "signature": "cdc7958170b1628f0b762ad8e8f7d4449502f997b703611cb44253bdf86f3ef7",
+        "version": "ccd09c901910f521cca0f145a51185c140f96620d72bbca86e2d515f09cfa408",
+        "signature": "ccd09c901910f521cca0f145a51185c140f96620d72bbca86e2d515f09cfa408",
         "affectsGlobalScope": false
       },
       "./node_modules/svebaselib/dist/svesysteminfo.d.ts": {
@@ -562,7 +562,7 @@
         "affectsGlobalScope": false
       },
       "./src/serverbaselib/sveserveraccount.ts": {
-        "version": "9d2d7ebba99e9343837fe8a13841ca9ae4f4f08dda485e080fd860331c3f3d9e",
+        "version": "ef5fa449364d58890f78ae9fb99ded7294e0bb927918113c6b0cba0c5a0bb649",
         "signature": "0a9ac69f8c269df6c0e892aebb4992cc0decb139497266ac0415fff3401f62af",
         "affectsGlobalScope": false
       },
@@ -602,7 +602,7 @@
         "affectsGlobalScope": true
       },
       "./src/app.ts": {
-        "version": "1587d5bff961710561fd2576392721bfb22cc074b65ea028479ccf6a7a7fdad3",
+        "version": "630a989472cebb8780723b34feb861b0ab360b73257945fba81a08e260d56384",
         "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
         "affectsGlobalScope": false
       },
