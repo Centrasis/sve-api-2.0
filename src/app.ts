@@ -1,7 +1,5 @@
 import { router } from './authenticator';
 import { router as sve } from './sveapi';
-import { SocketHandler } from './SocketHandler';
-import { UploadHandler } from './UploadHandler';
 import express, { Request, Response, RequestHandler } from "express";
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import { Server as HttpServer, createServer as createHTTPServer } from 'http';
