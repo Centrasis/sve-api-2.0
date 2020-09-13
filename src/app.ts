@@ -35,7 +35,7 @@ SVESystemInfo.initSystem().then((val) => {
 
 const app = express();
 const httpApp = express();
-const port = process.env.PORT || 443;
+const port = process.env.PORT || 80;
 
 let opts: SessionOptions = {
     name: 'sve-session',

@@ -602,7 +602,7 @@
         "affectsGlobalScope": true
       },
       "./src/app.ts": {
-        "version": "630a989472cebb8780723b34feb861b0ab360b73257945fba81a08e260d56384",
+        "version": "43a9dfaeaf6523ee63be80c54295432fd98e65bba1edd37a22d1026c73e6f8c2",
         "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
         "affectsGlobalScope": false
       },
@@ -1725,9 +1725,7 @@
         "./node_modules/svebaselib/dist/index.d.ts",
         "./src/authenticator.ts",
         "./src/serverbaselib/sveserversysteminfo.ts",
-        "./src/sockethandler.ts",
-        "./src/sveapi.ts",
-        "./src/uploadhandler.ts"
+        "./src/sveapi.ts"
       ],
       "./src/authenticator.ts": [
         "./node_modules/@types/node/fs.d.ts",
