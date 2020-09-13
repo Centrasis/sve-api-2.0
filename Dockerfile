@@ -12,7 +12,7 @@ COPY ./api/package.json ./api/package.json
 #RUN chmod -R 777 ./api/public/
 #RUN chown www-data:www-data ./api/public/*
 COPY ./api/src/ ./api/src/
-COPY ./api/sslcert/ ./api/sslcert/
+#COPY ./api/sslcert/ ./api/sslcert/
 COPY ./api/dist/ ./api/dist/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
