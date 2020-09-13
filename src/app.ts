@@ -10,9 +10,9 @@ import * as session from "express-session";
 import { exit } from 'process';
 import { SVEData } from 'svebaselib';
 
-//var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
-//var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
-//var credentials = {key: privateKey, cert: certificate};
+var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
+var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
+var credentials = {key: privateKey, cert: certificate};
 const secureServer = (process.env.secure !== undefined && (Boolean(process.env.secure)) || process.env.secure == "1");
 
 SVESystemInfo.getInstance().SQLCredentials = {
@@ -35,7 +35,7 @@ SVESystemInfo.initSystem().then((val) => {
 
 const app = express();
 const httpApp = express();
-const port = process.env.PORT || 80;
+const port = process.env.PORT || ((secureServer) ? 443 : 80);
 
 let opts: SessionOptions = {
     name: 'sve-session',
@@ -61,9 +61,9 @@ httpApp.get("*", function(req: Request, res: Response) {
 });
 
 var httpsServer: HttpServer;
-if (false) {
+if (secureServer) {
     console.log('Secure server: on');
-    //httpsServer = createHTTPSServer(credentials, app);
+    httpsServer = createHTTPSServer(credentials, app);
 } else {
     console.log('WARNING: Secure server: off');
     httpsServer = createHTTPServer(app);
