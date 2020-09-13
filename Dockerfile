@@ -16,7 +16,6 @@ COPY ./api/sslcert/ ./api/sslcert/
 COPY ./api/dist/ ./api/dist/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
-COPY ./api/tsconfig.tsbuildinfo ./api/tsconfig.tsbuildinfo
 RUN echo "copy package files!"
 RUN npm install --prefix ./api
 #COPY . .
