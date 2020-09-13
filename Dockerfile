@@ -12,13 +12,13 @@ COPY ./api/package.json ./api/package.json
 #RUN chmod -R 777 ./api/public/
 #RUN chown www-data:www-data ./api/public/*
 COPY ./api/src/ ./api/src/
-#COPY ./api/sslcert/ ./api/sslcert/
+COPY ./api/sslcert/ ./api/sslcert/
+COPY ./api/dist/ ./api/dist/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
 COPY ./api/tsconfig.tsbuildinfo ./api/tsconfig.tsbuildinfo
 RUN echo "copy package files!"
 RUN npm install --prefix ./api
-COPY ./api/dist/ ./api/dist/
 #COPY . .
 
 EXPOSE 3000
