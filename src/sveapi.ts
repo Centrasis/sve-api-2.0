@@ -100,6 +100,37 @@ router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Resp
     }
 });
 
+router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let gid = Number(req.params.id);
+        let uid = Number(req.params.uid);
+        if(gid === NaN || uid === NaN) {
+            res.sendStatus(400);
+            return;
+        }
+
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            new SVEGroup(gid, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+                if(group !== undefined && group.getID() != NaN) {
+                    group.getRightsForUser(user).then((rights) => {
+                        if(rights.read) {
+                            new SVEAccount(req.session!.user as SessionUserInitializer, (reqUser: SVEBaseAccount) => {
+                                group.getRightsForUser(reqUser).then((reqRights) => {
+                                    res.json(reqRights);
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    res.sendStatus(401);
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
