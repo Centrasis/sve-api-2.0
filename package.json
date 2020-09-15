@@ -20,6 +20,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "ffmpeg-static": "^4.2.7",
+    "fluent-ffmpeg": "^2.1.2",
     "formidable": "^1.2.2",
     "get-video-dimensions": "^1.0.0",
     "huge-uploader-nodejs": "^1.2.1",
