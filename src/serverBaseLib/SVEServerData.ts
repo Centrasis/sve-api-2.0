@@ -91,7 +91,7 @@ export class SVEServerData extends SVEData {
                 reject();
             }
             if (this.localDataInfo!.thumbnailPath.length == 0 && (this.type === SVEDataType.Image || this.type === SVEDataType.Video)) {
-                this.localDataInfo!.thumbnailPath = join(dirname(this.localDataInfo!.filePath), "thumbnails", basename(this.localDataInfo!.filePath), ".png");
+                this.localDataInfo!.thumbnailPath = join(dirname(this.localDataInfo!.filePath), "thumbnails", basename(this.localDataInfo!.filePath) + ".png");
                 fs.mkdir(dirname(this.localDataInfo!.thumbnailPath), {recursive: true}, async (err) => {
                     if(err) {
                         console.log("Error creating thumbnail dir: " + JSON.stringify(err));
@@ -141,7 +141,7 @@ export class SVEServerData extends SVEData {
                         this.localDataInfo!.filePath, 
                         this.localDataInfo!.thumbnailPath,
                         new Date(),
-                        (this.creation !== undefined) ? this.creation : new Date()
+                        (this.creation !== undefined) ? new Date(this.creation) : new Date()
                 ], (err, results) => {
                     if(err) {
                         reject(err);
