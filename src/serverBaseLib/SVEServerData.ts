@@ -148,7 +148,13 @@ export class SVEServerData extends SVEData {
                                 };
                                 thumbnailer_3.create(this.localDataInfo!.filePath, options, (err, path) => {
                                     if(err) {
-                                        console.log("Video was too hard to thumbail! We failed! " + JSON.stringify(err));
+                                        console.log("Video was too hard to thumbnail! We failed! " + JSON.stringify(err));
+                                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT id FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
+                                            if(!err && res.length > 0) {
+                                                this.id = res[0].id;
+                                                this.remove();
+                                            }
+                                        });
                                         return;
                                     } else {
                                         this.localDataInfo!.thumbnailPath = path;
