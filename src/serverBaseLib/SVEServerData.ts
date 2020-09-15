@@ -113,8 +113,13 @@ export class SVEServerData extends SVEData {
                                 }
                             });
                     } else {
+                        console.log("Try thumbnail video..");
+
                         const getDimensions = require('get-video-dimensions');
                         let dim = await getDimensions(this.localDataInfo!.filePath);
+
+                        console.log("Size: " + JSON.stringify(dim));
+
                         let size = "";
                         if(dim.height < dim.width) {
                             size = "320x" + String(Math.round(320 * dim.height / dim.width));
@@ -122,12 +127,23 @@ export class SVEServerData extends SVEData {
                             size = String(Math.round(320 * dim.width / dim.height)) + "x320";
                         }
 
+                        console.log("Size to: " + size);
+
                         const tg = new ThumbnailGenerator({
                             sourcePath: this.localDataInfo!.filePath,
-                            thumbnailPath: this.localDataInfo!.thumbnailPath,
+                            thumbnailPath: dirname(this.localDataInfo!.thumbnailPath),
                             size: size
                         });
-                        tg.generate().catch(err => {
+                        tg.generateGif({
+                            fps: 0.75,
+                            scale: 180,
+                            speedMultiple: 4,
+                            deletePalette: true
+                        }).then(path => {
+                            console.log("Created GIF: " + path);
+                            this.localDataInfo!.thumbnailPath = path;
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
+                        }).catch(err => {
                             console.log("Generation of thumbnail failed at first pass! Try next pass..");
 
                             const ffmpeg = require('ffmpeg-static');
