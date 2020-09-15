@@ -322,16 +322,6 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
     }
 });
 
-router.get('/project/:id/data/upload/progress', function (req: Request, res: Response) {
-    if (req.session!.user && req.session!.uploadProgress) {
-        res.json({
-            progress: req.session!.uploadProgress
-        });
-    } else {
-        res.sendStatus(401);
-    }
-});
-
 function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
     fs.mkdir(dirname(newPath), {recursive: true}, (err) => {
         fs.rename(oldPath, newPath, function (err) {
@@ -408,11 +398,12 @@ router.post('/project/:id/data/upload', function (req: Request, res: Response) {
                                             if(err) {
                                                 console.log("Error on copy: " + JSON.stringify(err));
                                             } else {
+                                                console.log("Received file: " + JSON.stringify(data.postParams));
                                                 new SVEData(user, {
                                                     type: SVEData.getTypeFromExt(fileDest), 
                                                     owner: user, parentProject: prj, 
                                                     path: {filePath: fileDest, thumbnailPath: ""},
-                                                    creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? data.postParams.created : new Date()
+                                                    creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? new Date(data.postParams.created) : new Date()
                                                 } as SVEDataInitializer, (data: SVEData) => {
                                                     data.store().then(val => {
                                                         if(!val)

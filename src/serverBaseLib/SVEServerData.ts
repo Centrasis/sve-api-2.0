@@ -141,7 +141,7 @@ export class SVEServerData extends SVEData {
                         this.localDataInfo!.filePath, 
                         this.localDataInfo!.thumbnailPath,
                         new Date(),
-                        (this.creation !== undefined) ? new Date(this.creation) : new Date()
+                        (this.creation !== undefined) ? this.creation : new Date()
                 ], (err, results) => {
                     if(err) {
                         reject(err);
