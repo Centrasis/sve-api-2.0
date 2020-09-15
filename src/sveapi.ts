@@ -119,6 +119,8 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
                                     res.json(reqRights);
                                 });
                             });
+                        } else {
+                            res.sendStatus(401);
                         }
                     });
                 } else {
