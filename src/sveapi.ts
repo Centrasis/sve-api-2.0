@@ -77,9 +77,13 @@ router.get('/groups', function (req: Request, res: Response) {
     }
 });
 
-router.get('/group/:id/rights', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -96,9 +100,13 @@ router.get('/group/:id/rights', function (req: Request, res: Response) {
     }
 });
 
-router.get('/group/:id/users', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -121,9 +129,13 @@ router.get('/group/:id/users', function (req: Request, res: Response) {
     }
 });
 
-router.get('/group/:id', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -164,7 +176,7 @@ router.put('/project/:prj(\\d+|new)', function (req: Request, res: Response) {
     res.sendStatus(501);
 });
 
-router.delete('/project/:prj(\\d+)', function (req: Request, res: Response) {
+router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
         if(idx === NaN) {
@@ -187,7 +199,7 @@ router.delete('/project/:prj(\\d+)', function (req: Request, res: Response) {
     }
 });
 
-router.get('/project/:id(\\d+)', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
         if(idx === NaN) {
@@ -227,7 +239,7 @@ router.get('/project/:id(\\d+)', function (req: Request, res: Response) {
     }
 });
 
-router.get('/project/:id/data', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
         if(idx === NaN) {
@@ -275,7 +287,7 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response) 
     });
 }
 
-router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
@@ -300,7 +312,7 @@ router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', f
     } 
 });
 
-router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
@@ -372,7 +384,7 @@ function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
     });
 }
 
-router.delete('/project/:id/data/:fid(\\d+)', function (req: Request, res: Response) {
+router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
@@ -404,7 +416,7 @@ router.delete('/project/:id/data/:fid(\\d+)', function (req: Request, res: Respo
     }
 });
 
-router.post('/project/:id/data/upload', function (req: Request, res: Response) {
+router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
         if(idx === NaN) {
@@ -448,42 +460,6 @@ router.post('/project/:id/data/upload', function (req: Request, res: Response) {
                             console.log("File receive error: " + JSON.stringify(err));
                             res.status(400);
                         });
-
-                        /*const form = new formidable.IncomingForm({ captureRejections: true });
-                        form.keepExtensions = true;
-                        form.uploadDir = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getName() + "/" + user.getName();
-                        form.type = 'multipart';
-                        form.once('error', console.error);
-                        form.on('progress', (bytesReceived, bytesExpected) => {
-                            req.session!.uploadProgress = bytesReceived / bytesExpected;
-                        });
-                        let uploadfile: any;
-                        let uploadfilename: string;
-                        form.on('fileBegin', (filename, file) => {
-                            uploadfile = file;
-                            uploadfilename = filename;
-                            form.emit('data', { name: 'fileBegin', filename, value: file });
-                        });
-                        form.once('end', () => {
-                            console.log("End upload: " + JSON.stringify(uploadfile));
-                            new SVEData(user, {type: SVEData.getTypeFromExt(uploadfilename), owner: user, parentProject: prj, path: {filePath: form.uploadDir, thumbnailPath: ""}} as SVEDataInitializer, (data: SVEData) => {
-                                data.store();
-                            });
-                        });
-
-                        mkdir(form.uploadDir, {recursive: true}, (err) => {
-                            if(err) {
-                                console.log("Error on creating upload dir: " + JSON.stringify(err));
-                            }
-
-                            form.parse(req, (err, fields, files) => {
-                                if (err) {
-                                    console.log("File upload error: " + JSON.stringify(err));
-                                    return;
-                                }
-                                res.json({ fields, files });
-                            });
-                        });*/
                     } else {
                         res.sendStatus(401);
                     }
@@ -495,7 +471,7 @@ router.post('/project/:id/data/upload', function (req: Request, res: Response) {
     }
 });
 
-router.get('/data/:id', function (req: Request, res: Response) {
+router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
         if(idx === NaN) {
@@ -523,7 +499,7 @@ router.get('/data/:id', function (req: Request, res: Response) {
     }
 });
 
-router.get('/user/:id', function (req: Request, res: Response) {
+router.get('/user/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
         let user = new SVEAccount({id: idx} as BasicUserInitializer, (state) => {
