@@ -403,7 +403,7 @@ router.post('/project/:id/data/upload', function (req: Request, res: Response) {
                                                     type: SVEData.getTypeFromExt(fileDest), 
                                                     owner: user, parentProject: prj, 
                                                     path: {filePath: fileDest, thumbnailPath: ""},
-                                                    creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? new Date(data.postParams.created) : new Date()
+                                                    creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? new Date(Number(data.postParams.created)) : new Date()
                                                 } as SVEDataInitializer, (data: SVEData) => {
                                                     data.store().then(val => {
                                                         if(!val)
