@@ -114,7 +114,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
-                            new SVEAccount(req.session!.user as SessionUserInitializer, (reqUser: SVEBaseAccount) => {
+                            new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
                                 group.getRightsForUser(reqUser).then((reqRights) => {
                                     res.json(reqRights);
                                 });
