@@ -161,12 +161,16 @@ router.get('/group/:id', function (req: Request, res: Response) {
 });
 
 router.put('/project/:prj(\\d+|new)', function (req: Request, res: Response) {
-    res.sendStatus(401);
+    res.sendStatus(501);
 });
 
 router.delete('/project/:prj(\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 self.remove().then(success => {
@@ -186,6 +190,10 @@ router.delete('/project/:prj(\\d+)', function (req: Request, res: Response) {
 router.get('/project/:id(\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 if (self.getID() === NaN) {
@@ -222,6 +230,10 @@ router.get('/project/:id(\\d+)', function (req: Request, res: Response) {
 router.get('/project/:id/data', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
@@ -267,6 +279,10 @@ router.head('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', f
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
+        if(pid === NaN || fid === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
@@ -288,6 +304,10 @@ router.get('/project/:id/data/:fid(\\d+)/:fetchType(|full|preview|download)', fu
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
+        if(pid === NaN || fid === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
@@ -356,6 +376,10 @@ router.delete('/project/:id/data/:fid(\\d+)', function (req: Request, res: Respo
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
+        if(pid === NaN || fid === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
@@ -383,6 +407,10 @@ router.delete('/project/:id/data/:fid(\\d+)', function (req: Request, res: Respo
 router.post('/project/:id/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (prj) => {
                 prj.getGroup()!.getRightsForUser(user).then(val => {
@@ -467,16 +495,13 @@ router.post('/project/:id/data/upload', function (req: Request, res: Response) {
     }
 });
 
-router.get('/project/:id/data/upload', function (req: Request, res: Response) {
-    resumable.get(req, function(status: string, filename: string, original_filename: string, identifier: string){
-        console.log('GET', status);
-        res.send((status == 'found' ? 200 : 404));
-    });
-});
-
 router.get('/data/:id', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
+        if(idx === NaN) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
