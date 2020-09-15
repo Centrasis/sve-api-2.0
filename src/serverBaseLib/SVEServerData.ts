@@ -127,7 +127,36 @@ export class SVEServerData extends SVEData {
                             thumbnailPath: this.localDataInfo!.thumbnailPath,
                             size: size
                         });
-                        tg.generate();
+                        tg.generate().catch(err => {
+                            console.log("Generation of thumbnail failed at first pass! Try next pass..");
+
+                            const ffmpeg = require('ffmpeg-static');
+                            const thumbnailer_2 = require('simple-thumbnail');
+                            thumbnailer_2(this.localDataInfo!.filePath, this.localDataInfo!.thumbnailPath, size, {
+                                path: ffmpeg.path
+                            }).catch(err => {
+                                console.log("Generation of thumbnail failed at second pass! Try last pass..");
+                                let width = Math.round(320 * dim.width / dim.height);
+                                if (width > 320) {
+                                    width = 320;
+                                }
+
+                                let thumbnailer_3 = require('quicklook-thumbnail');
+                                let options = {
+                                    size: width,
+                                    folder: dirname(this.localDataInfo!.thumbnailPath)
+                                };
+                                thumbnailer_3.create(this.localDataInfo!.filePath, options, (err, path) => {
+                                    if(err) {
+                                        console.log("Video was too hard to thumbail! We failed! " + JSON.stringify(err));
+                                        return;
+                                    } else {
+                                        this.localDataInfo!.thumbnailPath = path;
+                                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
+                                    }
+                                });
+                            });
+                        });
                     }
                 });
             }
