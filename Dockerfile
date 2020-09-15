@@ -3,7 +3,7 @@ FROM node:latest
 RUN echo "setting work dir..."
 WORKDIR /usr/src/app
 RUN apt-get update
-RUN apt-get install ffmpeg libavcodec-extra 
+RUN apt-get install ffmpeg libavcodec-extra -y
 #RUN echo "setting up webapp..."
 #COPY ./webapp/ ./webapp/
 #RUN echo "build webapp..."
