@@ -113,20 +113,14 @@ export class SVEServerData extends SVEData {
                                 }
                             });
                     } else {
-                        console.log("Try thumbnail video..");
-
                         const getDimensions = require('get-video-dimensions');
                         getDimensions(this.localDataInfo!.filePath).then(dim => {
-                            console.log("Size: " + JSON.stringify(dim));
-
                             let size = "";
                             if(dim.height < dim.width) {
                                 size = "320x" + String(Math.round(320 * dim.height / dim.width));
                             } else {
                                 size = String(Math.round(320 * dim.width / dim.height)) + "x320";
                             }
-
-                            console.log("Size to: " + size);
 
                             const tg = new ThumbnailGenerator({
                                 sourcePath: this.localDataInfo!.filePath,
@@ -139,7 +133,6 @@ export class SVEServerData extends SVEData {
                                 speedMultiple: 4,
                                 deletePalette: true
                             }).then(path => {
-                                console.log("Created GIF: " + path);
                                 this.localDataInfo!.thumbnailPath = path;
                                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
                             }).catch(err => {
