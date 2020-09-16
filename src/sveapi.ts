@@ -114,8 +114,10 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.admin) {
-                            (group as SVEGroup).setRightsForUser(user, req.body as UserRights).then((val) => {
-                                res.sendStatus((val) ? 200 : 500);
+                            new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
+                                (group as SVEGroup).setRightsForUser(reqUser, req.body as UserRights).then((val) => {
+                                    res.sendStatus((val) ? 200 : 500);
+                                });
                             });
                         } else {
                             res.sendStatus(401);
