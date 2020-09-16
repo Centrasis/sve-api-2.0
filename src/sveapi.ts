@@ -117,6 +117,7 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
                             new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
                                 (group as SVEGroup).setRightsForUser(reqUser, req.body as UserRights).then((val) => {
                                     res.sendStatus((val) ? 200 : 500);
+                                    console.log("Applied new rights: " + JSON.stringify(rights) + " success: " + val);
                                 });
                             });
                         } else {
