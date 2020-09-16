@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -89,6 +89,37 @@ router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Resp
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         res.json(rights);
+                    });
+                } else {
+                    res.sendStatus(404);
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let gid = Number(req.params.id);
+        let uid = Number(req.params.uid);
+        if(gid === NaN || uid === NaN) {
+            res.sendStatus(400);
+            return;
+        }
+
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            new SVEGroup(gid, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+                if(group !== undefined && group.getID() != NaN) {
+                    group.getRightsForUser(user).then((rights) => {
+                        if(rights.admin) {
+                            (group as SVEGroup).setRightsForUser(user, req.body as UserRights).then((val) => {
+                                res.sendStatus((val) ? 200 : 500);
+                            });
+                        } else {
+                            res.sendStatus(401);
+                        }
                     });
                 } else {
                     res.sendStatus(404);

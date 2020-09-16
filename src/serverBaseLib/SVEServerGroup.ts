@@ -61,6 +61,30 @@ export class SVEServerGroup extends SVEGroup {
         });
     }
 
+    public setRightsForUser(handler: SVEAccount, rights: UserRights): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM rights WHERE context = ? AND user_id = ?", [this.id, handler.getID()], (err, res) => {
+                if(err || res.length === 0) {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO rights (context, user_id, write_access, read_access, admin_access) VALUES (?, ?, ?, ?, ?)", [this.id, handler.getID(), rights.write, rights.read, rights.admin], (err, results) => {
+                        if(err) {
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                } else {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE rights SET write_access = ?, read_access = ?, admin_access = ? WHERE user_id = ? AND context = ?", [rights.write, rights.read, rights.admin, handler.getID(), this.id], (err, results) => {
+                        if(err) {
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    });
+                }
+            });
+        });
+    }
+
     public getRightsForUser(handler: SVEAccount): Promise<UserRights> {
         if (SVESystemInfo.getIsServer()) {
             return new Promise<UserRights>((resolve, reject) => {
