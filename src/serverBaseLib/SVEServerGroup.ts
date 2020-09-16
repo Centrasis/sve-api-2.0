@@ -93,9 +93,9 @@ export class SVEServerGroup extends SVEGroup {
                         reject(err);
                     } else {
                         resolve({
-                            read: results[0].read_access as boolean,
-                            write: results[0].write_access as boolean,
-                            admin: results[0].admin_access as boolean
+                            read: results[0].read_access === 1,
+                            write: results[0].write_access === 1,
+                            admin: results[0].admin_access === 1
                         });
                     }
                 });
