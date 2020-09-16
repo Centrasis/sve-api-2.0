@@ -136,9 +136,9 @@ export class SVEServerData extends SVEData {
                                 this.localDataInfo!.thumbnailPath = path;
                                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
                             }).catch(err => {
-                                console.log("Generation of thumbnail failed at first pass! Try next pass..");
+                                console.log("Generation of thumbnail failed at first pass! Try next pass.. (" + JSON.stringify(err) + ")");
 
-                                const ffmpeg = require('ffmpeg-static');
+                                /*const ffmpeg = require('ffmpeg-static');
                                 const thumbnailer_2 = require('simple-thumbnail');
                                 thumbnailer_2(this.localDataInfo!.filePath, this.localDataInfo!.thumbnailPath, size, {
                                     path: ffmpeg.path
@@ -169,7 +169,7 @@ export class SVEServerData extends SVEData {
                                             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
                                         }
                                     });
-                                });
+                                });*/
                             });
                         }).catch(err => console.log("Failed video dimensions: " + JSON.stringify(err)));
                     }
