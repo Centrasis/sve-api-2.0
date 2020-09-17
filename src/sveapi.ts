@@ -90,7 +90,7 @@ router.get('/query/:query', function (req: Request, res: Response) {
                         typ: typ,
                         id: res.getID(),
                         distance: SVEProjectQuery.getDistanceOf(res)
-                    })
+                    });
                 });
                 res.json(resList);
             });
