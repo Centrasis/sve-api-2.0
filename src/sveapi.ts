@@ -1,11 +1,12 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
+import {SVEServerProjectQuery as SVEProjectQuery} from './serverBaseLib/SVEServerProjectQuery';
 import {apiVersion as authVersion} from './authenticator';
 
 import { Request, Response, Router } from "express";
@@ -72,6 +73,28 @@ router.get('/groups', function (req: Request, res: Response) {
         }, (err: any) => {
             res.json(err);
         })
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.get('/query/:query', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let query = decodeURI(req.params.query as string);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            SVEProjectQuery.query(query, user).then((results) => {
+                let resList: RawQueryResult[] = [];
+                results.forEach(res => {
+                    let typ = (res.constructor.name === SVEProject.name) ? QueryResultType.Project : QueryResultType.Group;
+                    resList.push({
+                        typ: typ,
+                        id: res.getID(),
+                        distance: SVEProjectQuery.getDistanceOf(res)
+                    })
+                });
+                res.json(resList);
+            });
+        });
     } else {
         res.sendStatus(401);
     }
