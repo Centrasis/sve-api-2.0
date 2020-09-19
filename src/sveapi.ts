@@ -230,6 +230,16 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
             }
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
                 new SVEGroup(idx, user, (group?: SVEBaseGroup) => {
+                    group!.store().then(val => {
+                        if(val) {
+                            res.json({
+                                name: group!.getName(),
+                                id: group!.getID()
+                            });
+                        } else {
+                            res.sendStatus(500);
+                        }
+                    });
                 });
             });
         } else {
