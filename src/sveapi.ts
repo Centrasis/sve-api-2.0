@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -220,6 +220,39 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
     }
 });
 
+router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        if (req.params.id !== "new") {
+            let idx = Number(req.params.id);
+            if(idx === NaN) {
+                res.sendStatus(400);
+                return;
+            }
+            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+                new SVEGroup(idx, user, (group?: SVEBaseGroup) => {
+                });
+            });
+        } else {
+            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+                new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
+                    group!.store().then(val => {
+                        if(val) {
+                            res.json({
+                                name: group!.getName(),
+                                id: group!.getID()
+                            });
+                        } else {
+                            res.sendStatus(500);
+                        }
+                    });
+                });
+            });
+        }
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
@@ -228,7 +261,7 @@ router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
             return;
         }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+            new SVEGroup(idx, user, (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {

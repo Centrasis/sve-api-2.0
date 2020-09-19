@@ -1,4 +1,4 @@
-import {BasicUserInitializer, SVEAccount, SVEProjectType, SVEProject as SVEBaseProject, ProjectInitializer, SVESystemInfo, SVEGroup, UserRights, SessionUserInitializer, LoginState} from 'svebaselib';
+import {BasicUserInitializer, SVEAccount, SVEProjectType, SVEProject as SVEBaseProject, ProjectInitializer, SVESystemInfo, SVEGroup, UserRights, SessionUserInitializer, LoginState, GroupInitializer} from 'svebaselib';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
 
@@ -105,23 +105,25 @@ export class SVEServerGroup extends SVEGroup {
         }
     }
 
-    public constructor(id: number, handler: SVEAccount, onReady?: (self?: SVEGroup) => void) {
+    public constructor(id: number | GroupInitializer, handler: SVEAccount, onReady?: (self?: SVEGroup) => void) {
         super(id, handler, (self) => {
             if (SVESystemInfo.getIsServer()) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE id = ?", [id], (err, results) => {
-                    if(err) {
-                        console.log("Error in SQL: " + JSON.stringify(err));
-                        if(onReady !== undefined)
-                            onReady!(undefined);
-                    } else {
-                        this.id = id;
-                        this.name = results[0].context;
-                        this.handler = handler;
+                if(typeof id === "number") {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE id = ?", [id], (err, results) => {
+                        if(err) {
+                            console.log("Error in SQL: " + JSON.stringify(err));
+                            if(onReady !== undefined)
+                                onReady!(undefined);
+                        } else {
+                            this.id = id;
+                            this.name = results[0].context;
+                            this.handler = handler;
 
-                        if(onReady !== undefined)
-                            onReady!(this);
-                    }
-                });
+                            if(onReady !== undefined)
+                                onReady!(this);
+                        }
+                    });
+                }
             } else {
                 onReady!(this);
             }
