@@ -130,6 +130,10 @@ export class SVEServerGroup extends SVEGroup {
         });
     }
 
+    public setName(newName: string) {
+        this.name = newName;
+    }
+
     public static getGroupsOf(handler: SVEAccount): Promise<SVEGroup[]> {
         if (SVESystemInfo.getIsServer()) {
             return new Promise<SVEGroup[]>((resolve, reject) => {
