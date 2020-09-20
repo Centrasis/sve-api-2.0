@@ -331,10 +331,12 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
             new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
                 new SVEGroup({id: Number(req.body.group.id)}, user, (group) => {
                     new SVEProject({
+                        id: NaN,
                         group: group,
                         name: req.body.name, 
                         owner: user,
-                        splashImg: 0
+                        splashImg: 0,
+                        type: req.body.type
                     } as ProjectInitializer, user, (project) => {
                         project.store().then(val => {
                             if(val) {
