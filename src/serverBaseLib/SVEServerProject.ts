@@ -35,7 +35,7 @@ export class SVEServerProject extends SVEProject {
 
                             this.handler = handler;
 
-                            this.group = new SVEGroup(results[0].context, handler, (s) => {
+                            this.group = new SVEGroup({id: results[0].context}, handler, (s) => {
                                 this.owner = results[0].owner as number;
 
                                 if (results[0].splash_img !== undefined && results[0].splash_img !== null) {

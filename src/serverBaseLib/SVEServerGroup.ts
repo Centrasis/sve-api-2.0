@@ -190,7 +190,7 @@ export class SVEServerGroup extends SVEGroup {
                     } else {
                         let i = 0;
                         results.forEach((element: any) => {
-                            ret.push(new SVEServerGroup(element.context_id, handler, (s) => {
+                            ret.push(new SVEServerGroup({id: element.context_id}, handler, (s) => {
                                 i++;
                                 if(i >= results.length) {
                                     resolve(ret);
