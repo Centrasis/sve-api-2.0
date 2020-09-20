@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -108,7 +108,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Resp
             return;
         }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+            new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         res.json(rights);
@@ -133,7 +133,7 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
         }
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(gid, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+            new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.admin) {
@@ -168,7 +168,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
         }
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(gid, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+            new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
@@ -199,7 +199,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
             return;
         }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
+            new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
@@ -229,7 +229,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                 return;
             }
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-                new SVEGroup(idx, user, (group?: SVEBaseGroup) => {
+                new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                     (group! as SVEGroup).setName(req.body.name);
                     group!.store().then(val => {
                         if(val) {
@@ -246,7 +246,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
         } else {
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
                 new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
-                    group!.store().then(val => {
+                    (group! as SVEGroup).store().then(val => {
                         if(val) {
                             res.json({
                                 name: group!.getName(),
@@ -272,7 +272,7 @@ router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
             return;
         }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-            new SVEGroup(idx, user, (group?: SVEBaseGroup) => {
+            new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
@@ -307,8 +307,49 @@ router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     }
 });
 
-router.put('/project/:prj(\\d+|new)', function (req: Request, res: Response) {
-    res.sendStatus(501);
+router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        if (req.params.prj !== "new") {
+            let idx: number = Number(req.params.prj);
+            if(idx === NaN) {
+                res.sendStatus(400);
+                return;
+            }
+            new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+                new SVEProject(idx as number, user, (self) => {
+                    self.setName(req.body.name);
+                    self.store().then(val => {
+                        if(val) {
+                            res.json(self.getAsInitializer());
+                        } else {
+                            res.sendStatus(500);
+                        }
+                    });
+                });
+            });
+        } else {
+            new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+                new SVEGroup({id: Number(req.body.group.id)}, user, (group) => {
+                    new SVEProject({
+                        group: group,
+                        name: req.body.name, 
+                        owner: user,
+                        splashImg: 0
+                    } as ProjectInitializer, user, (project) => {
+                        project.store().then(val => {
+                            if(val) {
+                                res.json(project.getAsInitializer());
+                            } else {
+                                res.sendStatus(500);
+                            }
+                        });
+                    });
+                });
+            });
+        }
+    } else {
+        res.sendStatus(401);
+    }
 });
 
 router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Response) {

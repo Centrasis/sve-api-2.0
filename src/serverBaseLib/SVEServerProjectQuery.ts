@@ -1,21 +1,21 @@
-import {SVEProjectQuery, SVEAccount, SVEProject as SVEBaseProject} from 'svebaselib';
+import {SVEProjectQuery, SVEAccount, SVEProject as SVEBaseProject, SVEGroup as SVEBaseGroup} from 'svebaselib';
 import {SVEServerGroup as SVEGroup} from './SVEServerGroup';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import * as levenshtein from 'fast-levenshtein';
 
 export class SVEServerProjectQuery extends SVEProjectQuery {
-    protected static distanceMap: Map<SVEBaseProject | SVEGroup, number> = new Map<SVEProject | SVEGroup, number>();
+    protected static distanceMap: Map<SVEBaseProject | SVEBaseGroup, number> = new Map<SVEProject | SVEBaseGroup, number>();
 
-    public static getDistanceOf(item: SVEBaseProject | SVEGroup): number {
+    public static getDistanceOf(item: SVEBaseProject | SVEBaseGroup): number {
         return SVEServerProjectQuery.distanceMap.get(item)!;
     }
 
-    protected static executeQuery(queryForGroups: boolean, queryForProjects: boolean, str: string, resolve: (val:(SVEBaseProject | SVEGroup)[]) => void, groupProjectMap: Map<SVEGroup, SVEBaseProject[]>) {
-        SVEServerProjectQuery.distanceMap = new Map<SVEProject | SVEGroup, number>();
-        let retList: (SVEBaseProject | SVEGroup)[] = [];
+    protected static executeQuery(queryForGroups: boolean, queryForProjects: boolean, str: string, resolve: (val:(SVEBaseProject | SVEBaseGroup)[]) => void, groupProjectMap: Map<SVEBaseGroup, SVEBaseProject[]>) {
+        SVEServerProjectQuery.distanceMap = new Map<SVEProject | SVEBaseGroup, number>();
+        let retList: (SVEBaseProject | SVEBaseGroup)[] = [];
 
         groupProjectMap.forEach((projects, group) => {
-            let innerRetList: (SVEBaseProject | SVEGroup)[] = [];
+            let innerRetList: (SVEBaseProject | SVEBaseGroup)[] = [];
             let groupDist = 0;
 
             if (queryForProjects || (!queryForProjects && !queryForGroups))
@@ -52,8 +52,8 @@ export class SVEServerProjectQuery extends SVEProjectQuery {
         resolve(retList);
     }
 
-    public static query(str: string, requester: SVEAccount): Promise<(SVEBaseProject | SVEGroup)[]> {
-        return new Promise<(SVEBaseProject | SVEGroup)[]>((resolve, reject) => {
+    public static query(str: string, requester: SVEAccount): Promise<(SVEBaseProject | SVEBaseGroup)[]> {
+        return new Promise<(SVEBaseProject | SVEBaseGroup)[]>((resolve, reject) => {
             str = str.trim().toLowerCase();
             let queryForGroups = str.includes("gruppe:");
             let queryForProjects = false;
@@ -68,7 +68,7 @@ export class SVEServerProjectQuery extends SVEProjectQuery {
             }         
 
             SVEGroup.getGroupsOf(requester).then(groups => {
-                let groupProjectMap: Map<SVEGroup, SVEBaseProject[]> = new Map<SVEGroup, SVEBaseProject[]>();
+                let groupProjectMap: Map<SVEBaseGroup, SVEBaseProject[]> = new Map<SVEBaseGroup, SVEBaseProject[]>();
                 groups.forEach(group => {
                     if (queryForGroups) {
                         group.getProjects().then(projects => {

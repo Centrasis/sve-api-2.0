@@ -1,6 +1,7 @@
 import {BasicUserInitializer, SVEAccount, SVEProjectType, SVEProject as SVEBaseProject, ProjectInitializer, SVESystemInfo, SVEGroup, UserRights, SessionUserInitializer, LoginState, GroupInitializer} from 'svebaselib';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
+import { textChangeRangeIsUnchanged } from 'typescript';
 
 export class SVEServerGroup extends SVEGroup {
     public getProjects(): Promise<SVEBaseProject[]> {
@@ -61,6 +62,44 @@ export class SVEServerGroup extends SVEGroup {
         });
     }
 
+    protected saveAsNewGroup(init: GroupInitializer): Promise<GroupInitializer> {
+        return new Promise<GroupInitializer>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO contexts (`context`) VALUES (?)", [init.name!], (err, results) => {
+                if(err) {
+                    console.log("Error in SQL: " + JSON.stringify(err));
+                    reject(err);
+                } else {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE context = ?", [init.name!], (err, results) => {
+                        if(err) {
+                            console.log("Error in SQL: " + JSON.stringify(err));
+                            reject(err);
+                        } else {
+                            this.id = results[0].id;
+                            this.name = results[0].context;
+                            resolve(this.getAsInitializer());
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    public store() {
+        return new Promise<boolean>((resolve, reject) => {
+            if(this.id === NaN) {
+                this.saveAsNewGroup(this.getAsInitializer());
+            } else {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE contexts SET `name`=? WHERE id = ?", [this.name, this.id], (err, results) => {
+                    if(err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            }
+        });
+    }
+
     public setRightsForUser(handler: SVEAccount, rights: UserRights): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM rights WHERE context = ? AND user_id = ?", [this.id, handler.getID()], (err, res) => {
@@ -105,17 +144,17 @@ export class SVEServerGroup extends SVEGroup {
         }
     }
 
-    public constructor(id: number | GroupInitializer, handler: SVEAccount, onReady?: (self?: SVEGroup) => void) {
-        super(id, handler, (self) => {
+    public constructor(init: GroupInitializer, handler: SVEAccount, onReady?: (self?: SVEGroup) => void) {
+        super(init, handler, (self) => {
             if (SVESystemInfo.getIsServer()) {
-                if(typeof id === "number") {
-                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE id = ?", [id], (err, results) => {
+                if(init.id !== undefined && init.id !== NaN) {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE id = ?", [init.id!], (err, results) => {
                         if(err) {
                             console.log("Error in SQL: " + JSON.stringify(err));
                             if(onReady !== undefined)
                                 onReady!(undefined);
                         } else {
-                            this.id = id;
+                            this.id = init.id!;
                             this.name = results[0].context;
                             this.handler = handler;
 
@@ -125,7 +164,10 @@ export class SVEServerGroup extends SVEGroup {
                     });
                 }
             } else {
-                onReady!(this);
+                (self as SVEServerGroup).saveAsNewGroup(init).then(i => {
+                    this.handler = handler;
+                    onReady!(this);
+                }, err => onReady!(undefined));
             }
         });
     }
