@@ -147,7 +147,7 @@ export class SVEServerGroup extends SVEGroup {
         if (SVESystemInfo.getIsServer()) {
             return new Promise<UserRights>((resolve, reject) => {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT user_id, context as context_id, write_access, read_access, admin_access FROM user INNER JOIN rights ON user.id = rights.user_id WHERE user_id = ? AND context = ?", [handler.getID(), this.id], (err, results) => {
-                    if(err) {
+                    if(err || results.length == 0) {
                         reject(err);
                     } else {
                         resolve({
