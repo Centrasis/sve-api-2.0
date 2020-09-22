@@ -299,6 +299,9 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
             new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
                 new SVEProject(idx as number, user, (self) => {
                     self.setName(req.body.name);
+                    if(req.body.dateRange !== undefined)
+                        self.setDateRange({ begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) });
+                    self.setState(req.body.state);
                     self.store().then(val => {
                         if(val) {
                             res.json(self.getAsInitializer());
