@@ -211,4 +211,12 @@ export class SVEServerData extends SVEData {
         
         return super.getStream(version);
     }
+
+    public getLocalPath(version: SVEDataVersion): string {
+        if(this.localDataInfo !== undefined) {
+            return (version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath;
+        } else {
+            return "";
+        }
+    }
 }

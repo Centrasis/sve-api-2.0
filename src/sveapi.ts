@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -578,6 +578,44 @@ router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (
     }
 });
 
+router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            new SVEProject(idx, user, (prj) => {
+                prj.getGroup()!.getRightsForUser(user).then(val => {
+                    if (val.read) {
+                        let files: any = [];
+                        var path = require("path");
+                        prj.getData().then(data => {
+                            data.forEach((d: SVEBaseData) => {
+                                files.push({
+                                    path: path.join(__dirname, './file'),
+                                    name: (d as SVEData).getLocalPath(SVEDataVersion.Full)
+                                });
+                            });
+
+                            try {
+                                (res as any).zip({
+                                    files: files,
+                                    filename: "Urlaub_" + prj.getName() + ".zip"
+                                });
+                            } catch {
+                                console.log("Zip streaming failed!");
+                                res.sendStatus(500);
+                            }
+                        });
+                    } else {
+                        res.sendStatus(401);
+                    }
+                });
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
@@ -602,7 +640,7 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                                                     owner: user, parentProject: prj, 
                                                     path: {filePath: fileDest, thumbnailPath: ""},
                                                     creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? new Date(Number(data.postParams.created)) : new Date()
-                                                } as SVEDataInitializer, (data: SVEData) => {
+                                                } as SVEDataInitializer, (data: SVEBaseData) => {
                                                     data.store().then(val => {
                                                         if(!val)
                                                             console.log("Error on file post-processing!");
