@@ -86,7 +86,7 @@ export class SVEServerGroup extends SVEGroup {
 
     public store() {
         return new Promise<boolean>((resolve, reject) => {
-            if(this.id === NaN) {
+            if(isNaN(this.id)) {
                 this.saveAsNewGroup(this.getAsInitializer());
             } else {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE contexts SET `name`=? WHERE id = ?", [this.name, this.id], (err, results) => {
@@ -147,7 +147,7 @@ export class SVEServerGroup extends SVEGroup {
     public constructor(init: GroupInitializer, handler: SVEAccount, onReady?: (self?: SVEGroup) => void) {
         super(init, handler, (self) => {
             if (SVESystemInfo.getIsServer()) {
-                if(init.id !== undefined && init.id !== NaN) {
+                if(init.id !== undefined && !isNaN(init.id)) {
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM contexts WHERE id = ?", [init.id!], (err, results) => {
                         if(err) {
                             console.log("Error in SQL: " + JSON.stringify(err));

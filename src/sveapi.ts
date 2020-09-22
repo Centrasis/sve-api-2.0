@@ -103,10 +103,6 @@ router.get('/query/:query', function (req: Request, res: Response) {
 router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -127,10 +123,6 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
     if (req.session!.user) {
         let gid = Number(req.params.id);
         let uid = Number(req.params.uid);
-        if(gid === NaN || uid === NaN) {
-            res.sendStatus(400);
-            return;
-        }
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
@@ -162,10 +154,6 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
     if (req.session!.user) {
         let gid = Number(req.params.id);
         let uid = Number(req.params.uid);
-        if(gid === NaN || uid === NaN) {
-            res.sendStatus(400);
-            return;
-        }
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
@@ -194,10 +182,6 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
 router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -220,9 +204,9 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
     }
 });
 
-router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Response) {
+router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
     if (req.session!.user) {
-        if (req.params.id !== "new" && req.params.id !== "NaN" && Number(req.params.id) !== NaN) {
+        if (req.params.id !== "new") {
             let idx = Number(req.params.id);
 
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
@@ -270,10 +254,6 @@ router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Res
 router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                 if(group !== undefined && group.getID() != NaN) {
@@ -314,10 +294,6 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
     if (req.session!.user) {
         if (req.params.prj !== "new") {
             let idx: number = Number(req.params.prj);
-            if(idx === NaN) {
-                res.sendStatus(400);
-                return;
-            }
             new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
                 new SVEProject(idx as number, user, (self) => {
                     self.setName(req.body.name);
@@ -360,10 +336,6 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
 router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 self.remove().then(success => {
@@ -383,13 +355,9 @@ router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Respo
 router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx: number = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
-                if (self.getID() === NaN) {
+                if (isNaN(self.getID())) {
                     res.sendStatus(404);
                 } else {
                     try {
@@ -423,10 +391,6 @@ router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response)
 router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
@@ -472,10 +436,6 @@ router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|fu
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
-        if(pid === NaN || fid === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
@@ -497,10 +457,6 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
-        if(pid === NaN || fid === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
@@ -569,10 +525,6 @@ router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (
     if (req.session!.user) {
         let pid = Number(req.params.id);
         let fid = Number(req.params.fid);
-        if(pid === NaN || fid === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
                 if(self !== undefined && self.getID() != NaN) {
@@ -600,10 +552,6 @@ router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (
 router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (prj) => {
                 prj.getGroup()!.getRightsForUser(user).then(val => {
@@ -655,10 +603,6 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
 router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
-        if(idx === NaN) {
-            res.sendStatus(400);
-            return;
-        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
