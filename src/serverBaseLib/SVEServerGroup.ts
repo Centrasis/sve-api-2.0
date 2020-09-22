@@ -184,8 +184,9 @@ export class SVEServerGroup extends SVEGroup {
                 } else {
                     (self as SVEServerGroup).handler = handler;
                     (self as SVEServerGroup).saveAsNewGroup(init).then(i => {
-                        onReady!(this);
-                    }, err => onReady!(undefined));
+                        if(onReady !== undefined)
+                            onReady!(this);
+                    }, err =>{ if(onReady !== undefined) onReady!(undefined); });
                 }
             }
         });
