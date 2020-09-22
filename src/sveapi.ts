@@ -222,7 +222,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
 
 router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
     if (req.session!.user) {
-        if (req.params.id !== "new") {
+        if (req.params.id !== "new" && req.params.id !== "NaN" && Number(req.params.id) !== NaN) {
             let idx = Number(req.params.id);
             if(idx === NaN) {
                 res.sendStatus(400);
@@ -244,20 +244,24 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                 });
             });
         } else {
-            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-                new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
-                    (group! as SVEGroup).store().then(val => {
-                        if(val) {
-                            res.json({
-                                name: group!.getName(),
-                                id: group!.getID()
-                            });
-                        } else {
-                            res.sendStatus(500);
-                        }
+            if(req.body.name) {
+                new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+                    new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
+                        (group! as SVEGroup).store().then(val => {
+                            if(val) {
+                                res.json({
+                                    name: group!.getName(),
+                                    id: group!.getID()
+                                });
+                            } else {
+                                res.sendStatus(500);
+                            }
+                        });
                     });
                 });
-            });
+            } else {
+                res.sendStatus(400);
+            }
         }
     } else {
         res.sendStatus(401);
