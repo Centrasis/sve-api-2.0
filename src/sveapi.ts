@@ -204,6 +204,32 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
     }
 });
 
+router.delete('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            let idx = Number(req.params.id);
+            new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+                if (group === undefined) {
+                    res.sendStatus(404);
+                } else {
+                    group.getRightsForUser(user).then(rights => {
+                        if(rights.admin) {
+                            console.log("Delete: " + group.getName());
+                            (group as SVEGroup).remove().then(val => {
+                                res.sendStatus((val) ? 204 : 500);
+                            });
+                        } else {
+                            res.sendStatus(401);
+                        }
+                    });
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
     if (req.session!.user) {
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
@@ -223,7 +249,6 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                     });
                 });
             } else {
-                console.log("On adding new group: " +JSON.stringify(req.body));
                 if(req.body.name !== undefined) {
                     new SVEGroup({name: req.body.name, id: NaN} as GroupInitializer, user, (group?: SVEBaseGroup) => {
                         if(group === undefined) {

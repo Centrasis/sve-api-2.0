@@ -1,7 +1,7 @@
 import {BasicUserInitializer, SVEAccount, SVEProjectType, SVEProject as SVEBaseProject, ProjectInitializer, SVESystemInfo, SVEGroup, UserRights, SessionUserInitializer, LoginState, GroupInitializer} from 'svebaselib';
 import {SVEServerProject as SVEProject} from './SVEServerProject';
 import mysql from 'mysql';
-import { textChangeRangeIsUnchanged } from 'typescript';
+import { parseJsonSourceFileConfigFileContent, textChangeRangeIsUnchanged } from 'typescript';
 
 export class SVEServerGroup extends SVEGroup {
     public getProjects(): Promise<SVEBaseProject[]> {
@@ -97,6 +97,25 @@ export class SVEServerGroup extends SVEGroup {
                     }
                 });
             }
+        });
+    }
+
+    // remove from server
+    public remove(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.getProjects().then(projects => {
+                projects.forEach(p => (p as SVEProject).remove());
+                
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM rights WHERE context = ?", [this.id], (err, res) => {});
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM contexts WHERE id = ?", [this.id], (err, res) => {
+                    if(err) {
+                        console.log("DELETING GROUP ERROR: " + JSON.stringify(err));
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
         });
     }
 
