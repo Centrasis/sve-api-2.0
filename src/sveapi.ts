@@ -327,6 +327,8 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                     if(req.body.dateRange !== undefined)
                         self.setDateRange({ begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) });
                     self.setState(req.body.state);
+                    if(req.body.splashImg !== undefined)
+                        self.setSplashImgID(Number(req.body.splashImg));
                     self.store().then(val => {
                         if(val) {
                             res.json(self.getAsInitializer());

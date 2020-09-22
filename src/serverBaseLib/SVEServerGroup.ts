@@ -76,7 +76,7 @@ export class SVEServerGroup extends SVEGroup {
                         } else {
                             this.id = results[0].id;
                             this.name = results[0].context;
-                            resolve(this.getAsInitializer());
+                            this.setRightsForUser(this.handler!, {admin: true, write: true, read: true}).then(val => resolve(this.getAsInitializer()));
                         }
                     });
                 }
@@ -182,8 +182,8 @@ export class SVEServerGroup extends SVEGroup {
                         }
                     });
                 } else {
+                    this.handler = handler;
                     (self as SVEServerGroup).saveAsNewGroup(init).then(i => {
-                        this.handler = handler;
                         onReady!(this);
                     }, err => onReady!(undefined));
                 }
