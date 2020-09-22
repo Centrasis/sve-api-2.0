@@ -105,7 +105,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Resp
         let idx = Number(req.params.id);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
-                if(group !== undefined && group.getID() != NaN) {
+                if(group !== undefined && !isNaN(group.getID())) {
                     group.getRightsForUser(user).then((rights) => {
                         res.json(rights);
                     });
@@ -126,7 +126,7 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
-                if(group !== undefined && group.getID() != NaN) {
+                if(group !== undefined && !isNaN(group.getID())) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.admin) {
                             new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
@@ -157,7 +157,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
 
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: gid}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
-                if(group !== undefined && group.getID() != NaN) {
+                if(group !== undefined && !isNaN(group.getID())) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
                             new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
@@ -184,7 +184,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
         let idx = Number(req.params.id);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, new SVEAccount(req.session!.user as SessionUserInitializer), (group?: SVEBaseGroup) => {
-                if(group !== undefined && group.getID() != NaN) {
+                if(group !== undefined && !isNaN(group.getID())) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
                             group.getUsers().then(usrs => {
@@ -256,7 +256,7 @@ router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
         let idx = Number(req.params.id);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
-                if(group !== undefined && group.getID() != NaN) {
+                if(group !== undefined && !isNaN(group.getID())) {
                     group.getRightsForUser(user).then((rights) => {
                         if(rights.read) {
                             group.getProjects().then((prjs) => {
@@ -393,7 +393,7 @@ router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Resp
         let idx = Number(req.params.id);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx, user, (self) => {
-                if(self !== undefined && self.getID() != NaN) {
+                if(self !== undefined && !isNaN(self.getID())) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.read) {
                             self.getData().then((data) => {
@@ -439,7 +439,7 @@ router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|fu
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
-                if(self !== undefined && self.getID() != NaN) {
+                if(self !== undefined && !isNaN(self.getID())) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         (self as SVEProject).getDataById(fid).then(file => {
                             setFileRequestHeaders(file, fetchType, res);
@@ -460,7 +460,7 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
-                if(self !== undefined && self.getID() != NaN) {
+                if(self !== undefined && !isNaN(self.getID())) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.read) {
                             // check range request
@@ -527,7 +527,7 @@ router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (
         let fid = Number(req.params.fid);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
-                if(self !== undefined && self.getID() != NaN) {
+                if(self !== undefined && !isNaN(self.getID())) {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.write) {
                             (self as SVEProject).getDataById(fid).then(file => {
