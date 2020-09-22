@@ -365,16 +365,10 @@ router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response)
                     try {
                         self.getGroup().getRightsForUser(user).then(val => {
                             if(val.read) {
-                                res.json({
-                                    id: self.getID(),
-                                    group: self.getGroup().getID(),
-                                    owner: (self as SVEProject).getOwnerID(),
-                                    type: self.getType(),
-                                    name: self.getName(),
-                                    splashImgID: self.getSplashImgID(),
-                                    dateRange: self.getDateRange(),
-                                    state: self.getState()
-                                });
+                                let init: any = self.getAsInitializer();
+                                init.group = init.group.getID();
+                                init.owner = (typeof init.owner !== "number") ? init.owner.getID() : init.owner;
+                                res.json(init);
                             } else {
                                 res.sendStatus(401);
                             }
