@@ -87,9 +87,9 @@ export class SVEServerGroup extends SVEGroup {
     public store() {
         return new Promise<boolean>((resolve, reject) => {
             if(isNaN(this.id)) {
-                this.saveAsNewGroup(this.getAsInitializer());
+                this.saveAsNewGroup(this.getAsInitializer()).then(gi => resolve(true), err => reject(err));
             } else {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE contexts SET `name`=? WHERE id = ?", [this.name, this.id], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE contexts SET `name` = ? WHERE id = ?", [this.name, this.id], (err, results) => {
                     if(err) {
                         reject(err);
                     } else {

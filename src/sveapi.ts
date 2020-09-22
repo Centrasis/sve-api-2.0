@@ -235,7 +235,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                                     res.json({
                                         name: group!.getName(),
                                         id: group!.getID()
-                                    });
+                                    } as GroupInitializer);
                                 } else {
                                     res.sendStatus(500);
                                 }
