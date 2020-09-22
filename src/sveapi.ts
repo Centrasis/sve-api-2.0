@@ -317,9 +317,11 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                         name: req.body.name, 
                         owner: user,
                         splashImg: 0,
-                        type: req.body.type
+                        type: req.body.type,
+                        state: req.body.state,
+                        dateRange: (req.body.dateRange !== undefined) ? { begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) } : undefined
                     } as ProjectInitializer, user, (project) => {
-                        project.store().then(val => {
+                        (project as SVEProject).store().then(val => {
                             if(val) {
                                 res.json(project.getAsInitializer());
                             } else {

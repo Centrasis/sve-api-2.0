@@ -78,7 +78,7 @@ export class SVEServerProject extends SVEProject {
         return new Promise<boolean>((resolve, reject) => {
             this.group!.getRightsForUser(this.handler!).then(rights => {
                 if (rights.write) {
-                    if (isNaN(this.id)) {
+                    if (isNaN(this.id) || this.id == null) {
                         (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`name`, `context`, `owner`, `state`, `data_path`) VALUES (?, ?, ?, ?, ?)", [this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name], (err, results) => {
                             if(err) {
                                 reject(err);
