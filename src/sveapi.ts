@@ -226,17 +226,21 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                 console.log("On adding new group: " +JSON.stringify(req.body));
                 if(req.body.name !== undefined) {
                     new SVEGroup({name: req.body.name, id: NaN} as GroupInitializer, user, (group?: SVEBaseGroup) => {
-                        (group! as SVEGroup).store().then(val => {
-                            if(val) {
-                                console.log("Created new group: " + group!.getName());
-                                res.json({
-                                    name: group!.getName(),
-                                    id: group!.getID()
-                                });
-                            } else {
-                                res.sendStatus(500);
-                            }
-                        });
+                        if(group === undefined) {
+                            res.sendStatus(403);
+                        } else {
+                            (group! as SVEGroup).store().then(val => {
+                                if(val) {
+                                    console.log("Created new group: " + group!.getName());
+                                    res.json({
+                                        name: group!.getName(),
+                                        id: group!.getID()
+                                    });
+                                } else {
+                                    res.sendStatus(500);
+                                }
+                            });
+                        }
                     });
                 } else {
                     res.sendStatus(400);
