@@ -20,6 +20,7 @@ import {Fields, File, Files, Part, } from "formidable";
 import HugeUploader from 'huge-uploader-nodejs';
 import { copyFile, mkdir } from 'fs';
 import { dirname } from 'path';
+import { group } from 'console';
 
 const tmpDir = './tmp';
 mkdir(tmpDir, (err) => {});
@@ -590,7 +591,7 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                             if (assembleChunks) {
                                 assembleChunks().then(data => {
                                     let postProcessing = async() => {
-                                        let fileDest = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getName() + "/" + user.getName() + "/" + data.postParams.fileName;
+                                        let fileDest = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getGroup().getName() + "/" + prj.getName() + "/" + user.getName() + "/" + data.postParams.fileName;
                                         move(data.filePath, fileDest, (err) => {
                                             if(err) {
                                                 console.log("Error on copy: " + JSON.stringify(err));
