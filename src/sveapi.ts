@@ -224,10 +224,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Res
     if (req.session!.user) {
         if (req.params.id !== "new" && req.params.id !== "NaN" && Number(req.params.id) !== NaN) {
             let idx = Number(req.params.id);
-            if(idx === NaN) {
-                res.sendStatus(400);
-                return;
-            }
+
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
                 new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                     (group! as SVEGroup).setName(req.body.name);
@@ -249,6 +246,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Res
                     new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
                         (group! as SVEGroup).store().then(val => {
                             if(val) {
+                                console.log("Created new group: " + group!.getName());
                                 res.json({
                                     name: group!.getName(),
                                     id: group!.getID()
@@ -261,6 +259,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Res
                 });
             } else {
                 res.sendStatus(400);
+                console.log("Incorrect body to create new group!");
             }
         }
     } else {
