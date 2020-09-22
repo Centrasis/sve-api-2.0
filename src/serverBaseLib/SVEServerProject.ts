@@ -74,6 +74,41 @@ export class SVEServerProject extends SVEProject {
         return this.group! as SVEGroup;
     }
 
+    protected saveDateRange(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            if(this.dateRange === undefined) {
+                resolve(true);
+            } else {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM events WHERE `project_id` = ?", [this.id], (err, results) => {
+                    if(err) {
+                        console.log("ERROR SELECTING EVENTS: " + JSON.stringify(err));
+                        resolve(false);
+                    } else {
+                        if(results.length === 0) {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO events (`project_id`, `begin_point`, `end_point`) VALUES (?, ?, ?)", [this.id, this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString()], (err, results) => {
+                                if(err) {
+                                    console.log("ERROR INSERTING EVENT: " + JSON.stringify(err));
+                                    resolve(false);
+                                } else {
+                                    resolve(true);
+                                }
+                            });
+                        } else {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=?, `end_point`=? WHERE project_id=?", [this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString(), this.id], (err, results) => {
+                                if(err) {
+                                    console.log("ERROR UPDATING EVENT: " + JSON.stringify(err));
+                                    resolve(false);
+                                } else {
+                                    resolve(true);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     public store(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.group!.getRightsForUser(this.handler!).then(rights => {
@@ -83,7 +118,14 @@ export class SVEServerProject extends SVEProject {
                             if(err) {
                                 reject(err);
                             } else {
-                                resolve(true);
+                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM projects WHERE `name` = ?", [this.name], (err, results) => {
+                                    if(err) {
+                                        reject(err);
+                                    } else {
+                                        this.id = results[0].id;
+                                        this.saveDateRange().then(v => resolve(v));
+                                    }
+                                });
                             }
                         });
                     } else {
@@ -91,7 +133,7 @@ export class SVEServerProject extends SVEProject {
                             if(err) {
                                 reject(err);
                             } else {
-                                resolve(true);
+                                this.saveDateRange().then(v => resolve(v))
                             }
                         });
                     }
