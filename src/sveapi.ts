@@ -206,10 +206,9 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
 
 router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
     if (req.session!.user) {
-        if (req.params.id !== "new") {
-            let idx = Number(req.params.id);
-
-            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            if (req.params.id !== "new") {
+                let idx = Number(req.params.id);
                 new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                     (group! as SVEGroup).setName(req.body.name);
                     group!.store().then(val => {
@@ -223,11 +222,10 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                         }
                     });
                 });
-            });
-        } else {
-            if(req.body.name) {
-                new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
-                    new SVEGroup({name: req.body.name} as GroupInitializer, user, (group?: SVEBaseGroup) => {
+            } else {
+                console.log("On adding new group: " +JSON.stringify(req.body));
+                if(req.body.name !== undefined) {
+                    new SVEGroup({name: req.body.name, id: NaN} as GroupInitializer, user, (group?: SVEBaseGroup) => {
                         (group! as SVEGroup).store().then(val => {
                             if(val) {
                                 console.log("Created new group: " + group!.getName());
@@ -240,12 +238,12 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
                             }
                         });
                     });
-                });
-            } else {
-                res.sendStatus(400);
-                console.log("Incorrect body to create new group!");
+                } else {
+                    res.sendStatus(400);
+                    console.log("Incorrect body to create new group!");
+                }
             }
-        }
+        });
     } else {
         res.sendStatus(401);
     }
