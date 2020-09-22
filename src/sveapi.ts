@@ -220,7 +220,7 @@ router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Respo
     }
 });
 
-router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
+router.put('/group/:id([\\+\\-]?\\d+|new|NaN)', function (req: Request, res: Response) {
     if (req.session!.user) {
         if (req.params.id !== "new" && req.params.id !== "NaN" && Number(req.params.id) !== NaN) {
             let idx = Number(req.params.id);
