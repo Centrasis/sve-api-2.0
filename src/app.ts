@@ -48,8 +48,6 @@ let opts: SessionOptions = {
 };
 var sess: RequestHandler = session.default(opts);
 app.use(sess);
-var zip = require('express-easy-zip');
-app.use(zip());
 
 app.use('/auth', router);
 

@@ -589,9 +589,11 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
                         var path = require("path");
                         prj.getData().then(data => {
                             data.forEach((d: SVEBaseData) => {
-                                files.push({
-                                    path: path.join(__dirname, './file'),
-                                    name: (d as SVEData).getLocalPath(SVEDataVersion.Full)
+                                d.getOwner().then(owner => {
+                                    files.push({
+                                        path: (d as SVEData).getLocalPath(SVEDataVersion.Full),
+                                        name: owner.getName() + "/" + d.getName()
+                                    });
                                 });
                             });
 
