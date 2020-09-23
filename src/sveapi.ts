@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEDataType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -325,6 +325,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
             new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
                 new SVEProject(idx as number, user, (self) => {
                     self.setName(req.body.name);
+                    self.setType(req.body.type as SVEProjectType);
                     if(req.body.dateRange !== undefined)
                         self.setDateRange({ begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) });
                     self.setState(req.body.state);

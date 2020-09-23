@@ -106,14 +106,15 @@ export class SVEServerGroup extends SVEGroup {
             this.getProjects().then(projects => {
                 projects.forEach(p => (p as SVEProject).remove());
                 
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM rights WHERE context = ?", [this.id], (err, res) => {});
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM contexts WHERE id = ?", [this.id], (err, res) => {
-                    if(err) {
-                        console.log("DELETING GROUP ERROR: " + JSON.stringify(err));
-                        resolve(false);
-                    } else {
-                        resolve(true);
-                    }
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM rights WHERE context = ?", [this.id], (err, res) => {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM contexts WHERE id = ?", [this.id], (err, res) => {
+                        if(err) {
+                            console.log("DELETING GROUP ERROR: " + JSON.stringify(err));
+                            resolve(false);
+                        } else {
+                            resolve(true);
+                        }
+                    });
                 });
             });
         });

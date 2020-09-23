@@ -1,4 +1,4 @@
-import {BasicUserInitializer, SVEProject, SVEDataInitializer, ProjectInitializer, SVEAccount as SVEBaseAccount, isProjectInitializer, SVEProjectState} from 'svebaselib';
+import {BasicUserInitializer, SVEProject, SVEDataInitializer, ProjectInitializer, SVEAccount as SVEBaseAccount, isProjectInitializer, SVEProjectState, SVEProjectType} from 'svebaselib';
 import {SVEServerGroup as SVEGroup} from './SVEServerGroup';
 import {SVEServerAccount as SVEAccount} from './SVEServerAccount';
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
@@ -10,7 +10,7 @@ export class SVEServerProject extends SVEProject {
         super(idx, handler, (self) => {
             // if get by id from DB
             if (!isProjectInitializer(idx) && SVESystemInfo.getIsServer()) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, results_uri, begin_point, end_point FROM projects LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, results_uri, begin_point, end_point, type FROM (projects LEFT JOIN documentProjects ON id = project) LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
                     if(err) {
                         this.id = NaN;
                         console.log("SQL ERROR ON GET PROJECT BY ID ON SERVER: " + JSON.stringify(err));
@@ -25,6 +25,9 @@ export class SVEServerProject extends SVEProject {
                             this.id = idx as number;
                             this.name = results[0].name;
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
+                            if (results[0].type !== null && results[0].type !== undefined) {
+                                this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Vacation;
+                            }
 
                             if (results[0].begin_point != null && results[0].begin_point != undefined) {
                                 this.dateRange = {
@@ -109,6 +112,41 @@ export class SVEServerProject extends SVEProject {
         });
     }
 
+    protected saveType(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            if(this.dateRange === undefined) {
+                resolve(true);
+            } else {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentProjects WHERE `project` = ?", [this.id], (err, results) => {
+                    if(err) {
+                        console.log("ERROR SELECTING documentProjects: " + JSON.stringify(err));
+                        resolve(false);
+                    } else {
+                        if(results.length === 0) {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentProjects (`project`, `type`) VALUES (?, ?)", [this.id, (this.type === SVEProjectType.Sales) ? "Sales" : "Documents"], (err, results) => {
+                                if(err) {
+                                    console.log("ERROR INSERTING documentProjects: " + JSON.stringify(err));
+                                    resolve(false);
+                                } else {
+                                    resolve(true);
+                                }
+                            });
+                        } else {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE documentProjects SET `type`=? WHERE project=?", [(this.type === SVEProjectType.Sales) ? "Sales" : "Documents", this.id], (err, results) => {
+                                if(err) {
+                                    console.log("ERROR UPDATING documentProjects: " + JSON.stringify(err));
+                                    resolve(false);
+                                } else {
+                                    resolve(true);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     public store(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.group!.getRightsForUser(this.handler!).then(rights => {
@@ -123,7 +161,9 @@ export class SVEServerProject extends SVEProject {
                                         reject(err);
                                     } else {
                                         this.id = results[0].id;
-                                        this.saveDateRange().then(v => resolve(v));
+                                        this.saveDateRange().then(v => {
+                                            this.saveType().then(v => resolve(v));
+                                        });
                                     }
                                 });
                             }
@@ -133,7 +173,9 @@ export class SVEServerProject extends SVEProject {
                             if(err) {
                                 reject(err);
                             } else {
-                                this.saveDateRange().then(v => resolve(v))
+                                this.saveDateRange().then(v => {
+                                    this.saveType().then(v => resolve(v));
+                                });
                             }
                         });
                     }
