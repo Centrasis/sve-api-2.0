@@ -370,7 +370,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
 
 router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
-        let idx: number = Number(req.params.id);
+        let idx: number = Number(req.params.prj);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(idx as number, user, (self) => {
                 (self as SVEProject).remove().then(success => {
