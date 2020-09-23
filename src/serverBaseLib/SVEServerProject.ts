@@ -123,7 +123,7 @@ export class SVEServerProject extends SVEProject {
                         console.log("ERROR SELECTING documentProjects: " + JSON.stringify(err));
                         resolve(false);
                     } else {
-                        if(results.length === 0) {
+                        if(results.length === 0 || results.length === undefined) {
                             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentProjects (`project`, `type`) VALUES (?, ?)", [this.id, (this.type === SVEProjectType.Sales) ? "Sales" : "Documents"], (err, results) => {
                                 if(err) {
                                     console.log("ERROR INSERTING documentProjects: " + JSON.stringify(err));
