@@ -26,6 +26,7 @@ export class SVEServerProject extends SVEProject {
                             this.name = results[0].name;
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
                             if (results[0].type !== null && results[0].type !== undefined) {
+                                console.log("Found project marked for documents");
                                 this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Vacation;
                             }
 
@@ -114,7 +115,7 @@ export class SVEServerProject extends SVEProject {
 
     protected saveType(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            if(this.dateRange === undefined) {
+            if(this.type === SVEProjectType.Vacation) {
                 resolve(true);
             } else {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentProjects WHERE `project` = ?", [this.id], (err, results) => {

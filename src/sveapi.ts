@@ -332,6 +332,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                     if(req.body.splashImg !== undefined)
                         self.setSplashImgID(Number(req.body.splashImg));
                     self.store().then(val => {
+                        console.log("Created Project: " + JSON.stringify(self.getAsInitializer()));
                         if(val) {
                             res.json(self.getAsInitializer());
                         } else {
