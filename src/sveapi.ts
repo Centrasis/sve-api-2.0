@@ -375,7 +375,7 @@ router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Respo
             new SVEProject(idx as number, user, (self) => {
                 (self as SVEProject).remove().then(success => {
                     if(success) {
-                        res.sendStatus(200);
+                        res.sendStatus(204);
                     } else {
                         res.sendStatus(401);
                     }
