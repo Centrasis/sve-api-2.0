@@ -702,6 +702,7 @@ router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
                         id: self.getID(),
                         type: self.getType(),
                         project: self.getProject(),
+                        name: self.getName(),
                         owner: self.getOwnerID(),
                         creation: self.getCreationDate(),
                         lastAccess: self.getLastAccessDate()
