@@ -586,17 +586,10 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
                 prj.getGroup()!.getRightsForUser(user).then(val => {
                     if (val.read) {
                         let files: any = [];
-                        var path = require("path");
-                        prj.getData().then(data => {
-                            data.forEach((d: SVEBaseData) => {
-                                d.getOwner().then(owner => {
-                                    files.push({
-                                        path: (d as SVEData).getLocalPath(SVEDataVersion.Full),
-                                        name: owner.getName() + "/" + d.getName()
-                                    });
-                                });
-                            });
+                        let ownerNames: Map<number, string> = new Map<number, string>();
+                        let fCount = 0;
 
+                        let finalizeDownload = () => {
                             try {
                                 (res as any).zip({
                                     files: files,
@@ -606,6 +599,34 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
                                 console.log("Zip streaming failed!");
                                 res.sendStatus(500);
                             }
+                        };
+
+                        let addFile = (file: SVEData, owner: string) => {
+                            files.push({
+                                path: file.getLocalPath(SVEDataVersion.Full),
+                                name: owner + "/" + file.getName()
+                            });
+                        };
+
+                        prj.getData().then(data => {
+                            data.forEach((d: SVEBaseData) => {
+                                if (!ownerNames.has(d.getOwnerID())) {
+                                    d.getOwner().then(owner => {
+                                        ownerNames.set(owner.getID(), owner.getName());
+                                        addFile(d, owner.getName());
+                                        fCount++;
+                                        if(fCount === data.length) {
+                                            finalizeDownload();
+                                        }
+                                    });
+                                } else {
+                                    fCount++;
+                                    addFile(d, ownerNames.get(d.getOwnerID())!);
+                                    if(fCount === data.length) {
+                                        finalizeDownload();
+                                    }
+                                }
+                            });
                         });
                     } else {
                         res.sendStatus(401);
