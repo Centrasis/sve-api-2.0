@@ -148,12 +148,15 @@ export class SVEServerProject extends SVEProject {
         return new Promise<boolean>((resolve, reject) => {
             this.group!.getRightsForUser(this.handler!).then(rights => {
                 if (rights.admin) {
-                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM projects WHERE id = ?", [this.id], (err, results) => {
-                        if(err) {
-                            reject(err);
-                        } else {
-                            resolve(true);
-                        }
+                    this.getData().then(data => {
+                        data.forEach(d => d.remove());
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM projects WHERE id = ?", [this.id], (err, results) => {
+                            if(err) {
+                                reject(err);
+                            } else {
+                                resolve(true);
+                            }
+                        });
                     });
                 } else {
                     resolve(false);
