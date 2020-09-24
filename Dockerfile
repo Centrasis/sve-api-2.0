@@ -1,5 +1,4 @@
 FROM node:latest
-
 RUN echo "setting work dir..."
 WORKDIR /usr/src/app
 RUN apt-get update

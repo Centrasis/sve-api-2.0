@@ -26,8 +26,8 @@ export class SVEServerProject extends SVEProject {
                             this.name = results[0].name;
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
                             if (results[0].type !== null && results[0].type !== undefined) {
-                                console.log("Found project marked for documents");
-                                this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Vacation;
+                                console.log("Found project marked for documents: " + results[0].type);
+                                this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Sales; // lacking other implementations
                             }
 
                             if (results[0].begin_point != null && results[0].begin_point != undefined) {
