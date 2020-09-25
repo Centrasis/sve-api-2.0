@@ -342,7 +342,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                             self.setResult((req.body.result !== undefined) ? Number(req.body.result) : undefined);
 
                         (self as SVEProject).store().then(val => {
-                            console.log("Updated Project: " + JSON.stringify(self.getAsInitializer()));
+                            console.log("Updated Project: " + self.getName());
                             if(val) {
                                 res.json(self.getAsInitializer());
                             } else {
@@ -445,7 +445,8 @@ router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Resp
                                 data.forEach(d => { list.push({
                                         id: d.getID(),
                                         type: d.getType(),
-                                        owner: d.getOwnerID()
+                                        owner: d.getOwnerID(),
+                                        name: d.getName()
                                     } as SVEDataInitializer)
                                 });
                                 res.json(list);
