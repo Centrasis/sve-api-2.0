@@ -717,7 +717,7 @@ router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
                     res.json({
                         id: self.getID(),
                         type: self.getType(),
-                        project: self.getProject(),
+                        project: self.getProject().getID(),
                         name: self.getName(),
                         owner: self.getOwnerID(),
                         creation: self.getCreationDate(),

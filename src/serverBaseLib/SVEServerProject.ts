@@ -29,7 +29,7 @@ export class SVEServerProject extends SVEProject {
                             }
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
                             if (results[0].type !== null && results[0].type !== undefined) {
-                                this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Sales; // lacking other implementations
+                                this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Documents;
                             }
 
                             if (results[0].begin_point != null && results[0].begin_point != undefined) {

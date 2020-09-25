@@ -20,21 +20,22 @@ export class SVEServerData extends SVEData {
                             onComplete(self);
                         } else {
                             if(results[0].project !== undefined && results[0].project !== null) {
-                                let parentProject = new SVEProject(results[0].project as number, handler, (prj) => {
+                                new SVEProject(results[0].project as number, handler, (prj) => {
+                                    this.parentProject = prj;
                                     if (prj.getGroup() !== undefined) {
                                         prj.getGroup()!.getRightsForUser(handler).then((val) => {
                                             if(!val.read) {
                                                 onComplete(self);
                                             } else {
-                                                async () => self.initFromResult(results[0], parentProject, () => { onComplete(self); });
+                                                self.initFromResult(results[0], prj, () => { onComplete(self); });
                                             }
                                         });
                                     } else {
-                                        async () => self.initFromResult(results[0], parentProject, () => { onComplete(self); });
+                                        self.initFromResult(results[0], prj, () => { onComplete(self); });
                                     }
                                 });
                             } else {
-                                async () => self.initFromResult(results[0], undefined, () => { onComplete(self); });
+                                self.initFromResult(results[0], undefined, () => { onComplete(self); });
                             }
                         }
                     });
