@@ -21,7 +21,6 @@ export class SVEServerData extends SVEData {
                         } else {
                             if(results[0].project !== undefined && results[0].project !== null) {
                                 new SVEProject(results[0].project as number, handler, (prj) => {
-                                    this.parentProject = prj;
                                     if (prj.getGroup() !== undefined) {
                                         prj.getGroup()!.getRightsForUser(handler).then((val) => {
                                             if(!val.read) {
