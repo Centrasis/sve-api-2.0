@@ -367,7 +367,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                         dateRange: (req.body.dateRange !== undefined) ? { begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) } : undefined
                     } as ProjectInitializer, user, (project) => {
                         (project as SVEProject).store().then(val => {
-                            console.log("Created new Project: " + JSON.stringify(project.getAsInitializer()));
+                            console.log("Created new Project: " + project.getName());
                             if(val) {
                                 res.json(project.getAsInitializer());
                             } else {

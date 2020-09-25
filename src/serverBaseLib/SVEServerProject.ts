@@ -155,19 +155,19 @@ export class SVEServerProject extends SVEProject {
             this.group!.getRightsForUser(this.handler!).then(rights => {
                 if (rights.write) {
                     if (isNaN(this.id) || this.id == null) {
-                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?)", [this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT MAX(id) as id FROM projects", (err, results) => {
                             if(err) {
                                 reject(err);
                             } else {
-                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM projects WHERE `name` = ?", [this.name], (err, results) => {
+                                this.id = ((results.length > 0) ? Number(results[0].id) : 0) + 1;
+                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`id`, `name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?)", [this.id, this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
                                     if(err) {
                                         reject(err);
                                     } else {
-                                        this.id = results[0].id;
                                         this.saveDateRange().then(v => {
                                             this.saveType().then(v => resolve(v));
                                         });
-                                    }
+                                    };
                                 });
                             }
                         });
