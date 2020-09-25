@@ -21,6 +21,7 @@ import HugeUploader from 'huge-uploader-nodejs';
 import { copyFile, mkdir } from 'fs';
 import { dirname } from 'path';
 import { group } from 'console';
+import { updateDecorator } from 'typescript';
 
 const tmpDir = './tmp';
 mkdir(tmpDir, (err) => {});
@@ -331,7 +332,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                     self.setState(req.body.state);
                     if(req.body.splashImg !== undefined)
                         self.setSplashImgID(Number(req.body.splashImg));
-                    self.setResult(Number(req.body.result));
+                    self.setResult((req.body.result !== undefined) ? Number(req.body.result) : undefined);
                     self.store().then(val => {
                         console.log("Updated Project: " + JSON.stringify(self.getAsInitializer()));
                         if(val) {
