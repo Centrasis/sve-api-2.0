@@ -50,7 +50,7 @@ export class SVEServerProject extends SVEProject {
                                         onReady!(self);
                                 } else {
                                     this.splashImgID = 0;
-                                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT min(id) as id FROM `files` WHERE projects.id = ?", [idx as number], (err, selresults) => {
+                                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT min(id) as id FROM `files` WHERE `project` = ?", [idx as number], (err, selresults) => {
                                         if (err || selresults === undefined) {
                                             if (onReady !== undefined)
                                                 onReady!(self);
@@ -100,7 +100,7 @@ export class SVEServerProject extends SVEProject {
                                 }
                             });
                         } else {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=?, `end_point`=? WHERE project_id=?", [this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString(), this.id], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=?, `end_point`=? WHERE `project_id`=?", [this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString(), this.id], (err, results) => {
                                 if(err) {
                                     console.log("ERROR UPDATING EVENT: " + JSON.stringify(err));
                                     resolve(false);
@@ -195,7 +195,7 @@ export class SVEServerProject extends SVEProject {
                 if (rights.admin) {
                     this.getData().then(data => {
                         data.forEach(d => d.remove());
-                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM projects WHERE id = ?", [this.id], (err, results) => {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM projects WHERE `id` = ?", [this.id], (err, results) => {
                             if(err) {
                                 reject(err);
                             } else {
@@ -212,7 +212,7 @@ export class SVEServerProject extends SVEProject {
 
     public getDataById(fid: number): Promise<SVEData> {
         return new Promise<SVEData>((resolve, reject) => { 
-            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE (project = ? OR project IS NULL) AND id = ?", [this.id, fid], (err, results) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE (`project` = ? OR `project` IS NULL) AND `id` = ?", [this.id, fid], (err, results) => {
                 if(err) {
                     console.log("SQL ERROR ON FILES: " + JSON.stringify(err));
                     reject(null);
@@ -232,7 +232,7 @@ export class SVEServerProject extends SVEProject {
     public getData(): Promise<SVEData[]> {
         if (SVESystemInfo.getIsServer()) {
             return new Promise<SVEData[]>((resolve, reject) => { 
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE project = ?", [this.id], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE `project` = ?", [this.id], (err, results) => {
                     if(err) {
                         console.log("SQL ERROR ON FILES: " + JSON.stringify(err));
                         reject(null);
