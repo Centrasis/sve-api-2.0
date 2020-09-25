@@ -120,13 +120,13 @@ export class SVEServerProject extends SVEProject {
             if(this.type === SVEProjectType.Vacation) {
                 resolve(true);
             } else {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentProjects WHERE `project` = ?", [this.id], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM `documentProjects` WHERE `project` = ?", [this.id], (err, results) => {
                     if(err) {
                         console.log("ERROR SELECTING documentProjects: " + JSON.stringify(err));
                         resolve(false);
                     } else {
                         if(results.length === 0 || results.length === undefined) {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentProjects (`project`, `type`) VALUES (?, ?)", [this.id, (this.type === SVEProjectType.Sales) ? "Sales" : "Documents"], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO `documentProjects` (`project`, `type`) VALUES (?, ?)", [this.id, (this.type === SVEProjectType.Sales) ? "Sales" : "Documents"], (err, results) => {
                                 if(err) {
                                     console.log("ERROR INSERTING documentProjects: " + JSON.stringify(err));
                                     resolve(false);
@@ -135,7 +135,7 @@ export class SVEServerProject extends SVEProject {
                                 }
                             });
                         } else {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE documentProjects SET `type`=? WHERE `project`=?", [(this.type === SVEProjectType.Sales) ? "Sales" : "Documents", this.id], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE `documentProjects` SET `type`=? WHERE `project`=?", [(this.type === SVEProjectType.Sales) ? "Sales" : "Documents", this.id], (err, results) => {
                                 if(err) {
                                     console.log("ERROR UPDATING documentProjects: " + JSON.stringify(err));
                                     resolve(false);
