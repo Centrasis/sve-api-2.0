@@ -1,4 +1,4 @@
-import { router } from './authenticator';
+import { router as auth } from './authenticator';
 import { router as sve } from './sveapi';
 import express, { Request, Response, RequestHandler } from "express";
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -49,7 +49,7 @@ let opts: SessionOptions = {
 var sess: RequestHandler = session.default(opts);
 app.use(sess);
 
-app.use('/auth', router);
+app.use('/auth', auth);
 
 app.use('/api', sve);
 

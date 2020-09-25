@@ -1,54 +1,79 @@
+import { Request, Response, Router } from "express";
 import ServerHelper from './serverhelper';
-import {Token, TokenType} from 'svebaselib';
+import {Token, TokenType, SessionUserInitializer, SVEAccount as SVEBaseAccount, SVEGroup as SVEBaseGroup} from 'svebaselib';
+import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
+import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
+import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
+import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
+import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
+import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 
-var express = require('express');
-var router = express.Router();
+var router = Router();
 const apiVersion = 1;
 
 ServerHelper.setupRouter(router);
 
-/*
-router.post('/', function (req: any, res: any) {
-    if (req.body.user && req.body.ressource) {
-        let data = new SVEData();
-        data.createTokenFor(req.body.ressource, req.body.user).then((token: Token) => {
-            res.json({
-                user: token.user,
-                token: token.token,
-                ressource: token.ressource,
-                type: token.type,
-                time: new Date()
-            });
-        }, (err) => {
-            res.status(500).send(JSON.stringify(err));
+router.post('/token/new', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let tokenType: TokenType = req.body.type as TokenType;
+        let targetID: number = Number(req.body.target);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            if(tokenType === TokenType.DeviceToken) {
+
+            } else {
+                if (tokenType === TokenType.RessourceToken) {
+                    new SVEGroup({id: targetID}, user, (group) => {
+                        group!.getRightsForUser(user).then(rights => {
+                            if (rights.write || rights.admin) {
+                                SVEToken.register(tokenType, group as SVEBaseGroup).then(token => {
+                                    res.json({
+                                        token: token
+                                    });
+                                }, err => res.sendStatus(500));
+                            } else {
+                                res.sendStatus(401);
+                            }
+                        });
+                    });
+                }
+            }
         });
     } else {
-        console.log("Wrong Body: " + JSON.stringify(req.body));
-        res.status(400).send("Bad request!");
+        res.sendStatus(401);
     }
 });
 
-router.get('/', function (req: any, res: any) {
-    if(req.query.token && req.query.ressource) {
-        let data = new SVEData();
-        data.doTokenLogin({
-            token: req.query.token,
-            ressource: req.query.ressource,
-            user: "",
-            type: TokenType.RessourceToken,
-            time: new Date()
-        }).then((value: TokenType) => {
-            res.json({
-                success: true
-            });
-        }, (err) => {
-            res.status(400).send("Bad request token!");
-        });
+router.post('/token/validate', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let tokenType: TokenType = req.body.type as TokenType;
+        let targetID: number = Number(req.body.target);
+        let token = req.body.token;
+        SVEToken.tokenExists(tokenType, token, targetID).then(val => {
+            res.sendStatus(val ? 204 : 404);
+        }, err => res.sendStatus(500));
     } else {
-        res.status(400).send("Bad request!");
+        res.sendStatus(401);
     }
 });
-*/
+
+router.post('/token/use', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let tokenType: TokenType = req.body.type as TokenType;
+        let targetID: number = Number(req.body.target);
+        let token = req.body.token;
+        SVEToken.tokenExists(tokenType, token, targetID).then(val => {
+            if(val) {
+                SVEToken.useToken(tokenType, token, targetID).then(val => {
+                    res.sendStatus(val ? 204 : 404);
+                }, err => res.sendStatus(500));
+            } else {
+                res.sendStatus(404);
+            }
+        }, err => res.sendStatus(500));
+    } else {
+        res.sendStatus(401);
+    }
+});
 
 export {
     router,
