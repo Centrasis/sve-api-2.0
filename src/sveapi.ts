@@ -325,21 +325,30 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
             let idx: number = Number(req.params.prj);
             new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
                 new SVEProject(idx as number, user, (self) => {
-                    self.setName(req.body.name);
-                    self.setType(req.body.type as SVEProjectType);
-                    if(req.body.dateRange !== undefined)
-                        self.setDateRange({ begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) });
-                    self.setState(req.body.state);
-                    if(req.body.splashImg !== undefined)
-                        self.setSplashImgID(Number(req.body.splashImg));
-                    self.setResult((req.body.result !== undefined) ? Number(req.body.result) : undefined);
-                    self.store().then(val => {
-                        console.log("Updated Project: " + JSON.stringify(self.getAsInitializer()));
-                        if(val) {
-                            res.json(self.getAsInitializer());
-                        } else {
-                            res.sendStatus(500);
-                        }
+                    self.getGroup().getRightsForUser(user).then(rights => {
+                        self.setName(req.body.name);
+                        self.setType(req.body.type as SVEProjectType);
+
+                        if(req.body.dateRange !== undefined)
+                            self.setDateRange({ begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) });
+
+                        if(rights.admin)
+                            self.setState(req.body.state);
+
+                        if(req.body.splashImg !== undefined)
+                            self.setSplashImgID(Number(req.body.splashImg));
+
+                        if(rights.admin)
+                            self.setResult((req.body.result !== undefined) ? Number(req.body.result) : undefined);
+
+                        (self as SVEProject).store().then(val => {
+                            console.log("Updated Project: " + JSON.stringify(self.getAsInitializer()));
+                            if(val) {
+                                res.json(self.getAsInitializer());
+                            } else {
+                                res.sendStatus(401);
+                            }
+                        });
                     });
                 });
             });
