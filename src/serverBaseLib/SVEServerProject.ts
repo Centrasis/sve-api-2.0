@@ -24,6 +24,9 @@ export class SVEServerProject extends SVEProject {
                         } else {
                             this.id = idx as number;
                             this.name = results[0].name;
+                            if (results[0].result !== null && results[0].result !== undefined) {
+                                this.result = results[0].result;
+                            }
                             this.state = (results[0].state == "open") ? SVEProjectState.Open : SVEProjectState.Closed;
                             if (results[0].type !== null && results[0].type !== undefined) {
                                 this.type = (results[0].type === "Sales") ? SVEProjectType.Sales : SVEProjectType.Sales; // lacking other implementations
