@@ -135,7 +135,7 @@ export class SVEServerProject extends SVEProject {
                                 }
                             });
                         } else {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE documentProjects SET `type`=? WHERE project=?", [(this.type === SVEProjectType.Sales) ? "Sales" : "Documents", this.id], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE documentProjects SET `type`=? WHERE `project`=?", [(this.type === SVEProjectType.Sales) ? "Sales" : "Documents", this.id], (err, results) => {
                                 if(err) {
                                     console.log("ERROR UPDATING documentProjects: " + JSON.stringify(err));
                                     resolve(false);
