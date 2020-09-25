@@ -61,15 +61,27 @@ router.post('/token/use', function (req: Request, res: Response) {
         let tokenType: TokenType = req.body.type as TokenType;
         let targetID: number = Number(req.body.target);
         let token = req.body.token;
-        SVEToken.tokenExists(tokenType, token, targetID).then(val => {
-            if(val) {
-                SVEToken.useToken(tokenType, token, targetID).then(val => {
-                    res.sendStatus(val ? 204 : 404);
-                }, err => res.sendStatus(500));
-            } else {
-                res.sendStatus(404);
-            }
-        }, err => res.sendStatus(500));
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
+            SVEToken.tokenExists(tokenType, token, targetID).then(val => {
+                if(val) {
+                    SVEToken.useToken(tokenType, token, targetID).then(val => {
+                        if (tokenType == TokenType.RessourceToken) {
+                            new SVEGroup({id: targetID}, user, group => {
+                                if(group !== undefined && !isNaN(group!.getID()))
+                                    group!.setRightsForUser(user, {
+                                        admin: false,
+                                        write: false,
+                                        read: true
+                                    });
+                            });
+                        }
+                        res.sendStatus(val ? 204 : 404);
+                    }, err => res.sendStatus(500));
+                } else {
+                    res.sendStatus(404);
+                }
+            }, err => res.sendStatus(500));
+        });
     } else {
         res.sendStatus(401);
     }
