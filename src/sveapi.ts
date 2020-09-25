@@ -333,7 +333,7 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                         self.setSplashImgID(Number(req.body.splashImg));
                     self.setResult(Number(req.body.result));
                     self.store().then(val => {
-                        console.log("Created Project: " + JSON.stringify(self.getAsInitializer()));
+                        console.log("Updated Project: " + JSON.stringify(self.getAsInitializer()));
                         if(val) {
                             res.json(self.getAsInitializer());
                         } else {
@@ -350,7 +350,8 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                         group: group,
                         name: req.body.name, 
                         owner: user,
-                        splashImg: 0,
+                        splashImg: req.body.splashImg,
+                        result: req.body.result,
                         type: req.body.type,
                         state: req.body.state,
                         dateRange: (req.body.dateRange !== undefined) ? { begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) } : undefined
