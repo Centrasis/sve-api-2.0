@@ -4,7 +4,7 @@ import { SVEServerSystemInfo } from './SVEServerSystemInfo';
 
 const tokenSchema = new mongoose.Schema({
     token: String,
-    type: TokenType,
+    type: Number,
     time: Date,
     target: Number
 });
@@ -17,7 +17,7 @@ export class SVEServerToken extends SVEToken {
                 let token = [...Array(30)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
                 let t = new TokenModel({
                     token: token,
-                    type: type,
+                    type: Number(type),
                     target: target.getID(),
                     time: new Date()
                 });
@@ -37,7 +37,7 @@ export class SVEServerToken extends SVEToken {
 
     public static tokenExists(type: TokenType, token: string, targetID: number): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            TokenModel.find({token: token, type: type, target: targetID}, (err, tokens) => {
+            TokenModel.find({token: token, type: Number(type), target: targetID}, (err, tokens) => {
                 if(err) {
                     console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
                     reject();
@@ -61,7 +61,7 @@ export class SVEServerToken extends SVEToken {
 
     public static useToken(type: TokenType, token: string, targetID: number): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            TokenModel.findOneAndRemove({token: token, type: type, target: targetID}, (err, tokens) => {
+            TokenModel.findOneAndRemove({token: token, type: Number(type), target: targetID}, (err, tokens) => {
                 if(err) {
                     console.log("MONGOOSE USE ERROR:" + JSON.stringify(err));
                     reject();
