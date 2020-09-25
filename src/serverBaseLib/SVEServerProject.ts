@@ -10,7 +10,7 @@ export class SVEServerProject extends SVEProject {
         super(idx, handler, (self) => {
             // if get by id from DB
             if (!isProjectInitializer(idx) && SVESystemInfo.getIsServer()) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, results_uri, begin_point, end_point, type FROM (projects LEFT JOIN documentProjects ON id = project) LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, result, begin_point, end_point, type FROM (projects LEFT JOIN documentProjects ON id = project) LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
                     if(err) {
                         this.id = NaN;
                         console.log("SQL ERROR ON GET PROJECT BY ID ON SERVER: " + JSON.stringify(err));
