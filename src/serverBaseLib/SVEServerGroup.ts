@@ -74,8 +74,12 @@ export class SVEServerGroup extends SVEGroup {
                             console.log("Error in SQL: " + JSON.stringify(err));
                             reject(err);
                         } else {
-                            this.id = results[0].id;
-                            this.name = results[0].context;
+                            if(results.length > 0) {
+                                this.id = results[0].id;
+                                this.name = results[0].context;
+                            } else {
+                                this.id = NaN;
+                            }
                             this.setRightsForUser(this.handler!, {admin: true, write: true, read: true}).then(val => resolve(this.getAsInitializer()));
                         }
                     });
@@ -175,9 +179,15 @@ export class SVEServerGroup extends SVEGroup {
                             if(onReady !== undefined)
                                 onReady!(undefined);
                         } else {
-                            this.id = init.id!;
-                            this.name = results[0].context;
-                            this.handler = handler;
+                            if(results.length > 0) {
+                                this.id = init.id!;
+                                this.name = results[0].context;
+                                this.handler = handler;
+                            } else {
+                                this.id = NaN;
+                                this.name = "";
+                                console.log("Non-existent group accessed!");
+                            }
 
                             if(onReady !== undefined)
                                 onReady!(this);

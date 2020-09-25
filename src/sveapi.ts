@@ -211,7 +211,7 @@ router.delete('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             let idx = Number(req.params.id);
             new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
-                if (group === undefined) {
+                if (group === undefined || isNaN(group.getID())) {
                     res.sendStatus(404);
                 } else {
                     group.getRightsForUser(user).then(rights => {
