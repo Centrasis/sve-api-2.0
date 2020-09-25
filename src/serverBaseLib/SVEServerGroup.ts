@@ -23,7 +23,7 @@ export class SVEServerGroup extends SVEGroup {
                                 name: element.name,
                                 splashImg: element.splash_img,
                                 id: element.id,
-                                resultsURI: element.results_uri,
+                                result: element.result,
                                 state: element.state,
                                 type: SVEProjectType.Vacation,
                                 owner: element.owner
@@ -104,6 +104,7 @@ export class SVEServerGroup extends SVEGroup {
     public remove(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.getProjects().then(projects => {
+                console.log("Delete: " + projects.length + " projects..");
                 projects.forEach(p => (p as SVEProject).remove());
                 
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM rights WHERE context = ?", [this.id], (err, res) => {
