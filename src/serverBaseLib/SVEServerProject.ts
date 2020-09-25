@@ -155,7 +155,7 @@ export class SVEServerProject extends SVEProject {
             this.group!.getRightsForUser(this.handler!).then(rights => {
                 if (rights.write) {
                     if (isNaN(this.id) || this.id == null) {
-                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`name`, `context`, `owner`, `state`, `data_path`) VALUES (?, ?, ?, ?, ?)", [this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name], (err, results) => {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?)", [this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
                             if(err) {
                                 reject(err);
                             } else {
@@ -172,7 +172,7 @@ export class SVEServerProject extends SVEProject {
                             }
                         });
                     } else {
-                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE projects SET `name`=?, `state`=? WHERE id = ?", [this.name, (this.state === SVEProjectState.Open) ? 'open' : 'closed', this.id], (err, results) => {
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE projects SET `name`=?, `state`=?, `result`=? WHERE id = ?", [this.name, (this.state === SVEProjectState.Open) ? 'open' : 'closed', this.result, this.id], (err, results) => {
                             if(err) {
                                 reject(err);
                             } else {
