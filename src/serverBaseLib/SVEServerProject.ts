@@ -160,7 +160,7 @@ export class SVEServerProject extends SVEProject {
                                 reject(err);
                             } else {
                                 this.id = ((results.length > 0) ? Number(results[0].id) : 0) + 1;
-                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`id`, `name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?)", [this.id, this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
+                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`id`, `name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?, ?)", [this.id, this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
                                     if(err) {
                                         reject(err);
                                     } else {
