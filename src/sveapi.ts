@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -362,11 +362,12 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                         owner: user,
                         splashImg: req.body.splashImg,
                         result: req.body.result,
-                        type: req.body.type,
-                        state: req.body.state,
+                        type: req.body.type as SVEProjectType,
+                        state: req.body.state as SVEProjectState,
                         dateRange: (req.body.dateRange !== undefined) ? { begin: new Date(req.body.dateRange.begin), end: new Date(req.body.dateRange.end) } : undefined
                     } as ProjectInitializer, user, (project) => {
                         (project as SVEProject).store().then(val => {
+                            console.log("Created new Project: " + JSON.stringify(project.getAsInitializer()));
                             if(val) {
                                 res.json(project.getAsInitializer());
                             } else {
