@@ -467,14 +467,23 @@ router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Resp
     }
 });
 
-function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response) {
-    res.set({
+function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, ranges?: Ranges) {
+    let resHead: any = {
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(),
         'Accept-Ranges': 'bytes',
         'Content-Length': file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview),
         'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
-    });
+    };
+    if(ranges !== undefined) {
+        let start = ranges[0].start;
+        let total = file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview);
+        let end = ranges[0].end;
+        let chunksize = (end - start) + 1;
+        resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
+        resHead['Content-Range'] = chunksize;
+    }
+    res.writeHead((ranges !== undefined) ? 206 : 200, resHead);
 }
 
 router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
