@@ -59,11 +59,24 @@ export class SVEServerToken extends SVEToken {
         });
     }
 
-    public static useToken(type: TokenType, token: string, targetID: number): Promise<boolean> {
+    public static use(type: TokenType, token: string, targetID: number): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            TokenModel.findOne({token: token, type: Number(type), target: targetID}, (err, tokens) => {
+                if(err) {
+                    console.log("MONGOOSE USE ERROR:" + JSON.stringify(err));
+                    reject();
+                } else {
+                    resolve(true);
+                }
+            });
+        });
+    }
+
+    public static remove(type: TokenType, token: string, targetID: number): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             TokenModel.findOneAndRemove({token: token, type: Number(type), target: targetID}, (err, tokens) => {
                 if(err) {
-                    console.log("MONGOOSE USE ERROR:" + JSON.stringify(err));
+                    console.log("MONGOOSE REMOVE ERROR:" + JSON.stringify(err));
                     reject();
                 } else {
                     resolve(true);
