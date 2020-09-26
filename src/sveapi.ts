@@ -516,6 +516,12 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
                                     (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
                                 ).then(stream => {
                                     setFileRequestHeaders(file, fetchType, res);
+                                    if(range !== undefined && range !== -1 && range !== -2) {
+                                        res.sendStatus(206);
+                                    } else {
+                                        res.sendStatus(200);
+                                    }
+                                    
                                     stream.pipe(res);
                                 }, err => {
                                     console.log("Error in stream of file: " + fid + " (" + JSON.stringify(err) + ")!");
