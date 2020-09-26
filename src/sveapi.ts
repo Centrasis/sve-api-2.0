@@ -494,9 +494,10 @@ router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|fu
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEProject(pid, user, (self) => {
                 if(self !== undefined && !isNaN(self.getID())) {
+                    let range: Ranges | undefined | -1 | -2 = req.range(1e+9); // max one GB
                     self.getGroup().getRightsForUser(user).then(val => {
                         (self as SVEProject).getDataById(fid).then(file => {
-                            setFileRequestHeaders(file, fetchType, res);
+                            setFileRequestHeaders(file, fetchType, res, (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? range as Ranges : undefined);
                         });
                     });
                 }
@@ -524,12 +525,7 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
                                     (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
                                     (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
                                 ).then(stream => {
-                                    setFileRequestHeaders(file, fetchType, res);
-                                    if(range !== undefined && range !== -1 && range !== -2) {
-                                        res.sendStatus(206);
-                                    } else {
-                                        res.sendStatus(200);
-                                    }
+                                    setFileRequestHeaders(file, fetchType, res, (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? range as Ranges : undefined);
                                     
                                     stream.pipe(res);
                                 }, err => {
