@@ -34,6 +34,7 @@ export class SVEServerData extends SVEData {
                                     }
                                 });
                             } else {
+                                console.log("WARNING: Instantiate SVEData object for non-project assinged file! (id: " + initInfo + ")");
                                 self.initFromResult(results[0], undefined, () => { onComplete(self); });
                             }
                         }

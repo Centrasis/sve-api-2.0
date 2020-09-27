@@ -759,7 +759,7 @@ router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
                     res.json({
                         id: self.getID(),
                         type: self.getType(),
-                        project: self.getProject().getID(),
+                        project: (self.getProject() !== undefined) ? self.getProject().getID() : undefined,
                         name: self.getName(),
                         owner: self.getOwnerID(),
                         creation: self.getCreationDate(),
