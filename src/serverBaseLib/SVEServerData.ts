@@ -86,11 +86,11 @@ export class SVEServerData extends SVEData {
         });
     }
 
-    public static getLatestUpload(user: SVEAccount): Promise<SVEData> {
-        return new Promise<SVEData>((resolve, reject) => {
+    public static getLatestUpload(user: SVEAccount): Promise<SVEServerData> {
+        return new Promise<SVEServerData>((resolve, reject) => {
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT Max(id) as id FROM files WHERE user_id = ?", [user.getID()], (err, res) => {
                 if(!err && res.length > 0) {
-                    new SVEData(user, Number(res[0].id), (data) => {
+                    new SVEServerData(user, Number(res[0].id), (data) => {
                         resolve(data);
                     });
                 } else {
