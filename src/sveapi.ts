@@ -474,10 +474,11 @@ interface FileRequest {
 }
 
 function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, req: Request): FileRequest {
-    let total = file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview);
+    let version = (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview;
+    let total = file.getSize(version);
     let resHead: any = {
         'Cache-Control': file.getCacheType(),
-        'Content-Type': file.getContentType(),
+        'Content-Type': file.getContentType(version),
         'Accept-Ranges': 'bytes',
         'Content-Length': total,
         'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
@@ -490,8 +491,8 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         let start = (range.start && !isNaN(range.start)) ? range.start : 0;
         let end = (range.end && !isNaN(range.end)) ? range.end : total - 1;
         let chunksize = (end - start) + 1;
-        console.log("Process range: (" + start + " - " + end + ") / " + total + " -> " + chunksize);
-        console.log("Range req was: " + JSON.stringify(range));
+        //console.log("Process range: (" + start + " - " + end + ") / " + total + " -> " + chunksize);
+        //console.log("Range req was: " + JSON.stringify(range));
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Range'] = chunksize;
         resHead['Content-Length'] = end - start + 1;
