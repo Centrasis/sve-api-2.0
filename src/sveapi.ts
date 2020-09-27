@@ -766,7 +766,7 @@ router.get('/data/latest', function (req: Request, res: Response) {
                         lastAccess: data.getLastAccessDate()
                     });
                 }
-            });
+            }, err => res.sendStatus(404));
         });
     } else {
         res.sendStatus(401);
