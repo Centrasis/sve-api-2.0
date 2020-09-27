@@ -15,11 +15,16 @@ ServerHelper.setupRouter(router);
 
 router.post('/token/new', function (req: Request, res: Response) {
     if (req.session!.user) {
-        let tokenType: TokenType = req.body.type as TokenType;
+        let tokenType: TokenType = Number(req.body.type) as TokenType;
         let targetID: number = Number(req.body.target);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             if(tokenType === TokenType.DeviceToken) {
 
+                SVEToken.register(tokenType, user).then(token => {
+                    res.json({
+                        token: token
+                    });
+                }, err => res.sendStatus(500));
             } else {
                 if (tokenType === TokenType.RessourceToken) {
                     new SVEGroup({id: targetID}, user, (group) => {
@@ -35,6 +40,8 @@ router.post('/token/new', function (req: Request, res: Response) {
                             }
                         });
                     });
+                } else {
+                    res.sendStatus(501);
                 }
             }
         });
@@ -45,7 +52,7 @@ router.post('/token/new', function (req: Request, res: Response) {
 
 router.post('/token/validate', function (req: Request, res: Response) {
     if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
-        let tokenType: TokenType = req.body.type as TokenType;
+        let tokenType: TokenType = Number(req.body.type) as TokenType;
         let targetID: number = Number(req.body.target);
         let token = req.body.token as string;
         SVEToken.tokenExists(tokenType, token, targetID).then(val => {
@@ -53,6 +60,24 @@ router.post('/token/validate', function (req: Request, res: Response) {
         }, err => res.sendStatus(500));
     } else {
         res.sendStatus(400);
+    }
+});
+
+router.delete('/token', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
+            let tokenType: TokenType = Number(req.body.type) as TokenType;
+            let targetID: number = Number(req.body.target);
+            let token = req.body.token as string;
+
+            SVEToken.remove(tokenType, token, targetID).then(val => {
+                res.sendStatus(val ? 204 : 404);
+            });
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
+        res.sendStatus(401);
     }
 });
 
