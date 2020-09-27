@@ -15,7 +15,7 @@ export class SVEServerData extends SVEData {
         super(handler, initInfo, (self) => {
             if (typeof initInfo === "number") {
                 if (typeof SVESystemInfo.getInstance().sources.persistentDatabase !== "string") {
-                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE id = ?", [self.getID()], (err, results) => {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE id = ?", [initInfo], (err, results) => {
                         if(err || results.length === 0) {
                             onComplete(self);
                         } else {
