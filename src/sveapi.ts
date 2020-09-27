@@ -722,9 +722,10 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                                                     path: {filePath: fileDest, thumbnailPath: ""},
                                                     creation: (data.postParams.created !== undefined && data.postParams.created != "undefined") ? new Date(Number(data.postParams.created)) : new Date()
                                                 } as SVEDataInitializer, (data: SVEBaseData) => {
-                                                    data.store().then(val => {
-                                                        if(!val)
+                                                    (data as SVEData).store().then(val => {
+                                                        if(!val) {
                                                             console.log("Error on file post-processing!");
+                                                        }
                                                     }, err => console.log(err));
                                                 });
                                             }
@@ -748,13 +749,37 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
     }
 });
 
+router.get('/data/latest', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            SVEData.getLatestUpload(user).then(data => {
+                if (data.getID() < 0) {
+                    res.sendStatus(404);
+                } else {
+                    res.json({
+                        id: data.getID(),
+                        type: data.getType(),
+                        project: (data.getProject() !== undefined) ? data.getProject().getID() : undefined,
+                        name: data.getName(),
+                        owner: data.getOwnerID(),
+                        creation: data.getCreationDate(),
+                        lastAccess: data.getLastAccessDate()
+                    });
+                }
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
             new SVEData(user, idx, (self) => {
                 if (self.getID() < 0) {
-                    res.sendStatus(401);
+                    res.sendStatus(404);
                 } else {
                     res.json({
                         id: self.getID(),

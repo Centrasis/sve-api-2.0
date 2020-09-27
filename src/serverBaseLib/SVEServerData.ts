@@ -86,6 +86,20 @@ export class SVEServerData extends SVEData {
         });
     }
 
+    public static getLatestUpload(user: SVEAccount): Promise<SVEData> {
+        return new Promise<SVEData>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT Max(id) as id FROM files WHERE user_id = ?", [user.getID()], (err, res) => {
+                if(!err && res.length > 0) {
+                    new SVEData(user, Number(res[0].id), (data) => {
+                        resolve(data);
+                    });
+                } else {
+                    reject();
+                }
+            });
+        });
+    }
+
     public store(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             if(this.localDataInfo === undefined) {
@@ -191,7 +205,11 @@ export class SVEServerData extends SVEData {
                     if(err) {
                         reject(err);
                     } else {
-                        resolve(true);
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
+                            if(!err && res.length > 0)
+                                this.id = res[0].id;
+                            resolve(!err && res.length > 0);
+                        });
                     }
                 });
             });
