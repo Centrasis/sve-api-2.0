@@ -22,6 +22,7 @@ import { copyFile, mkdir } from 'fs';
 import { dirname } from 'path';
 import { group } from 'console';
 import { updateDecorator } from 'typescript';
+import { start } from 'repl';
 
 const tmpDir = './tmp';
 mkdir(tmpDir, (err) => {});
@@ -498,6 +499,11 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         if (start >= total || end >= total) {
             retCode = 416;
             resHead['Content-Range'] = "bytes */" + total;
+        } else {
+            range = {
+                start: start,
+                end: end
+            };
         }
     }
     res.writeHead(retCode, resHead);
