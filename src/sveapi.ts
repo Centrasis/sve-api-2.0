@@ -13,7 +13,7 @@ import { Request, Response, Router } from "express";
 
 import * as fs from "fs";
 
-import {Ranges} from "range-parser";
+import {Ranges, Range} from "range-parser";
 
 import * as formidable from "formidable";
 import {Fields, File, Files, Part, } from "formidable";
@@ -467,23 +467,30 @@ router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Resp
     }
 });
 
-function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, ranges?: Ranges) {
+function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, range?: Range) {
+    let total = file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview);
     let resHead: any = {
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(),
         'Accept-Ranges': 'bytes',
-        'Content-Length': file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview),
+        'Content-Length': total,
         'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
     };
-    if(ranges !== undefined) {
-        let start = ranges[0].start;
-        let total = file.getSize((fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview);
-        let end = ranges[0].end;
+    let retCode = 200;
+    if(range !== undefined) {
+        let start = range.start;
+        let end = (range.end) ? range.end : total - 1;
         let chunksize = (end - start) + 1;
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Range'] = chunksize;
+        resHead['Content-Length'] = end - start + 1;
+        retCode = 206;
+        if (start >= total || end >= total) {
+            retCode = 416;
+            resHead['Content-Range'] = "bytes */" + total;
+        }
     }
-    res.writeHead((ranges !== undefined) ? 206 : 200, resHead);
+    res.writeHead(retCode, resHead);
 }
 
 router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
@@ -492,13 +499,18 @@ router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|fu
         let fid = Number(req.params.fid);
         let fetchType = req.params.fetchType as string || "full";
         new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
-            new SVEProject(pid, user, (self) => {
-                if(self !== undefined && !isNaN(self.getID())) {
-                    let range: Ranges | undefined | -1 | -2 = req.range(1e+9); // max one GB
-                    self.getGroup().getRightsForUser(user).then(val => {
-                        (self as SVEProject).getDataById(fid).then(file => {
-                            setFileRequestHeaders(file, fetchType, res, (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? range as Ranges : undefined);
-                        });
+            new SVEProject(pid, user, (project) => {
+                if(project !== undefined && !isNaN(project.getID())) {
+                    let r = req.range(1e+9);// max one GB
+                    let range: Range | undefined = (r !== undefined && r !== -1 && r !== -2 && (r as Ranges).length > 0) ? r[0] : undefined;
+                    project.getGroup().getRightsForUser(user).then(val => {
+                        if (val.read) {
+                            (project as SVEProject).getDataById(fid).then(file => {
+                                setFileRequestHeaders(file, fetchType, res, range);
+                            });
+                        } else {
+                            res.sendStatus(401);
+                        }
                     });
                 }
             });
@@ -519,18 +531,19 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
                     self.getGroup().getRightsForUser(user).then(val => {
                         if (val.read) {
                             // check range request
-                            let range: Ranges | undefined | -1 | -2 = req.range(1e+9); // max one GB
+                            let r = req.range(1e+9);// max one GB
+                            let range: Range | undefined = (r !== undefined && r !== -1 && r !== -2 && (r as Ranges).length > 0) ? r[0] : undefined;
                             (self as SVEProject).getDataById(fid).then(file => {
                                 file.getStream(
                                     (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
-                                    (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? (range as Ranges)[0] : undefined
+                                    range
                                 ).then(stream => {
-                                    setFileRequestHeaders(file, fetchType, res, (range !== undefined && range !== -1 && range !== -2 && (range as Ranges).length > 0) ? range as Ranges : undefined);
+                                    setFileRequestHeaders(file, fetchType, res, range);
                                     
                                     stream.pipe(res);
                                 }, err => {
                                     console.log("Error in stream of file: " + fid + " (" + JSON.stringify(err) + ")!");
-                                    res.sendStatus(500)
+                                    res.sendStatus(416)
                                 });
                             }, err => res.sendStatus(404));
                         } else {
