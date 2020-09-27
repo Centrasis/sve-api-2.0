@@ -19,7 +19,7 @@ router.post('/token/new', function (req: Request, res: Response) {
         let targetID: number = Number(req.body.target);
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             if(tokenType === TokenType.DeviceToken) {
-
+                console.log("Create token for user device: " + user.getName());
                 SVEToken.register(tokenType, user).then(token => {
                     res.json({
                         token: token
