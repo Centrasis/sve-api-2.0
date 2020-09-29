@@ -480,7 +480,7 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(version),
         'Accept-Ranges': 'bytes',
-        'Connection': "keep-alive",
+        //'Connection': "keep-alive",
         'Content-Length': total,
         'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
     };
@@ -492,9 +492,9 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         let start = (range.start && !isNaN(range.start)) ? range.start : 0;
         let end = (range.end && !isNaN(range.end)) ? range.end : total - 1;
         let chunksize = (end - start) + 1;
-        /*console.log("Multipart amount: " + (r as Ranges).length);
+        console.log("Multipart amount: " + (r as Ranges).length);
         console.log("Process range: (" + start + " - " + end + ") / " + total + " -> " + chunksize);
-        console.log("Range req was: " + JSON.stringify(range));*/
+        console.log("Range req was: " + JSON.stringify(range));
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Range'] = chunksize;
         //resHead['Content-Length'] = end - start + 1;
@@ -508,6 +508,11 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
                 end: end
             };
         }
+    } else {
+        range = {
+            start: 0,
+            end: total - 1
+        };
     }
     res.writeHead(retCode, resHead);
 
