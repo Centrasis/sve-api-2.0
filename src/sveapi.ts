@@ -497,7 +497,7 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         console.log("Range req was: " + JSON.stringify(range));
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Range'] = chunksize;
-        //resHead['Content-Length'] = end - start + 1;
+        resHead['Content-Length'] = end - start + 1;
         retCode = 206;
         if (start >= total || end >= total) {
             retCode = 416;
