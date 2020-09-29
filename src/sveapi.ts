@@ -491,8 +491,8 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         let start = (range.start && !isNaN(range.start)) ? range.start : 0;
         let end = (range.end && !isNaN(range.end)) ? range.end : total - 1;
         let chunksize = (end - start) + 1;
-        //console.log("Process range: (" + start + " - " + end + ") / " + total + " -> " + chunksize);
-        //console.log("Range req was: " + JSON.stringify(range));
+        console.log("Process range: (" + start + " - " + end + ") / " + total + " -> " + chunksize);
+        console.log("Range req was: " + JSON.stringify(range));
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Range'] = chunksize;
         resHead['Content-Length'] = end - start + 1;
