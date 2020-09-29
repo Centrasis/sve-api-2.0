@@ -480,6 +480,7 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(version),
         'Accept-Ranges': 'bytes',
+        'Connection': "keep-alive",
         'Content-Length': total,
         'Content-Disposition': (fetchType == "download") ? 'attachment; filename=' + file.getName() : 'inline'
     };
