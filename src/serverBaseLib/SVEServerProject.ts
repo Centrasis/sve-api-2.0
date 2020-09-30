@@ -91,7 +91,7 @@ export class SVEServerProject extends SVEProject {
                         resolve(false);
                     } else {
                         if(results.length === 0) {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO events (`project_id`, `begin_point`, `end_point`) VALUES (?, TIMESTAMP(?), TIMESTAMP(?))", [this.id, this.dateRange!.begin.toLocaleString(), this.dateRange!.end.toLocaleString()], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO events (`project_id`, `begin_point`, `end_point`) VALUES (?, FROM_UNIXTIME(?), FROM_UNIXTIME(?))", [this.id, Math.round(this.dateRange!.begin.getTime() / 1000), Math.round(this.dateRange!.end.getTime() / 1000)], (err, results) => {
                                 if(err) {
                                     console.log("ERROR INSERTING EVENT: " + JSON.stringify(err));
                                     resolve(false);
@@ -100,7 +100,7 @@ export class SVEServerProject extends SVEProject {
                                 }
                             });
                         } else {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=TIMESTAMP(?), `end_point`=TIMESTAMP(?) WHERE `project_id`=?", [this.dateRange!.begin.toLocaleString(), this.dateRange!.end.toLocaleString(), this.id], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=FROM_UNIXTIME(?), `end_point`=FROM_UNIXTIME(?) WHERE `project_id`=?", [Math.round(this.dateRange!.begin.getTime() / 1000), Math.round(this.dateRange!.end.getTime() / 1000), this.id], (err, results) => {
                                 if(err) {
                                     console.log("ERROR UPDATING EVENT: " + JSON.stringify(err));
                                     resolve(false);
