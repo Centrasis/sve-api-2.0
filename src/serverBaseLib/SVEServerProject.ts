@@ -91,7 +91,7 @@ export class SVEServerProject extends SVEProject {
                         resolve(false);
                     } else {
                         if(results.length === 0) {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO events (`project_id`, `begin_point`, `end_point`) VALUES (?, ?, ?)", [this.id, this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString()], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO events (`project_id`, `begin_point`, `end_point`) VALUES (?, TIMESTAMP(?), TIMESTAMP(?))", [this.id, this.dateRange!.begin.toUTCString(), this.dateRange!.end.toUTCString()], (err, results) => {
                                 if(err) {
                                     console.log("ERROR INSERTING EVENT: " + JSON.stringify(err));
                                     resolve(false);
@@ -100,7 +100,7 @@ export class SVEServerProject extends SVEProject {
                                 }
                             });
                         } else {
-                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=?, `end_point`=? WHERE `project_id`=?", [this.dateRange!.begin.toISOString(), this.dateRange!.end.toISOString(), this.id], (err, results) => {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UDPATE events SET `begin_point`=?, `end_point`=? WHERE `project_id`=?", [this.dateRange!.begin.toUTCString(), this.dateRange!.end.toUTCString(), this.id], (err, results) => {
                                 if(err) {
                                     console.log("ERROR UPDATING EVENT: " + JSON.stringify(err));
                                     resolve(false);
