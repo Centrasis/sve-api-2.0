@@ -6,11 +6,13 @@ import mysql from 'mysql';
 import { SVEServerData as SVEData } from './SVEServerData';
 
 export class SVEServerProject extends SVEProject {
+    protected dataPath: string = "";
+
     public constructor(idx: number | ProjectInitializer, handler: SVEBaseAccount, onReady?: (self: SVEProject) => void) {
         super(idx, handler, (self) => {
             // if get by id from DB
             if (!isProjectInitializer(idx) && SVESystemInfo.getIsServer()) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path, result, begin_point, end_point, type FROM (projects LEFT JOIN documentProjects ON id = project) LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT projects.id as id, name, context, splash_img, owner, state, data_path as path, result, begin_point, end_point, type FROM (projects LEFT JOIN documentProjects ON id = project) LEFT OUTER JOIN events ON projects.id = project_id WHERE projects.id = ?", [idx as number], (err, results) => {
                     if(err) {
                         this.id = NaN;
                         console.log("SQL ERROR ON GET PROJECT BY ID ON SERVER: " + JSON.stringify(err));
@@ -24,6 +26,7 @@ export class SVEServerProject extends SVEProject {
                         } else {
                             this.id = idx as number;
                             this.name = results[0].name;
+                            this.dataPath = results[0].path;
                             if (results[0].result !== null && results[0].result !== undefined) {
                                 this.result = results[0].result;
                             }
@@ -74,6 +77,10 @@ export class SVEServerProject extends SVEProject {
                     onReady!(self);
             }
         });
+    }
+
+    public getDataPath(): string {
+        return this.dataPath;
     }
 
     public getGroup(): SVEGroup {

@@ -714,7 +714,7 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                             if (assembleChunks) {
                                 assembleChunks().then(data => {
                                     let postProcessing = async() => {
-                                        let fileDest = SVESystemInfo.getInstance().sources.sveDataPath! + "/" + prj.getGroup().getName() + "/" + prj.getName() + "/" + user.getName() + "/" + data.postParams.fileName;
+                                        let fileDest = (prj as SVEProject).getDataPath() + "/" + user.getName() + "/" + data.postParams.fileName;
                                         move(data.filePath, fileDest, (err) => {
                                             if(err) {
                                                 console.log("Error on copy: " + JSON.stringify(err));
