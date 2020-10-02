@@ -157,6 +157,42 @@ export class SVEServerProject extends SVEProject {
         });
     }
 
+    protected static charConversionTable = new Map<string, string>([
+        ["á", "a"], 
+        ["à", "a"],
+        ["ä", "ae"],
+        ["â", "a"],
+        ["ü", "ue"],
+        ["ú", "u"],
+        ["ù", "u"],
+        ["û", "u"],
+        ["ö", "oe"],
+        ["ó", "o"],
+        ["ò", "o"],
+        ["ô", "o"],
+        ["ß", "ss"],
+        ["í", "i"],
+        ["ì", "i"],
+        ["î", "i"],
+        ["*", "_"],
+        ["+", "_"],
+        ["#", "_"],
+        ["|", "_"],
+        ["?", "_"],
+        [" ", "_"],
+        ["!", "_"],
+        ["\"", "_"],
+        [",", "_"]
+    ]);
+
+    protected getFSConformName(): string {
+        let ret = this.name;
+        SVEServerProject.charConversionTable.forEach((val, key, map) => {
+            ret = ret.replace(key, val);
+        });
+        return ret;
+    }
+
     public store(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.group!.getRightsForUser(this.handler!).then(rights => {
@@ -167,7 +203,7 @@ export class SVEServerProject extends SVEProject {
                                 reject(err);
                             } else {
                                 this.id = ((results.length > 0) ? Number(results[0].id) : 0) + 1;
-                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`id`, `name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?, ?)", [this.id, this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.name, this.result], (err, results) => {
+                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO projects (`id`, `name`, `context`, `owner`, `state`, `data_path`, `result`) VALUES (?, ?, ?, ?, ?, ?, ?)", [this.id, this.name, this.group!.getID(), (typeof this.owner! === "number") ? this.owner : (this.owner! as SVEAccount).getID(), 'open', SVESystemInfo.getInstance().sources.sveDataPath + "/" + this.getFSConformName(), this.result], (err, results) => {
                                     if(err) {
                                         reject(err);
                                     } else {
