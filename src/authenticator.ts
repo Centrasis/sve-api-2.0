@@ -58,6 +58,10 @@ router.post('/token/validate', function (req: Request, res: Response) {
     if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
         let tokenType: TokenType = Number(req.body.type) as TokenType;
         let targetID: number = Number(req.body.target);
+        if(isNaN(targetID)) {
+            res.sendStatus(400);
+            return;
+        }
         let token = req.body.token as string;
         SVEToken.tokenExists(tokenType, token, targetID).then(val => {
             res.sendStatus(val ? 204 : 404);
@@ -72,6 +76,10 @@ router.delete('/token', function (req: Request, res: Response) {
         if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
             let tokenType: TokenType = Number(req.body.type) as TokenType;
             let targetID: number = Number(req.body.target);
+            if(isNaN(targetID)) {
+                res.sendStatus(400);
+                return;
+            }
             let token = req.body.token as string;
 
             SVEToken.remove(tokenType, token, targetID).then(val => {
@@ -89,6 +97,10 @@ router.post('/token/use', function (req: Request, res: Response) {
     if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
         let tokenType: TokenType = req.body.type as TokenType;
         let targetID: number = Number(req.body.target);
+        if(isNaN(targetID)) {
+            res.sendStatus(400);
+            return;
+        }
         let token = req.body.token as string;
         
         SVEToken.tokenExists(tokenType, token, targetID).then(val => {
