@@ -37,7 +37,13 @@ export class SVEServerToken extends SVEToken {
 
     public static tokenExists(type: TokenType, token: string, targetID: number): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            TokenModel.find({token: token, type: Number(type), target: targetID}, (err, tokens) => {
+            let search: any = undefined;
+            if (isNaN(targetID)) {
+                search = {token: token, type: Number(type)};
+            } else {
+                search = {token: token, type: Number(type), target: targetID};
+            }
+            TokenModel.find(search, (err, tokens) => {
                 if(err) {
                     console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
                     reject();

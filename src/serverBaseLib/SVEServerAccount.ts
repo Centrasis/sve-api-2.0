@@ -1,10 +1,10 @@
 import mysql from 'mysql';
-import {SVEAccount, LoginState, SessionUserInitializer, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo, Token} from 'svebaselib';
+import {SVEAccount, LoginState, SessionUserInitializer, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo} from 'svebaselib';
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 
 export class SVEServerAccount extends SVEAccount {
     // if onLogin is set a login will be perfomed. Otherwise the class will only be created
-    public constructor(user: SessionUserInitializer | BasicUserLoginInfo | BasicUserInitializer | TokenUserLoginInfo, onLogin?: (state: SVEAccount) => void) {
+    public constructor(user: SessionUserInitializer | BasicUserLoginInfo | BasicUserInitializer | TokenUserLoginInfo, onLogin?: (usr: SVEAccount) => void) {
         super(user, onLogin);
     }
 
@@ -58,4 +58,25 @@ export class SVEServerAccount extends SVEAccount {
             });
         }
     }
+
+    public static registerNewUser(login: BasicUserLoginInfo): Promise<SVEAccount> {
+        return new Promise<SVEAccount>((resolve, reject) => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT MAX(id) as id FROM user", (idErr, idRes) => {
+                if(idErr) {
+                    console.log("REGISTER ERROR: " + JSON.stringify(idErr));
+                    reject();
+                } else {
+                    let id = (idRes.length > 0) ? Number(idRes[0].id) + 1 : 0;
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO user (`id`, `name`, `password`) VALUES (?, ?, SHA1(?))", [id, login.name, login.pass], (err, result) => {
+                        if(err) {
+                            console.log("REGISTER ERROR: " + JSON.stringify(err));
+                            reject();
+                        } else {
+                            new SVEServerAccount(login, (usr) => resolve(usr));
+                        }
+                    });
+                }
+            });
+        });
+    };
 }

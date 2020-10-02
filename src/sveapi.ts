@@ -1,11 +1,12 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
+import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 import {SVEServerProjectQuery as SVEProjectQuery} from './serverBaseLib/SVEServerProjectQuery';
 import {apiVersion as authVersion} from './authenticator';
 
@@ -813,6 +814,31 @@ router.get('/user/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
         });
     } else {
         res.sendStatus(401);
+    }
+});
+
+router.put('/user/new', function (req: Request, res: Response) {
+    if (req.body.newUser !== undefined && req.body.newPassword !== undefined && req.body.token !== undefined) {
+        let name: string = req.body.newUser as string;
+        let pass: string = req.body.newPassword as string;
+        SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
+            if(tokenOK) {
+                SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
+                    usr.setSessionID(req.session!.id);
+                    req.session!.user = usr;
+                    console.log("Registered new user: " + usr.getName());
+                    res.json({
+                        success: usr.getState() !== LoginState.NotLoggedIn,
+                        user: usr.getName(),
+                        id: usr.getID()
+                    });
+                }, err => res.sendStatus(400));
+            } else {
+                res.sendStatus(404);
+            }
+        }, err => res.sendStatus(500));
+    } else {
+        res.sendStatus(400);
     }
 });
 
