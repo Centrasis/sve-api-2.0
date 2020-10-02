@@ -17,6 +17,10 @@ router.post('/token/new', function (req: Request, res: Response) {
     if (req.session!.user) {
         let tokenType: TokenType = Number(req.body.type) as TokenType;
         let targetID: number = Number(req.body.target);
+        if(isNaN(targetID)) {
+            res.sendStatus(400);
+            return;
+        }
         new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEBaseAccount) => {
             if(tokenType === TokenType.DeviceToken) {
                 console.log("Create token for user device: " + user.getName());
