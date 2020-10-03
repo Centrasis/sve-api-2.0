@@ -817,6 +817,33 @@ router.get('/user/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     }
 });
 
+router.post('/user/change/:op([pw|email])', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let operation = req.params.op as string;
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            if (operation === "pw") {
+                if(req.body.oldPassword !== undefined && req.body.newPassword !== undefined) {
+                    let oldPw = req.body.oldPassword as string;
+                    let newPw = req.body.newPassword as string;
+                    user.changePassword(oldPw, newPw).then(val => {
+                        res.sendStatus((val) ? 204 : 400);
+                    }, err => res.sendStatus(500))
+                } else {
+                    res.sendStatus(400);
+                }
+            } else {
+                if(operation === "email") {
+                    res.sendStatus(501);
+                } else {
+                    res.sendStatus(501);
+                }
+            }
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.put('/user/new', function (req: Request, res: Response) {
     if (req.body.newUser !== undefined && req.body.newPassword !== undefined && req.body.token !== undefined) {
         let name: string = req.body.newUser as string;
