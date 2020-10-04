@@ -9,8 +9,16 @@ import {SVEGame as SVEBaseGame, GameRequest, GameInfo} from 'svebaselib';
 class SVEGame extends SVEBaseGame {
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
-    constructor(host: SVEAccount, name: string, gameType: string, maxPlayers: number) {
-        super(host.getName(), name, gameType, maxPlayers);
+    constructor(host: SVEAccount, info: GameInfo) {
+        super({ 
+            gameState: info.gameState, 
+            gameType: info.gameType, 
+            host: host.getName(), 
+            maxPlayers: info.maxPlayers,
+            name: info.name,
+            minPlayers: info.minPlayers,
+            playersCount: info.playersCount
+        });
     }
 
     public playerJoin(player: SVEAccount, ws: WebSocket) {
@@ -51,13 +59,9 @@ export function setupGameAPI(root: string, app: Application) {
             let retList: GameInfo[] = [];
 
             games.forEach((val, key, map) => {
-                retList.push({
-                    gameType: val.gameType,
-                    host: val.host,
-                    maxPlayers: val.maxPlayers,
-                    name: val.name,
-                    players: val.players.size
-                });
+                let info = val.getAsInitializer();
+                info.playersCount = val.players.size;
+                retList.push(info);
             });
 
             res.json(retList);
@@ -71,7 +75,7 @@ export function setupGameAPI(root: string, app: Application) {
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
                 let gi: GameInfo = req.body as GameInfo;
                 if(gi.gameType !== undefined && gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
-                    games.set(gi.name, new SVEGame(user, gi.name, gi.gameType, gi.maxPlayers));
+                    games.set(gi.name, new SVEGame(user, gi));
                     res.sendStatus(204);
                 } else {
                     res.sendStatus(400);
