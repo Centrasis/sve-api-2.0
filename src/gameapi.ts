@@ -105,6 +105,8 @@ export function setupGameAPI(root: string, app: Application) {
                 ws.on('message', (msg) => {
                     try {
                         let action: GameRequest = JSON.parse(msg.toString()) as GameRequest;
+                        action.invoker = user.getName();
+                        game!.broadcastRequest(action);
                     } catch (err) {
                         console.log("Error parsing or processing game request: " + JSON.stringify(err));
                     }
