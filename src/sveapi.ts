@@ -16,19 +16,13 @@ import * as fs from "fs";
 
 import {Ranges, Range} from "range-parser";
 
-import * as formidable from "formidable";
-import {Fields, File, Files, Part, } from "formidable";
 import HugeUploader from 'huge-uploader-nodejs';
-import { copyFile, mkdir } from 'fs';
+import { mkdir } from 'fs';
 import { dirname } from 'path';
-import { group } from 'console';
-import { updateDecorator } from 'typescript';
-import { start } from 'repl';
 
 const tmpDir = './tmp';
 mkdir(tmpDir, (err) => {});
 var router = Router();
-var resumable = require("resumable");
 const apiVersion = 1.0;
 
 ServerHelper.setupRouter(router);
