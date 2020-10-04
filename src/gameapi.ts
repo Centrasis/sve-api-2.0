@@ -3,36 +3,17 @@ import express, { Request, Response } from "express";
 import * as fs from "fs";
 import expressWs, {Router, Application, WebsocketMethod} from 'express-ws';
 import { SessionUserInitializer, SVEAccount } from 'svebaselib';
+import {SVEGame as SVEBaseGame, GameRequest, GameInfo} from 'svebaselib';
 
-interface GameInfo {
-    name: string;
-    host: string;
-    maxPlayers: number;
-    players?: number;
-    gameType: string;
-}
 
-interface GameRequest {
-    invoker: string;
-    target?: string;
-    action: any;
-}
-
-class SVEGame {
-    public host: SVEAccount;
-    public name: string;
-    public gameType: string;
-    public maxPlayers: number;
+class SVEGame extends SVEBaseGame {
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
     constructor(host: SVEAccount, name: string, gameType: string, maxPlayers: number) {
-        this.host = host;
-        this.name = name;
-        this.gameType = gameType;
-        this.maxPlayers = maxPlayers;
+        super(host.getName(), name, gameType, maxPlayers);
     }
 
-    public join(player: SVEAccount, ws: WebSocket) {
+    public playerJoin(player: SVEAccount, ws: WebSocket) {
         this.broadcastRequest({
             action: "!join",
             invoker: player.getName()
@@ -43,7 +24,7 @@ class SVEGame {
 
     public destroy() {
         this.broadcastRequest({
-            invoker: this.host.getName(),
+            invoker: this.host,
             action: "!endGame"
         });
     }
@@ -72,7 +53,7 @@ export function setupGameAPI(root: string, app: Application) {
             games.forEach((val, key, map) => {
                 retList.push({
                     gameType: val.gameType,
-                    host: val.host.getName(),
+                    host: val.host,
                     maxPlayers: val.maxPlayers,
                     name: val.name,
                     players: val.players.size
@@ -107,11 +88,12 @@ export function setupGameAPI(root: string, app: Application) {
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
                 ws.on('open', () => {
                     console.log("New valid WebSocket request for game: " + gameID);
+                    game!.playerJoin(user, (ws as any) as WebSocket);
                 });
         
                 ws.on('close', () => {
                     console.log("Closed valid WebSocket request");
-                    if (user.getName() === game!.host.getName()) {
+                    if (user.getName() === game!.host) {
                         games.delete(gameID);
                     }
                 });
