@@ -7,6 +7,7 @@ import {SVEGame as SVEBaseGame, GameRequest, GameInfo} from 'svebaselib';
 
 
 class SVEGame extends SVEBaseGame {
+    public creation = new Date();
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
     constructor(host: SVEAccount, info: GameInfo) {
