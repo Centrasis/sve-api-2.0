@@ -2,11 +2,10 @@ FROM node:latest
 RUN echo "setting work dir..."
 WORKDIR /usr/src/app
 RUN apt-get update
-RUN apt-get install ffmpeg libavcodec-extra openssl -y
+RUN apt-get install ffmpeg libavcodec-extra -y
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
-RUN mkdir ./api/sslcert/
-RUN openssl req -x509 -newkey rsa:4096 -keyout api/sslcert/key.pem -out api/sslcert/cert.pem -days 365 -subj "/C=DE/ST=Niedersachsen/L=Brunswick/O=SVE/OU=IT/CN=felixlehner.de" -noout -nodes
+COPY ./sslcert/ ./api/sslcert/
 COPY ./api/dist/ ./api/dist/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
