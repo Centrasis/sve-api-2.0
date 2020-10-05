@@ -24,7 +24,7 @@ class SVEGame extends SVEBaseGame {
     public playerJoin(player: SVEAccount, ws: WebSocket) {
         this.broadcastRequest({
             action: "!join",
-            invoker: player.getName()
+            invoker: String(player.getID())
         });
 
         this.players.set(player, ws);
