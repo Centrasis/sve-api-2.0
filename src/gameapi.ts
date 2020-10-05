@@ -84,6 +84,7 @@ export function setupGameAPI(root: string, app: Application) {
                 let gi: GameInfo = req.body as GameInfo;
                 if(gi.gameType !== undefined && gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
                     games.set(gi.name, new SVEGame(user, gi));
+                    console.log("Created new game: " + gi.name);
                     res.sendStatus(204);
                 } else {
                     res.sendStatus(400);
