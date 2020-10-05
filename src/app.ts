@@ -11,8 +11,10 @@ import { exit } from 'process';
 import expressWs from 'express-ws';
 import {setupGameAPI} from './gameapi';
 
-var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
-var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
+//var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
+//var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
+var privateKey  = (fs.existsSync('sslcert/key.pem')) ? fs.readFileSync('sslcert/key.pem', 'utf8') : "";
+var certificate = (fs.existsSync('sslcert/cert.pem')) ? fs.readFileSync('sslcert/cert.pem', 'utf8') : "";
 var credentials = {key: privateKey, cert: certificate};
 const secureServer = (process.env.secure !== undefined && (Boolean(process.env.secure)) || process.env.secure == "1");
 
