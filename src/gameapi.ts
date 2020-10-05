@@ -27,6 +27,13 @@ class SVEGame extends SVEBaseGame {
             invoker: String(player.getID())
         });
 
+        this.players.forEach((val, key, map) => {
+            ws.send(JSON.stringify({
+                action: "!join",
+                invoker: String(key.getID())
+            } as GameRequest));
+        });
+
         this.players.set(player, ws);
     }
 
