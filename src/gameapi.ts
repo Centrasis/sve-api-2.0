@@ -95,6 +95,10 @@ export function setupGameAPI(root: string, app: expressWs.Application) {
         }
     });
 
+    router.ws("/join/Test", (ws, req) => {
+        console.log("Got join request for static game test");
+    });
+
     router.ws("/join/:gid", (ws, req) => {
         let gameID: string = req.params.gid as string;
         console.log("Got join request for game: " + gameID);
