@@ -102,6 +102,7 @@ export function setupGameAPI(root: string, app: Application) {
 
     router.ws("/join/:gid", (ws, req) => {
         let gameID: string = req.params.gid as string;
+        console.log("Got join request for game: " + gameID);
         if (req.session!.user && games.has(gameID)) {
             let game = games.get(gameID);
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
