@@ -95,6 +95,11 @@ export function setupGameAPI(root: string, app: Application) {
         }
     });
 
+    router.get("/join/:gid", (req: Request, res: Response) => {
+        console.log("Redirect wrong scheme for game: " + (req.params.gid as string));
+        res.redirect(req.url.replace("https://", "wss://").replace("http", "ws://"));
+    });
+
     router.ws("/join/:gid", (ws, req) => {
         let gameID: string = req.params.gid as string;
         if (req.session!.user && games.has(gameID)) {
