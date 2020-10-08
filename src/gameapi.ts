@@ -56,7 +56,7 @@ class SVEGame extends SVEBaseGame {
     }
 }
 
-export function setupGameAPI(root: string, app: Application) {
+export function setupGameAPI(root: string, app: expressWs.Application) {
     var games: Map<string, SVEGame> = new Map<string, SVEGame>();
     var router = express.Router() as Router;
     const apiVersion = 1.0;
