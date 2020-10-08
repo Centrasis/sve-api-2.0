@@ -57,6 +57,12 @@ app.use('/api', sve);
 
 app.use("/games", getGameAPIRouter());
 
+app.ws("/echo", (ws, req) => {
+    ws.on('message', (msg: string) => {
+        ws.send(msg);
+    });
+});
+
 //app.use(express.static('public'));
 
 httpApp.get("*", function(req: Request, res: Response) {
