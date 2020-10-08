@@ -94,6 +94,12 @@ export function getGameAPIRouter(): expressWs.Router {
         }
     });
 
+    router.ws("/echo", (ws, req) => {
+        ws.on('message', (msg: string) => {
+            ws.send(msg);
+        });
+    });
+
     router.ws("/join/:gid(\w+)", (ws, req) => {
         let gameID: string = req.params.gid as string;
         console.log("Got join request for game: " + gameID);
