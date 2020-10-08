@@ -56,10 +56,9 @@ class SVEGame extends SVEBaseGame {
     }
 }
 
-export function setupGameAPI(root: string, app: express.Application) {
-    app = expressWs(app).app;
+export function getGameAPIRouter(): expressWs.Router {
     var games: Map<string, SVEGame> = new Map<string, SVEGame>();
-    var router: expressWs.Router = express.Router() as expressWs.Router;
+    let router: expressWs.Router = express.Router() as expressWs.Router;
     ServerHelper.setupRouter(router);
 
     router.get("/list", function (req: Request, res: Response) {
@@ -133,5 +132,5 @@ export function setupGameAPI(root: string, app: express.Application) {
         }
     });
 
-    app.use(root, router);
+    return router;
 }

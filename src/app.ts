@@ -9,7 +9,7 @@ import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import expressWs from 'express-ws';
-import {setupGameAPI} from './gameapi';
+import {getGameAPIRouter} from './gameapi';
 
 var privateKey  = (fs.existsSync('sslcert/server.key')) ? fs.readFileSync('sslcert/server.key', 'utf8') : "";
 var certificate = (fs.existsSync('sslcert/server.crt')) ? fs.readFileSync('sslcert/server.crt', 'utf8') : "";
@@ -34,7 +34,7 @@ SVESystemInfo.initSystem().then((val) => {
     exit(-1);
 });
 
-var app = express();
+const app = expressWs(express()).app;
 const httpApp = express();
 const port = process.env.PORT || ((secureServer) ? 443 : 80);
 
@@ -55,7 +55,7 @@ app.use('/auth', auth);
 
 app.use('/api', sve);
 
-setupGameAPI("/games", app);
+app.use("/games", getGameAPIRouter());
 
 //app.use(express.static('public'));
 
