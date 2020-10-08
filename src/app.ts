@@ -8,7 +8,6 @@ import * as fs from "fs";
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
-const enableWs = require('express-ws')
 import expressWs from 'express-ws';
 import {setupGameAPI} from './gameapi';
 
@@ -36,7 +35,6 @@ SVESystemInfo.initSystem().then((val) => {
 });
 
 var app = express();
-enableWs(app);
 const httpApp = express();
 const port = process.env.PORT || ((secureServer) ? 443 : 80);
 
@@ -57,7 +55,7 @@ app.use('/auth', auth);
 
 app.use('/api', sve);
 
-setupGameAPI("/games", (app as any) as expressWs.Application);
+setupGameAPI("/games", app);
 
 //app.use(express.static('public'));
 

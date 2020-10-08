@@ -1,10 +1,11 @@
+import express from "express";
 var cookieParser = require('cookie-parser');
 var compression = require('compression');
 var bodyParser = require('body-parser');
 var zip = require('express-easy-zip');
 
 export default class ServerHelper {
-    public static setupRouter(app: any) { 
+    public static setupRouter(app: express.Router) { 
         app.use(bodyParser.json());
         app.use(cookieParser());
         app.use(compression());

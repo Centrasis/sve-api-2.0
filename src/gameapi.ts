@@ -56,10 +56,10 @@ class SVEGame extends SVEBaseGame {
     }
 }
 
-export function setupGameAPI(root: string, app: expressWs.Application) {
+export function setupGameAPI(root: string, app: express.Application) {
+    app = expressWs(app).app;
     var games: Map<string, SVEGame> = new Map<string, SVEGame>();
-    var router = express.Router() as Router;
-    const apiVersion = 1.0;
+    var router: expressWs.Router = express.Router() as expressWs.Router;
     ServerHelper.setupRouter(router);
 
     router.get("/list", function (req: Request, res: Response) {
@@ -117,9 +117,9 @@ export function setupGameAPI(root: string, app: expressWs.Application) {
                     console.log("Error on valid WebSocket request: " + JSON.stringify(err));
                 });
         
-                ws.on('message', (msg) => {
+                ws.on('message', (msg: string) => {
                     try {
-                        let action: GameRequest = JSON.parse(msg.toString()) as GameRequest;
+                        let action: GameRequest = JSON.parse(msg) as GameRequest;
                         action.invoker = user.getName();
                         game!.broadcastRequest(action);
                     } catch (err) {
@@ -128,6 +128,7 @@ export function setupGameAPI(root: string, app: expressWs.Application) {
                 });
             });
         } else {
+            console.log("Reject websocket connection!");
             ws.close();
         }
     });
