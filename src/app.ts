@@ -33,7 +33,7 @@ const port = process.env.PORT || 80;
 
 let opts: SessionOptions = {
     name: 'sve-session',
-    secret: "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
+    secret: process.env.SECRET || "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
     cookie: {
         secure: true,
         sameSite: true
