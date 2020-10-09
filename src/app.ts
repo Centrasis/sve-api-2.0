@@ -1,11 +1,9 @@
 import express, {RequestHandler} from 'express';
 import { router as auth } from './authenticator';
 import { router as sve } from './sveapi';
-import * as http from 'http';
 import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
-import * as fs from "fs";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {getGameAPIRouter} from './gameapi';
@@ -35,7 +33,7 @@ let opts: SessionOptions = {
     name: 'sve-session',
     secret: process.env.SECRET || "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
     cookie: {
-        secure: true,
+        secure: false,
         sameSite: true
     },
     resave: true,
