@@ -125,6 +125,14 @@ export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
             console.log("Error on valid WebSocket request: " + JSON.stringify(err));
         });
 
+        ws.on("unexpected-response", (err: any) => {
+            console.log("Error unexpected-response: " + JSON.stringify(err));
+        });
+
+        ws.on("upgrade", (err?: any) => {
+            console.log("Upgrade game request");
+        });
+
         ws.on('message', (msg: string) => {
             let gameID: string = req.params.gid as string;
             if(req.session!.user && games.has(gameID)) {
