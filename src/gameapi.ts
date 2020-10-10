@@ -94,29 +94,43 @@ export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
     });
 
     router.ws("/join/:gid(\w+)", (ws, req) => {
-        let gameID: string = req.params.gid as string;
-        console.log("Got join request for game: " + gameID);
-        if (req.session!.user && games.has(gameID)) {
-            let game = games.get(gameID);
-            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
-                ws.on('open', () => {
-                    console.log("New valid WebSocket request for game: " + gameID);
+        ws.on('open', () => {
+            let gameID: string = req.params.gid as string;
+            console.log("New valid WebSocket request for game: " + gameID);
+            if(req.session!.user && games.has(gameID)) {
+                new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                    let game = games.get(gameID);
                     game!.playerJoin(user, (ws as any) as WebSocket);
                 });
-        
-                ws.on('close', () => {
-                    console.log("Closed valid WebSocket request");
+            } else {
+                console.log("Invalid game join request!");
+                ws.close();
+            }
+        });
+
+        ws.on('close', () => {
+            let gameID: string = req.params.gid as string;
+            console.log("Closed valid WebSocket request");
+            if(req.session!.user && games.has(gameID)) {
+                new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                    let game = games.get(gameID);
                     if (user.getName() === game!.host) {
                         games.delete(gameID);
                     }
                 });
-        
-                ws.on('error', (err: any) => {
-                    console.log("Error on valid WebSocket request: " + JSON.stringify(err));
-                });
-        
-                ws.on('message', (msg: string) => {
+            }
+        });
+
+        ws.on('error', (err: any) => {
+            console.log("Error on valid WebSocket request: " + JSON.stringify(err));
+        });
+
+        ws.on('message', (msg: string) => {
+            let gameID: string = req.params.gid as string;
+            if(req.session!.user && games.has(gameID)) {
+                new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
                     try {
+                        let game = games.get(gameID);
                         let action: GameRequest = JSON.parse(msg) as GameRequest;
                         action.invoker = user.getName();
                         game!.broadcastRequest(action);
@@ -124,11 +138,11 @@ export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
                         console.log("Error parsing or processing game request: " + JSON.stringify(err));
                     }
                 });
-            });
-        } else {
-            console.log("Reject websocket connection!");
-            ws.close();
-        }
+            } else {
+                console.log("Invalid game message request!");
+                ws.close();
+            }
+        });
     });
 
     return router;
