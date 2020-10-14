@@ -10,6 +10,7 @@ import mysql from 'mysql';
 
 const aiModelPath = "/ai/models/";
 var router = Router();
+ServerHelper.setupRouter(router);
 
 function getModel(name: string): Promise<tf.LayersModel> {
     if(fs.existsSync(aiModelPath + name + ".json")) {
@@ -128,6 +129,30 @@ router.patch("/models/:name", (req, res) => {
         } else {
             res.sendStatus(400);
         }
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.put("/models/:name/classify", (req, res) => {
+    if (req.session!.user && req.body.file && req.body.class) {
+        let fid: number = Number(req.body.file);
+        let className: string = req.body.class as string;
+        if (isNaN(fid)) {
+            res.sendStatus(400);
+            return;
+        }
+        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
+            if(err || result.length === 0) {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentLabels (fid, label) VALUES (?, ?)", [fid, className], (err, result) => {
+                    res.sendStatus(204);
+                });
+            } else {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE documentLabels SET label = ? WHERE fid = ?", [className, fid], (err, result) => {
+                    res.sendStatus(204);
+                });
+            }
+        });
     } else {
         res.sendStatus(401);
     }
