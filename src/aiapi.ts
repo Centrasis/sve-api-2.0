@@ -53,7 +53,7 @@ function saveModel(name: string, model: tf.LayersModel) {
         fs.mkdirSync(aiModelPath + name);
     }
 
-    model.save(aiModelPath + name);
+    model.save("file://" + aiModelPath + name);
 }
 
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
@@ -72,11 +72,16 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             for (let i = 0; i < docLabels.length; i++) {
                 let lbl = labels.get(docLabels[i])!;
                 console.log("With label: " + lbl);
+                yield lbl;
+                /*
                 let v: number[] = [];
                 for (let i = 0; i < labels.size; i++) {
                     v.push((i == lbl) ? 1 : 0);
                 }
-                yield tf.tensor1d(v);
+                let lt = tf.tensor1d(v);
+                console.log("With label shape: " + JSON.stringify(lt.shape));
+                yield lt;
+                */
             }
         }
 
