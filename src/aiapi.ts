@@ -106,8 +106,12 @@ function getClasses(): Promise<Map<string, number>> {
 }
 
 function trainNewModel(name: string): Promise<void> {
+    return trainModel(name, true);
+}
+
+function trainModel(name: string, forceNew: boolean = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        getModel(name).then(model => {
+        getModel((forceNew) ? "" : name).then(model => {
             getClasses().then(labels => {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
                     if(err || docLbls.length === 0) {
@@ -139,7 +143,7 @@ router.get("/models/:name/:file", (req, res) => {
         let file = decodeURI(req.params.file as string);
         let name = decodeURI(req.params.name as string);
 
-        if(!(file.startsWith(".") || file.includes(".."))) {
+        if(!(file.startsWith(".") || file.includes("..") || name.startsWith(".") || name.includes(".."))) {
             res.sendFile(aiModelPath + name + "/" + file);
         } else {
             res.sendStatus(400);
@@ -150,6 +154,21 @@ router.get("/models/:name/:file", (req, res) => {
 });
 
 router.post("/models/:name/train", (req, res) => {
+    if (req.session!.user) {
+        let name = decodeURI(req.params.name as string);
+
+        if(!(name.startsWith(".") || name.includes(".."))) {
+            console.log("Patch model: " + name);
+            trainModel(name).then(() => res.sendStatus(204), err => res.sendStatus(500));
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.post("/models/:name/retrain", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
 
