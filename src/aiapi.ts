@@ -9,6 +9,7 @@ import * as fs from "fs";
 import mysql from 'mysql';
 
 const aiModelPath = "/ai/models/";
+const imageSize: [number, number] = [224, 224];
 var router = Router();
 ServerHelper.setupRouter(router);
 
@@ -19,12 +20,12 @@ function getModel(name: string): Promise<tf.LayersModel> {
         return new Promise<tf.LayersModel>((resolve, reject) => {
             let model = tf.sequential({
                 layers: [
-                    tf.layers.dense({inputShape: [224, 224], units: 32, activation: 'relu'}),
+                    tf.layers.dense({inputShape: imageSize, units: 32, activation: 'relu'}),
                     tf.layers.dense({units: 10, activation: 'softmax'}),
                 ]
             });
             model.compile({
-                optimizer: 'sgd',
+                optimizer: 'adam',
                 loss: 'categoricalCrossentropy',
                 metrics: ['accuracy']
             });
@@ -47,7 +48,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
         const xs = tf.data.generator(function* () {
             for (let i = 0; i < docData.length; i++) {
                 const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                yield tf.node.decodeImage(Buffer.from(file.buffer));
+                yield tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer)), imageSize);
             }
         });
         const ys = tf.data.generator(function* () {
