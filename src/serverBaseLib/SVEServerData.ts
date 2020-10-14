@@ -42,7 +42,7 @@ export class SVEServerData extends SVEData {
                     });
                 }
             } else {
-                if (initInfo.id === undefined) {
+                if (initInfo.id !== undefined && isNaN(initInfo.id!)) {
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT Max(id) as id FROM files", (err, resCount) => {
                         this.id = Number(resCount[0].id) + 1; 
                         (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`id`, `project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
@@ -181,7 +181,7 @@ export class SVEServerData extends SVEData {
                 });
             }
 
-            if(this.id === -1 || isNaN(this.id)) {
+            if(this.id === -1 || isNaN(this.id) || this.id === undefined) {
                 console.log("Save new file!");
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 

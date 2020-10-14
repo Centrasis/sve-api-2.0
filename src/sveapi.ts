@@ -703,7 +703,7 @@ router.put('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, re
                 prj.getGroup()!.getRightsForUser(user).then(val => {
                     if (val.write) {
                         new SVEData(user, {
-                            id: undefined,
+                            id: NaN,
                             type: SVEData.getTypeFrom(req.body.fileName as string),
                             owner: user,
                             parentProject: prj,
