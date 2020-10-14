@@ -153,7 +153,7 @@ router.get("/models/:name/:file", (req, res) => {
     }
 });
 
-router.post("/models/:name/train", (req, res) => {
+router.post("/model/:name/train", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
 
@@ -168,7 +168,7 @@ router.post("/models/:name/train", (req, res) => {
     }
 });
 
-router.post("/models/:name/retrain", (req, res) => {
+router.post("/model/:name/retrain", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
 
@@ -183,7 +183,7 @@ router.post("/models/:name/retrain", (req, res) => {
     }
 });
 
-router.put("/models/:name/classify", (req, res) => {
+router.put("/model/:name/classify", (req, res) => {
     if (req.session!.user && req.body.file && req.body.class) {
         let fid: number = Number(req.body.file);
         let className: string = req.body.class as string;
@@ -207,7 +207,7 @@ router.put("/models/:name/classify", (req, res) => {
     }
 });
 
-router.get("/models/:name/classes", (req, res) => {
+router.get("/model/:name/classes", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
         getClasses().then(labels => {
