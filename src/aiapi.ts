@@ -98,7 +98,7 @@ function trainNewModel(name: string) {
                             files.push(data);
                             file_lbs.push(element.label as string);
                             console.log("Prepared file: " + data.getName());
-                            if (docLbls.length === files.keys.length) {
+                            if (docLbls.length === files.length) {
                                 console.log("Ready to fit data..");
                                 fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
                             }
