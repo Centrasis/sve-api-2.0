@@ -118,7 +118,7 @@ router.get("/models/:file", (req, res) => {
     }
 });
 
-router.put("/models/:name", (req, res) => {
+router.post("/models/:name/train", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
 
