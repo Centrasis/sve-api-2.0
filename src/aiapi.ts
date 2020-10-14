@@ -149,14 +149,6 @@ router.get("/models/:name/classes", (req, res) => {
             console.log(err);
             res.sendStatus(500);
         });
-
-        if(!(name.startsWith(".") || name.includes(".."))) {
-            console.log("Patch model: " + name);
-            trainNewModel(name);
-            res.sendStatus(204);
-        } else {
-            res.sendStatus(400);
-        }
     } else {
         res.sendStatus(401);
     }
