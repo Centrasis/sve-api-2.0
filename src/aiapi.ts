@@ -64,7 +64,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
         const xs = tf.data.generator(data);
         const ys = tf.data.generator(label);
         // We zip the data and labels together, shuffle and batch 32 samples at a time.
-        const ds = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32);
+        const ds = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32, true);
         model.fitDataset(ds, {epochs: 50}).then(info => {
             console.log('Trained model accuracy: ', info.history.acc);
             resolve();
