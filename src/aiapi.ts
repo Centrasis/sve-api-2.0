@@ -70,7 +70,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             for (let i = 0; i < docLabels.length; i++) {
                 let lbl = labels.get(docLabels[i])!;
                 let v: number[] = [];
-                for (let i = 0; i < labels.size; i++) {
+                for (let i = 1; i <= labels.size; i++) {
                     v.push((i == lbl) ? 1 : 0);
                 }
                 let lt = tf.tensor1d(v);
