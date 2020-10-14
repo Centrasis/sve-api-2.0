@@ -15,7 +15,7 @@ ServerHelper.setupRouter(router);
 
 function getModel(name: string): Promise<tf.LayersModel> {
     if(fs.existsSync(aiModelPath + name + ".json")) {
-        return tf.loadLayersModel(aiModelPath + name + ".json");
+        return tf.loadLayersModel("file://" + aiModelPath + name + "/model.json");
     } else {
         return new Promise<tf.LayersModel>((resolve, reject) => {
             getClasses().then(classes => {
@@ -134,12 +134,13 @@ function trainNewModel(name: string): Promise<void> {
     });
 }
 
-router.get("/models/:file", (req, res) => {
+router.get("/models/:name/:file", (req, res) => {
     if (req.session!.user) {
         let file = decodeURI(req.params.file as string);
+        let name = decodeURI(req.params.name as string);
 
         if(!(file.startsWith(".") || file.includes(".."))) {
-            res.sendFile(aiModelPath + file);
+            res.sendFile(aiModelPath + name + "/" + file);
         } else {
             res.sendStatus(400);
         }
