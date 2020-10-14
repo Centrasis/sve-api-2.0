@@ -18,19 +18,32 @@ function getModel(name: string): Promise<tf.LayersModel> {
         return tf.loadLayersModel(aiModelPath + name + ".json");
     } else {
         return new Promise<tf.LayersModel>((resolve, reject) => {
-            let model = tf.sequential({
-                layers: [
-                    tf.layers.dense({inputShape: imageSize, units: 32, activation: 'relu'}),
-                    tf.layers.dense({units: 10, activation: 'softmax'}),
-                ]
-            });
-            model.compile({
-                optimizer: 'adam',
-                loss: 'categoricalCrossentropy',
-                metrics: ['accuracy']
-            });
+            getClasses().then(classes => {
+                console.log("Create model with: " + classes.size + " classes");
+                let model = tf.sequential();
+                model.add(tf.layers.conv2d({
+                    inputShape: [imageSize[0], imageSize[1], 3],
+                    filters: 8,
+                    kernelSize: 5,
+                    strides: 1,
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+                model.add(tf.layers.flatten());
+                model.add(tf.layers.dense({
+                    kernelInitializer: 'VarianceScaling',
+                    useBias: false,
+                    activation: 'softmax',
+                    units: classes.size
+                }));
+                model.compile({
+                    optimizer: 'adam',
+                    loss: 'categoricalCrossentropy',
+                    metrics: ['accuracy']
+                });
 
-            resolve(model);
+                resolve(model);
+            });
         });
     }
 }
@@ -57,7 +70,13 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
 
         function* label() {
             for (let i = 0; i < docLabels.length; i++) {
-                yield labels.get(docLabels[i])!;
+                let lbl = labels.get(docLabels[i])!;
+                console.log("With label: " + lbl);
+                let v: number[] = [];
+                for (let i = 0; i < labels.size; i++) {
+                    v.push((i == lbl) ? 1 : 0);
+                }
+                yield tf.tensor1d(v);
             }
         }
 
