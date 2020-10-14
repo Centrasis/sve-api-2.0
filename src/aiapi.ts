@@ -62,8 +62,6 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             for (let i = 0; i < docData.length; i++) {
                 const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
                 let tensor = tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize);
-
-                console.log("Tensor shape: " + JSON.stringify(tensor.shape));
                 yield tensor;
             }
         }
@@ -71,17 +69,12 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
         function* label() {
             for (let i = 0; i < docLabels.length; i++) {
                 let lbl = labels.get(docLabels[i])!;
-                console.log("With label: " + lbl);
-                yield lbl;
-                /*
                 let v: number[] = [];
                 for (let i = 0; i < labels.size; i++) {
                     v.push((i == lbl) ? 1 : 0);
                 }
                 let lt = tf.tensor1d(v);
-                console.log("With label shape: " + JSON.stringify(lt.shape));
                 yield lt;
-                */
             }
         }
 
@@ -112,30 +105,33 @@ function getClasses(): Promise<Map<string, number>> {
     });
 }
 
-function trainNewModel(name: string) {
-    getModel(name).then(model => {
-        getClasses().then(labels => {
-            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
-                if(err || docLbls.length === 0) {
-                    console.log("No labels found!");
-                    return;
-                } else {
-                    let files: SVEData[] = [];
-                    let file_lbs: string[] = [];
-                    docLbls.forEach(element => {
-                        new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
-                            files.push(data);
-                            file_lbs.push(element.label as string);
-                            if (docLbls.length === files.length) {
-                                console.log("Ready to fit data..");
-                                fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
-                            }
+function trainNewModel(name: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        getModel(name).then(model => {
+            getClasses().then(labels => {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
+                    if(err || docLbls.length === 0) {
+                        console.log("No labels found!");
+                        reject();
+                        return;
+                    } else {
+                        let files: SVEData[] = [];
+                        let file_lbs: string[] = [];
+                        docLbls.forEach(element => {
+                            new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
+                                files.push(data);
+                                file_lbs.push(element.label as string);
+                                if (docLbls.length === files.length) {
+                                    console.log("Ready to fit data..");
+                                    fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
+                                }
+                            });
                         });
-                    });
-                }
-            });
-        }, err => console.log("Error on load classes: " + JSON.stringify(err)));
-    }, err => console.log("Error on load model: " + JSON.stringify(err)));
+                    }
+                });
+            }, err => { console.log("Error on load classes: " + JSON.stringify(err)); reject(); });
+        }, err => { console.log("Error on load model: " + JSON.stringify(err)); reject(); });
+    });
 }
 
 router.get("/models/:file", (req, res) => {
@@ -158,8 +154,7 @@ router.post("/models/:name/train", (req, res) => {
 
         if(!(name.startsWith(".") || name.includes(".."))) {
             console.log("Patch model: " + name);
-            trainNewModel(name);
-            res.sendStatus(204);
+            trainNewModel(name).then(() => res.sendStatus(204), err => res.sendStatus(500));
         } else {
             res.sendStatus(400);
         }
