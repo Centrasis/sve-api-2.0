@@ -63,35 +63,42 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
     });
 }
 
-function trainNewModel(name: string) {
-    getModel(name).then(model => {
+function getClasses(): Promise<Map<string, number>> {
+    return new Promise<Map<string, number>>((resolve, reject) => {
         (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentClasses", (err, labels_res) => {
             if(err || labels_res.length === 0) {
-                return;
+                reject(err);
             } else {
                 let labels: Map<string, number> = new Map<string, number>();
                 labels_res.forEach(element => {
                     labels.set(element.label as string, Number(element.row_num));
                 });
-
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
-                    if(err || docLbls.length === 0) {
-                        return;
-                    } else {
-                        let files: SVEData[] = [];
-                        let file_lbs: string[] = [];
-                        docLbls.forEach(element => {
-                            new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
-                                files.push(data);
-                                file_lbs.push(element.label as string);
-                                if (docLbls.length === files.keys.length) {
-                                    fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
-                                }
-                            });
-                        });
-                    }
-                });
+                resolve(labels);
             }
+        });
+    });
+}
+
+function trainNewModel(name: string) {
+    getModel(name).then(model => {
+        getClasses().then(labels => {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
+                if(err || docLbls.length === 0) {
+                    return;
+                } else {
+                    let files: SVEData[] = [];
+                    let file_lbs: string[] = [];
+                    docLbls.forEach(element => {
+                        new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
+                            files.push(data);
+                            file_lbs.push(element.label as string);
+                            if (docLbls.length === files.keys.length) {
+                                fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
+                            }
+                        });
+                    });
+                }
+            });
         });
     });
 }
@@ -113,6 +120,35 @@ router.get("/models/:file", (req, res) => {
 router.patch("/models/:name", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
+
+        if(!(name.startsWith(".") || name.includes(".."))) {
+            console.log("Patch model: " + name);
+            trainNewModel(name);
+            res.sendStatus(204);
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+router.get("/models/:name/classes", (req, res) => {
+    if (req.session!.user) {
+        let name = decodeURI(req.params.name as string);
+        getClasses().then(labels => {
+            let ret: any[] = [];
+            labels.forEach((val, key, map) => {
+                ret.push({
+                    key: val,
+                    class: key
+                });
+            });
+            res.json(ret);
+        }, err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
 
         if(!(name.startsWith(".") || name.includes(".."))) {
             console.log("Patch model: " + name);
