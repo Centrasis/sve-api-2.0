@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -695,6 +695,38 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
     }
 });
 
+router.put('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
+    if (req.session!.user) {
+        let idx = Number(req.params.id);
+        new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            new SVEProject(idx, user, (prj) => {
+                prj.getGroup()!.getRightsForUser(user).then(val => {
+                    if (val.write) {
+                        new SVEData(user, {
+                            id: undefined,
+                            type: SVEData.getTypeFrom(req.body.fileName as string),
+                            owner: user,
+                            parentProject: prj,
+                            path: { filePath: "", thumbnailPath: "" } as SVELocalDataInfo,
+                            name: req.body.fileName as string,
+                        } as SVEDataInitializer, (data) => {
+                            res.json({
+                                id: data.getID(),
+                                type: data.getType(),
+                                parentProject: data.getProject()
+                            } as SVEDataInitializer);
+                        });
+                    } else {
+                        res.sendStatus(401);
+                    }
+                });
+            });
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
     if (req.session!.user) {
         let idx = Number(req.params.id);
@@ -715,6 +747,7 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                                             } else {
                                                 console.log("Received file: " + JSON.stringify(data.postParams));
                                                 new SVEData(user, {
+                                                    id: (data.postParams.fid !== undefined && data.postParams.fid != "undefined") ? Number(data.postParams.fid) : undefined,
                                                     type: SVEData.getTypeFromExt(fileDest), 
                                                     owner: user, parentProject: prj, 
                                                     path: {filePath: fileDest, thumbnailPath: ""},

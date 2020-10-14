@@ -7,6 +7,7 @@ import * as fs from "fs";
 import * as sharp from "sharp";
 import ThumbnailGenerator from 'video-thumbnail-generator';
 import { basename, dirname, join } from 'path';
+import { info } from 'console';
 
 export class SVEServerData extends SVEData {
 
@@ -41,7 +42,26 @@ export class SVEServerData extends SVEData {
                     });
                 }
             } else {
-                onComplete(self);
+                if (initInfo.id === undefined) {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT Max(id) as id FROM files", (err, resCount) => {
+                        this.id = Number(resCount[0].id) + 1; 
+                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`id`, `project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                        [
+                            this.id,
+                            this.parentProject!.getID(), 
+                            this.getOwnerID(), 
+                            SVEData.type2Str(this.getType()), 
+                            this.localDataInfo!.filePath, 
+                            this.localDataInfo!.thumbnailPath,
+                            new Date(),
+                            (this.creation !== undefined) ? this.creation : new Date()
+                        ], (err, results) => {
+                            onComplete(self);
+                        });
+                });
+                } else {
+                    onComplete(self);
+                }
             }
         });
     }
@@ -191,8 +211,31 @@ export class SVEServerData extends SVEData {
                 });
             }
 
-            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+            if(this.id === -1 || isNaN(this.id)) {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                        [
+                            this.parentProject!.getID(), 
+                            this.getOwnerID(), 
+                            SVEData.type2Str(this.getType()), 
+                            this.localDataInfo!.filePath, 
+                            this.localDataInfo!.thumbnailPath,
+                            new Date(),
+                            (this.creation !== undefined) ? this.creation : new Date()
+                    ], (err, results) => {
+                        if(err) {
+                            reject(err);
+                        } else {
+                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
+                                if(!err && res.length > 0)
+                                    this.id = res[0].id;
+                                resolve(!err && res.length > 0);
+                            });
+                        }
+                    });
+                });
+            } else {
+                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `project` = ?, `user_id` = ?, `type` = ?, `path` = ?, `thumbnail` = ?, `lastAccess` = ?, `creation` = ? WHERE id = ?", 
                     [
                         this.parentProject!.getID(), 
                         this.getOwnerID(), 
@@ -200,19 +243,16 @@ export class SVEServerData extends SVEData {
                         this.localDataInfo!.filePath, 
                         this.localDataInfo!.thumbnailPath,
                         new Date(),
-                        (this.creation !== undefined) ? this.creation : new Date()
-                ], (err, results) => {
-                    if(err) {
-                        reject(err);
-                    } else {
-                        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
-                            if(!err && res.length > 0)
-                                this.id = res[0].id;
-                            resolve(!err && res.length > 0);
-                        });
-                    }
+                        (this.creation !== undefined) ? this.creation : new Date(),
+                        this.id
+                    ], (err, results) => {
+                        if(err) {
+                            reject(err);
+                        } else {
+                            resolve(true);
+                        }
                 });
-            });
+            }
         });
     }
 
