@@ -82,9 +82,12 @@ function getClasses(): Promise<Map<string, number>> {
 
 function trainNewModel(name: string) {
     getModel(name).then(model => {
+        console.log("Got model..");
         getClasses().then(labels => {
+            console.log("Got classes..");
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
                 if(err || docLbls.length === 0) {
+                    console.log("No labels found!");
                     return;
                 } else {
                     let files: SVEData[] = [];
@@ -93,15 +96,17 @@ function trainNewModel(name: string) {
                         new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
                             files.push(data);
                             file_lbs.push(element.label as string);
+                            console.log("Prepared file: " + data.getName());
                             if (docLbls.length === files.keys.length) {
+                                console.log("Ready to fit data..");
                                 fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
                             }
                         });
                     });
                 }
             });
-        });
-    });
+        }, err => console.log("Error on load classes: " + JSON.stringify(err)));
+    }, err => console.log("Error on load model: " + JSON.stringify(err)));
 }
 
 router.get("/models/:file", (req, res) => {
