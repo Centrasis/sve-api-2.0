@@ -56,6 +56,9 @@ export class SVEServerData extends SVEData {
                             new Date(),
                             (this.creation !== undefined) ? this.creation : new Date()
                         ], (err, results) => {
+                            if(err) {
+                                console.log("Error on SQL: " + JSON.stringify(err));
+                            }
                             onComplete(self);
                         });
                 });
@@ -172,39 +175,6 @@ export class SVEServerData extends SVEData {
                                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
                             }).catch(err => {
                                 console.log("Generation of thumbnail failed at first pass! Try next pass.. (" + JSON.stringify(err) + ")");
-
-                                /*const ffmpeg = require('ffmpeg-static');
-                                const thumbnailer_2 = require('simple-thumbnail');
-                                thumbnailer_2(this.localDataInfo!.filePath, this.localDataInfo!.thumbnailPath, size, {
-                                    path: ffmpeg.path
-                                }).catch(err => {
-                                    console.log("Generation of thumbnail failed at second pass! Try last pass..");
-                                    let width = Math.round(320 * dim.width / dim.height);
-                                    if (width > 320) {
-                                        width = 320;
-                                    }
-
-                                    let thumbnailer_3 = require('quicklook-thumbnail');
-                                    let options = {
-                                        size: width,
-                                        folder: dirname(this.localDataInfo!.thumbnailPath)
-                                    };
-                                    thumbnailer_3.create(this.localDataInfo!.filePath, options, (err, path) => {
-                                        if(err) {
-                                            console.log("Video was too hard to thumbnail! We failed! " + JSON.stringify(err));
-                                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT id FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
-                                                if(!err && res.length > 0) {
-                                                    this.id = res[0].id;
-                                                    this.remove();
-                                                }
-                                            });
-                                            return;
-                                        } else {
-                                            this.localDataInfo!.thumbnailPath = path;
-                                            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `thumbnail` = ? WHERE `path` = ?", [this.localDataInfo!.thumbnailPath, this.localDataInfo!.filePath], (err, res) => {});
-                                        }
-                                    });
-                                });*/
                             });
                         }).catch(err => console.log("Failed video dimensions: " + JSON.stringify(err)));
                     }
@@ -212,6 +182,7 @@ export class SVEServerData extends SVEData {
             }
 
             if(this.id === -1 || isNaN(this.id)) {
+                console.log("Save new file!");
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("DELETE FROM files WHERE path = ?", [this.localDataInfo!.filePath], (err, res) => {
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO files (`project`, `user_id`, `type`, `path`, `thumbnail`, `lastAccess`, `creation`) VALUES (?, ?, ?, ?, ?, ?, ?)", 
                         [
@@ -235,6 +206,7 @@ export class SVEServerData extends SVEData {
                     });
                 });
             } else {
+                console.log("Update existing file!");
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE files SET `project` = ?, `user_id` = ?, `type` = ?, `path` = ?, `thumbnail` = ?, `lastAccess` = ?, `creation` = ? WHERE id = ?", 
                     [
                         this.parentProject!.getID(), 
@@ -247,6 +219,7 @@ export class SVEServerData extends SVEData {
                         this.id
                     ], (err, results) => {
                         if(err) {
+                            console.log("SQL error: " + JSON.stringify(err));
                             reject(err);
                         } else {
                             resolve(true);
