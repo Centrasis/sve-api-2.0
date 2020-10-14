@@ -55,13 +55,14 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             }
         }
 
-        let l: number[] = [];
-        for (let i = 0; i < docLabels.length; i++) {
-            l.push(labels.get(docLabels[i])!);
+        function* label() {
+            for (let i = 0; i < docLabels.length; i++) {
+                yield labels.get(docLabels[i])!;
+            }
         }
 
         const xs = tf.data.generator(data);
-        const ys = tf.tensor3d(l, [l.length, 1, 1]);//tf.data.generator(label);
+        const ys = tf.data.generator(label);
         // We zip the data and labels together, shuffle and batch 32 samples at a time.
         const ds = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32);
         model.fitDataset(ds, {epochs: 50}).then(info => {
