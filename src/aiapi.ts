@@ -45,23 +45,29 @@ function saveModel(name: string, model: tf.LayersModel) {
 
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        const xs = tf.data.generator(function* () {
+        function* data() {
             for (let i = 0; i < docData.length; i++) {
                 const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                yield tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer)), imageSize);
+                let tensor = tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer)), imageSize);
+
+                console.log("Tensor shape: " + JSON.stringify(tensor.shape));
+                yield tensor;
             }
-        });
-        const ys = tf.data.generator(function* () {
-            for (let i = 0; i < docData.length; i++) {
-                yield labels.get(docLabels[i]);
-            }
-        });
+        }
+
+        let l: number[] = [];
+        for (let i = 0; i < docLabels.length; i++) {
+            l.push(labels.get(docLabels[i])!);
+        }
+
+        const xs = tf.data.generator(data);
+        const ys = tf.tensor3d(l, [l.length, 1, 1]);//tf.data.generator(label);
         // We zip the data and labels together, shuffle and batch 32 samples at a time.
         const ds = tf.data.zip({xs, ys}).shuffle(100 /* bufferSize */).batch(32);
         model.fitDataset(ds, {epochs: 50}).then(info => {
             console.log('Trained model accuracy: ', info.history.acc);
             resolve();
-        }, err => reject(err));
+        }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
     });
 }
 
@@ -83,9 +89,7 @@ function getClasses(): Promise<Map<string, number>> {
 
 function trainNewModel(name: string) {
     getModel(name).then(model => {
-        console.log("Got model..");
         getClasses().then(labels => {
-            console.log("Got classes..");
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
                 if(err || docLbls.length === 0) {
                     console.log("No labels found!");
@@ -97,7 +101,6 @@ function trainNewModel(name: string) {
                         new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
                             files.push(data);
                             file_lbs.push(element.label as string);
-                            console.log("Prepared file: " + data.getName());
                             if (docLbls.length === files.length) {
                                 console.log("Ready to fit data..");
                                 fitDataset(model, labels, files, file_lbs).then(() => saveModel(name, model)).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
