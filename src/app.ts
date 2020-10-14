@@ -1,6 +1,7 @@
 import express, {RequestHandler} from 'express';
 import { router as auth } from './authenticator';
 import { router as sve } from './sveapi';
+import { router as ai } from './aiapi';
 import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
@@ -45,6 +46,8 @@ app.use(sess);
 app.use('/auth', auth);
 
 app.use('/api', sve);
+
+app.use('/ai', ai);
 
 let games = getGameAPIRouter(express.Router());
 app.use("/games", games);

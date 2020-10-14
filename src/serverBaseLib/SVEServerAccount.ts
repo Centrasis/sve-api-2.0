@@ -80,3 +80,11 @@ export class SVEServerAccount extends SVEAccount {
         });
     };
 }
+
+export class SVEServerRootAccount extends SVEServerAccount {
+    public isRoot: boolean = true;
+
+    constructor() {
+        super({id: 0, loginState: LoginState.LoggedInByUser, name: "", sessionID: ""} as SessionUserInitializer);
+    }
+}

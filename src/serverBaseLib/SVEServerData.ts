@@ -23,7 +23,7 @@ export class SVEServerData extends SVEData {
                                 new SVEProject(results[0].project as number, handler, (prj) => {
                                     if (prj.getGroup() !== undefined) {
                                         prj.getGroup()!.getRightsForUser(handler).then((val) => {
-                                            if(!val.read) {
+                                            if(!val.read && (handler as any).isRoot === undefined) {
                                                 onComplete(self);
                                             } else {
                                                 self.initFromResult(results[0], prj, () => { onComplete(self); });
