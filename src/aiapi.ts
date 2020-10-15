@@ -27,12 +27,13 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
+                model.add(tf.layers.maxPooling2d({poolSize: [3, 3]}));
                 model.add(tf.layers.conv2d({
-                    filters: 16,
+                    filters: 8,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.dropout({
                     rate: 0.25
                 }));
@@ -70,39 +71,41 @@ function saveModel(name: string, model: tf.LayersModel) {
 
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        function* data() {
-            for (let i = 0; i < docData.length; i++) {
-                const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                let tensor = tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize);
-                yield tensor;
-            }
-        }
-
-        function* label() {
-            for (let i = 0; i < docLabels.length; i++) {
-                let lbl = labels.get(docLabels[i])!;
-                let v: number[] = [];
-                for (let i = 1; i <= labels.size; i++) {
-                    v.push((i == lbl) ? 1 : 0);
+        tf.tidy(() => {
+            function* data() {
+                for (let i = 0; i < docData.length; i++) {
+                    const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
+                    let tensor = tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize);
+                    yield tensor;
                 }
-                let lt = tf.tensor1d(v);
-                yield lt;
             }
-        }
 
-        const xs = tf.data.generator(data);
-        const ys = tf.data.generator(label);
-        // We zip the data and labels together, shuffle and batch 32 samples at a time.
-        const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
-        model.fitDataset(ds, {epochs: 50}).then(info => {
-            console.log('Trained model accuracy: ', info.history.acc);
-            model.evaluateDataset(tf.data.zip({xs, ys})).then((score) => {
-                console.log("CNN score:");
-                console.log("loss -> " + JSON.stringify(score[0]));
-                console.log("accuracy -> " + JSON.stringify(score[1]));
-            }, err => console.log("Evaluation failed: " + JSON.stringify(err)));
-            resolve();
-        }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
+            function* label() {
+                for (let i = 0; i < docLabels.length; i++) {
+                    let lbl = labels.get(docLabels[i])!;
+                    let v: number[] = [];
+                    for (let i = 1; i <= labels.size; i++) {
+                        v.push((i == lbl) ? 1 : 0);
+                    }
+                    let lt = tf.tensor1d(v);
+                    yield lt;
+                }
+            }
+
+            const xs = tf.data.generator(data);
+            const ys = tf.data.generator(label);
+            // We zip the data and labels together, shuffle and batch 32 samples at a time.
+            const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
+            model.fitDataset(ds, {epochs: 50}).then(info => {
+                console.log('Trained model accuracy: ', info.history.acc);
+                model.evaluateDataset(tf.data.zip({xs, ys})).then((score) => {
+                    console.log("CNN score:");
+                    console.log("loss -> " + JSON.stringify(score[0]));
+                    console.log("accuracy -> " + JSON.stringify(score[1]));
+                }, err => console.log("Evaluation failed: " + JSON.stringify(err)));
+                resolve();
+            }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
+        });
     });
 }
 
