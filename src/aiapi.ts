@@ -27,7 +27,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
-                model.add(tf.layers.maxPooling2d({poolSize: [3, 3]}));
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
                     filters: 8,
                     kernelSize: [3, 3],
