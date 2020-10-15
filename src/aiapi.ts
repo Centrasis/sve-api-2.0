@@ -23,16 +23,31 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 8,
-                    kernelSize: 5,
+                    filters: 32,
+                    kernelSize: [3, 3],
+                    strides: 1,
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.conv2d({
+                    inputShape: [imageSize[0], imageSize[1], 3],
+                    filters: 64,
+                    kernelSize: [3, 3],
                     strides: 1,
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+                model.add(tf.layers.dropout({
+                    rate: 0.25
+                }));
                 model.add(tf.layers.flatten());
                 model.add(tf.layers.dense({
-                    kernelInitializer: 'VarianceScaling',
-                    useBias: false,
+                    activation: 'relu',
+                    units: 128
+                }));
+                model.add(tf.layers.dropout({
+                    rate: 0.5
+                }));
+                model.add(tf.layers.dense({
                     activation: 'softmax',
                     units: classes.size
                 }));
