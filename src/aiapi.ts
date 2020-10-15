@@ -75,7 +75,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             function* data() {
                 for (let i = 0; i < docData.length; i++) {
                     const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                    let tensor = tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize);
+                    let tensor = tf.tidy(() => { tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize) });
                     yield tensor;
                 }
             }
