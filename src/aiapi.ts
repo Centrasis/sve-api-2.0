@@ -23,13 +23,13 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 8,
+                    filters: 16,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
-                    filters: 8,
+                    filters: 32,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
