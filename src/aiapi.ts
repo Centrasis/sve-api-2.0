@@ -25,14 +25,11 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     inputShape: [imageSize[0], imageSize[1], 3],
                     filters: 32,
                     kernelSize: [3, 3],
-                    strides: 1,
                     activation: 'relu',
                 }));
                 model.add(tf.layers.conv2d({
-                    inputShape: [imageSize[0], imageSize[1], 3],
                     filters: 64,
                     kernelSize: [3, 3],
-                    strides: 1,
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
