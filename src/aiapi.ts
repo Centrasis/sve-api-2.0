@@ -23,12 +23,12 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 32,
+                    filters: 8,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.conv2d({
-                    filters: 64,
+                    filters: 16,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -96,6 +96,11 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
         const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
         model.fitDataset(ds, {epochs: 50}).then(info => {
             console.log('Trained model accuracy: ', info.history.acc);
+            model.evaluateDataset(tf.data.zip({xs, ys})).then((score) => {
+                console.log("CNN score:");
+                console.log("loss -> " + JSON.stringify(score[0]));
+                console.log("accuracy -> " + JSON.stringify(score[1]));
+            }, err => console.log("Evaluation failed: " + JSON.stringify(err)));
             resolve();
         }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
     });
