@@ -24,13 +24,13 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 16,
+                    filters: 32,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
-                    filters: 32,
+                    filters: 64,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -89,8 +89,6 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         v.push((i == lbl) ? 1 : 0);
                     }
                     let lt = tf.tensor1d(v);
-                    console.log("result tensor for image labled: " + docLabels[i] + " ->");
-                    lt.print();
                     yield lt;
                 }
             }
@@ -100,7 +98,6 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             const rawDS: tf.data.Dataset<{}> = tf.data.zip({xs, ys});
             const ds = rawDS.shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
             model.fitDataset(ds, {epochs: 50}).then(info => {
-                console.log('Trained model accuracy: ', info.history.acc);
                 model.evaluateDataset(rawDS, {verbose: 0}).then((score) => {
                     console.log("CNN score:");
                     console.log("loss -> " + JSON.stringify(score[0]));
