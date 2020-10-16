@@ -89,7 +89,8 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         v.push((i == lbl) ? 1 : 0);
                     }
                     let lt = tf.tensor1d(v);
-                    console.log("result tensor for image labled: " + docLabels[i] + " -> " + lt.toString());
+                    console.log("result tensor for image labled: " + docLabels[i] + " ->");
+                    lt.print();
                     yield lt;
                 }
             }
