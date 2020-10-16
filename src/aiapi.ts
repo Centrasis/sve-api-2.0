@@ -24,13 +24,16 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 16,
+                    filters: 24,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+                model.add(tf.layers.dropout({
+                    rate: 0.25
+                }));
                 model.add(tf.layers.conv2d({
-                    filters: 32,
+                    filters: 40,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -44,7 +47,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     units: 128
                 }));
                 model.add(tf.layers.dropout({
-                    rate: 0.5
+                    rate: 0.3
                 }));
                 model.add(tf.layers.dense({
                     activation: 'softmax',
@@ -75,7 +78,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             function* data() {
                 for (let i = 0; i < docData.length; i++) {
                     const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                    let tensor = tf.tidy(() => { return tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize) });
+                    let tensor = tf.tidy(() => { return tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize); });
                     yield tensor;
                 }
             }
