@@ -24,13 +24,13 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 32,
+                    filters: 16,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
-                    filters: 64,
+                    filters: 32,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -55,7 +55,6 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     loss: tf.losses.softmaxCrossEntropy,
                     metrics: [tf.metrics.categoricalAccuracy]
                 });
-
                 resolve(model);
             });
         });
@@ -95,10 +94,9 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
 
             const xs = tf.data.generator(data);
             const ys = tf.data.generator(label);
-            const rawDS: tf.data.Dataset<{}> = tf.data.zip({xs, ys});
-            const ds = rawDS.shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
+            const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
             model.fitDataset(ds, {epochs: 50}).then(info => {
-                model.evaluateDataset(rawDS, {verbose: 0}).then((score) => {
+                model.evaluateDataset(ds as tf.data.Dataset<{}>, {verbose: 0}).then((score) => {
                     console.log("CNN score:");
                     console.log("loss -> " + JSON.stringify(score[0]));
                     console.log("accuracy -> " + JSON.stringify(score[1]));
