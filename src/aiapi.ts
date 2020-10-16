@@ -7,6 +7,7 @@ import { Request, Response, Router } from "express";
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from "fs";
 import mysql from 'mysql';
+import { TFSavedModel } from '@tensorflow/tfjs-node/dist/saved_model';
 
 const aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [224, 224];
@@ -50,9 +51,9 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     units: classes.size
                 }));
                 model.compile({
-                    optimizer: 'adam',
-                    loss: 'categoricalCrossentropy',
-                    metrics: ['accuracy']
+                    optimizer: new tf.AdamOptimizer(0.001, 0.9, 0.999),
+                    loss: tf.losses.softmaxCrossEntropy,
+                    metrics: [tf.metrics.categoricalAccuracy]
                 });
 
                 resolve(model);
@@ -88,17 +89,18 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         v.push((i == lbl) ? 1 : 0);
                     }
                     let lt = tf.tensor1d(v);
+                    console.log("result tensor for image labled: " + docLabels[i] + " -> " + lt.toString());
                     yield lt;
                 }
             }
 
             const xs = tf.data.generator(data);
             const ys = tf.data.generator(label);
-            // We zip the data and labels together, shuffle and batch 32 samples at a time.
-            const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
+            const rawDS: tf.data.Dataset<{}> = tf.data.zip({xs, ys});
+            const ds = rawDS.shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
             model.fitDataset(ds, {epochs: 50}).then(info => {
                 console.log('Trained model accuracy: ', info.history.acc);
-                model.evaluateDataset(tf.data.zip({xs, ys})).then((score) => {
+                model.evaluateDataset(rawDS).then((score) => {
                     console.log("CNN score:");
                     console.log("loss -> " + JSON.stringify(score[0]));
                     console.log("accuracy -> " + JSON.stringify(score[1]));
@@ -132,6 +134,7 @@ function trainNewModel(name: string): Promise<void> {
 function trainModel(name: string, forceNew: boolean = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         getModel((forceNew) ? "" : name).then(model => {
+            model.summary();
             getClasses().then(labels => {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
                     if(err || docLbls.length === 0) {
