@@ -30,13 +30,6 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     activation: 'relu',
                 }));
                 model.add(tf.layers.batchNormalization());
-                model.add(tf.layers.conv2d({
-                    inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 16,
-                    kernelSize: [3, 3],
-                    activation: 'relu',
-                }));
-                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.dropout({
                     rate: 0.25
