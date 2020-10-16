@@ -42,7 +42,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     rate: 0.25
                 }));
                 model.add(tf.layers.conv2d({
-                    filters: 40,
+                    filters: 32,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -58,7 +58,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 }));
                 model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.dropout({
-                    rate: 0.3
+                    rate: 0.5
                 }));
                 model.add(tf.layers.dense({
                     activation: 'softmax',
