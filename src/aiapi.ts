@@ -100,7 +100,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             const ds = rawDS.shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
             model.fitDataset(ds, {epochs: 50}).then(info => {
                 console.log('Trained model accuracy: ', info.history.acc);
-                model.evaluateDataset(rawDS).then((score) => {
+                model.evaluateDataset(rawDS, {verbose: 0}).then((score) => {
                     console.log("CNN score:");
                     console.log("loss -> " + JSON.stringify(score[0]));
                     console.log("accuracy -> " + JSON.stringify(score[1]));
