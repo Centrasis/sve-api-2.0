@@ -56,6 +56,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     activation: 'relu',
                     units: 128
                 }));
+                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.dropout({
                     rate: 0.3
                 }));
