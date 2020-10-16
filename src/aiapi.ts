@@ -25,14 +25,14 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 24,
+                    filters: 16,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 24,
+                    filters: 16,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
