@@ -8,6 +8,7 @@ import * as tf from '@tensorflow/tfjs-node';
 import * as fs from "fs";
 import mysql from 'mysql';
 import { TFSavedModel } from '@tensorflow/tfjs-node/dist/saved_model';
+import { mod } from '@tensorflow/tfjs-node';
 
 const aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [224, 224];
@@ -28,6 +29,14 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
+                model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.conv2d({
+                    inputShape: [imageSize[0], imageSize[1], 3],
+                    filters: 24,
+                    kernelSize: [3, 3],
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.dropout({
                     rate: 0.25
@@ -37,6 +46,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
+                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.dropout({
                     rate: 0.25
