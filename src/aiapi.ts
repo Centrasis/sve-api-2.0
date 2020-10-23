@@ -1,7 +1,7 @@
 import ServerHelper from './serverhelper';
 import {SVEServerSystemInfo as SVESystemInfo } from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
 import { Request, Response, Router } from "express";
 import * as tf from '@tensorflow/tfjs-node';
@@ -9,8 +9,9 @@ import * as fs from "fs";
 import mysql from 'mysql';
 import { TFSavedModel } from '@tensorflow/tfjs-node/dist/saved_model';
 import { mod } from '@tensorflow/tfjs-node';
+import { basename, dirname } from 'path';
 
-const aiModelPath = "/ai/models/";
+var aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [224, 224];
 var router = Router();
 ServerHelper.setupRouter(router);
@@ -25,17 +26,33 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 let model = tf.sequential();
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 16,
-                    kernelSize: [3, 3],
+                    filters: 64,
+                    kernelSize: [10, 10],
                     activation: 'relu',
                 }));
-                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.dropout({
+                model.add(tf.layers.conv2d({
+                    filters: 128,
+                    kernelSize: [7, 7],
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+                model.add(tf.layers.conv2d({
+                    filters: 128,
+                    kernelSize: [4, 4],
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+                model.add(tf.layers.conv2d({
+                    filters: 256,
+                    kernelSize: [4, 4],
+                    activation: 'relu',
+                }));
+                /*model.add(tf.layers.dropout({
                     rate: 0.25
                 }));
                 model.add(tf.layers.conv2d({
-                    filters: 26,
+                    filters: 64,
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
@@ -43,11 +60,11 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.dropout({
                     rate: 0.25
-                }));
+                }));*/
                 model.add(tf.layers.flatten());
                 model.add(tf.layers.dense({
-                    activation: 'relu',
-                    units: 120
+                    activation: 'sigmoid',
+                    units: 4096
                 }));
                 model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.dropout({
@@ -130,7 +147,11 @@ function getClasses(): Promise<Map<string, number>> {
     });
 }
 
-function trainNewModel(name: string): Promise<void> {
+export function trainNewModel(name: string, relative: boolean = false): Promise<void> {
+    if(relative) {
+        aiModelPath = dirname(process.argv[1]) + "/models/";
+    }
+
     return trainModel(name, true);
 }
 
@@ -148,14 +169,37 @@ function trainModel(name: string, forceNew: boolean = false): Promise<void> {
                         let files: SVEData[] = [];
                         let file_lbs: string[] = [];
                         docLbls.forEach(element => {
-                            new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
-                                files.push(data);
-                                file_lbs.push(element.label as string);
-                                if (docLbls.length === files.length) {
-                                    console.log("Ready to fit data..");
-                                    fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
-                                }
-                            });
+                            if (!SVESystemInfo.getInstance().sources.sveDataPath!.startsWith("http")) {
+                                new SVEData(new SVEServerRootAccount(), Number(element.fid), (data) => {
+                                    files.push(data);
+                                    file_lbs.push(element.label as string);
+                                    if (docLbls.length === files.length) {
+                                        console.log("Ready to fit data..");
+                                        fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
+                                    }
+                                });
+                            } else {
+                                let filesList = fs.readdirSync(dirname(process.argv[1]) + "/train_data");
+                                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT path FROM files WHERE id = ?", [Number(element.fid)], (err, fileRes) => {
+                                    if(err || fileRes.length === 0) {
+                                        console.log("Error on fetch files path: " + JSON.stringify(err));
+                                        return;
+                                    }
+                                    let path = {filePath: dirname(process.argv[1]) + "/train_data/" + filesList.filter(f => basename(f) === basename(fileRes[0].path as string))[0], thumbnailPath: dirname(process.argv[1]) + "/train_data/" + filesList.filter(f => basename(f) === basename(fileRes[0].path as string))[0]};
+                                    new SVEData(new SVEServerRootAccount(), {
+                                        id: Number(element.fid),
+                                        type: SVEData.getTypeFrom(fileRes[0].path as string),
+                                        path: path
+                                    }, (data) => {
+                                        files.push(data);
+                                        file_lbs.push(element.label as string);
+                                        if (docLbls.length === files.length) {
+                                            console.log("Ready to fit data remote..");
+                                            fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
+                                        }
+                                    });
+                                });
+                            }
                         });
                     }
                 });
@@ -179,6 +223,7 @@ router.get("/models/:name/:file", (req, res) => {
     }
 });
 
+/*
 router.post("/model/:name/train", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
@@ -208,6 +253,7 @@ router.post("/model/:name/retrain", (req, res) => {
         res.sendStatus(401);
     }
 });
+*/
 
 router.put("/model/:name/classify", (req, res) => {
     if (req.session!.user && req.body.file && req.body.class) {
