@@ -87,7 +87,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
 
 function saveModel(name: string, model: tf.LayersModel) {
     if(!fs.existsSync(aiModelPath + name)) {
-        fs.mkdirSync(aiModelPath + name);
+        fs.mkdirSync(aiModelPath + name, {recursive: true});
     }
 
     model.save("file://" + aiModelPath + name);
@@ -121,9 +121,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
             model.fitDataset(ds, {epochs: 50}).then(info => {
                 model.evaluateDataset(ds as tf.data.Dataset<{}>, {verbose: 0}).then((score) => {
-                    console.log("CNN score:");
-                    console.log("loss -> " + JSON.stringify(score[0]));
-                    console.log("accuracy -> " + JSON.stringify(score[1]));
+                    console.log("CNN score:", score);
                 }, err => console.log("Evaluation failed: " + JSON.stringify(err)));
                 resolve();
             }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
