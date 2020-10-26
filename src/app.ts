@@ -1,7 +1,7 @@
 import express, {RequestHandler} from 'express';
 import { router as auth } from './authenticator';
 import { router as sve } from './sveapi';
-import { router as ai, trainNewModel } from './aiapi';
+import { router as ai, trainNewModel, predict } from './aiapi';
 import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
@@ -76,5 +76,12 @@ if (process.argv.length <= 2) {
                 console.log("Trained modell!");
             }, err => console.log("Error: " + JSON.stringify(err)));
         }, err => console.log("Setup error: " + err));
+    } else {
+        if (args[0].trim() == "predict") {
+            let model = args[1];
+            let file = args[2];
+
+            predict(file, model, true).then(p => console.log("Predicted: " + JSON.stringify(p)));
+        }
     }
 }

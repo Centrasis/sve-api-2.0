@@ -7,9 +7,9 @@ import { Request, Response, Router } from "express";
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from "fs";
 import mysql from 'mysql';
-import { TFSavedModel } from '@tensorflow/tfjs-node/dist/saved_model';
-import { mod } from '@tensorflow/tfjs-node';
 import { basename, dirname } from 'path';
+import * as sharp from "sharp";
+import * as hasard from 'hasard';
 
 var aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [224, 224];
@@ -27,46 +27,34 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
                     filters: 64,
-                    kernelSize: [10, 10],
+                    kernelSize: [6, 6],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [7, 7],
-                    activation: 'relu',
+                    filters: 110,
+                    kernelSize: [5, 5],
+                    activation: 'relu'
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [4, 4],
-                    activation: 'relu',
-                }));
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.conv2d({
-                    filters: 256,
-                    kernelSize: [4, 4],
-                    activation: 'relu',
-                }));
-                /*model.add(tf.layers.dropout({
-                    rate: 0.25
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 64,
-                    kernelSize: [3, 3],
-                    activation: 'relu',
-                }));
                 model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.conv2d({
+                    filters: 128,
+                    kernelSize: [4, 4],
+                    activation: 'relu'
+                }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.dropout({
-                    rate: 0.25
-                }));*/
+                model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.conv2d({
+                    filters: 128,
+                    kernelSize: [4, 4],
+                    activation: 'relu'
+                }));
                 model.add(tf.layers.flatten());
                 model.add(tf.layers.dense({
                     activation: 'sigmoid',
-                    units: 4096
+                    units: 230
                 }));
-                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.dropout({
                     rate: 0.5
                 }));
@@ -85,6 +73,32 @@ function getModel(name: string): Promise<tf.LayersModel> {
     }
 }
 
+export function predict(filename: string, model: string, relative: boolean = false): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+        if(relative) {
+            aiModelPath = dirname(process.argv[1]) + "/models/";
+        }
+
+        tf.loadLayersModel("file://" + aiModelPath + model + "/model.json").then(model => {
+            console.log("Start recognition...");
+            
+            img2Tensor(filename).then(tensor => {
+                tf.tidy(() => {
+                    const eTensor = tensor.expandDims(0).asType('float32').div(256.0);
+                    const prediction = model.predict(eTensor) as tf.Tensor1D;
+                    console.log("Prediction: " + JSON.stringify(prediction.dataSync()));
+                    console.log("Argmax: " + JSON.stringify(prediction.argMax().dataSync()[0]));
+                    const max = prediction.argMax().dataSync()[0] + 1;
+                    resolve(max);
+                });
+            }, err => reject(err));
+        }, err => {
+            console.log("Error on load model: " + JSON.stringify(err));
+            reject();
+        });
+    });
+}
+
 function saveModel(name: string, model: tf.LayersModel) {
     if(!fs.existsSync(aiModelPath + name)) {
         fs.mkdirSync(aiModelPath + name, {recursive: true});
@@ -93,39 +107,98 @@ function saveModel(name: string, model: tf.LayersModel) {
     model.save("file://" + aiModelPath + name);
 }
 
+function img2Tensor(filename: string): Promise<tf.Tensor3D> {
+    return new Promise<tf.Tensor3D>((resolve, reject) => {
+        sharp.default(filename)
+        .resize(imageSize[0], imageSize[1], {fit: "fill", kernel: "cubic", height: imageSize[1], width: imageSize[0], withoutEnlargement: false})
+        .removeAlpha()
+        .toFormat('png')
+        .toBuffer({resolveWithObject: true})
+        .then(({ data, info }) => {
+            const tensor = tf.tidy(() => { return tf.node.decodeImage(Buffer.from(data.buffer), 3) }) as tf.Tensor3D;
+            resolve(tensor);
+        }).catch(err => reject(err));
+    });
+}
+
+function img2AugmentedTensor(filename: string): Promise<tf.Tensor3D> {
+    return new Promise<tf.Tensor3D>((resolve, reject) => {
+        sharp.default(filename)
+        .blur(Math.random() + 0.3)
+//        .rotate(Math.random() * 360.0, {background: "black"})
+        .flip(Math.random() < 0.3)
+        .flop(Math.random() < 0.5)
+        .resize(imageSize[0], imageSize[1], {fit: "fill", kernel: "cubic", height: imageSize[1], width: imageSize[0], withoutEnlargement: false})
+        .removeAlpha()
+        .toFormat('png')
+        .toBuffer({resolveWithObject: true})
+        .then(({ data, info }) => {
+            const tensor = tf.tidy(() => { return tf.node.decodeImage(Buffer.from(data.buffer), 3) }) as tf.Tensor3D;
+            resolve(tensor);
+        }).catch(err => reject(err));
+    });
+}
+
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        tf.tidy(() => {
-            function* data() {
-                for (let i = 0; i < docData.length; i++) {
-                    const file = fs.readFileSync(docData[i].getLocalPath(SVEDataVersion.Preview));
-                    let tensor = tf.tidy(() => { return tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(file.buffer), 3), imageSize); });
-                    yield tensor;
-                }
-            }
+        let x_train: tf.Tensor3D[] = new Array(docData.length * 3).fill(undefined);
+        let y_train: tf.Tensor1D[] = new Array(docLabels.length * 3);
 
-            function* label() {
-                for (let i = 0; i < docLabels.length; i++) {
-                    let lbl = labels.get(docLabels[i])!;
-                    let v: number[] = [];
-                    for (let i = 1; i <= labels.size; i++) {
-                        v.push((i == lbl) ? 1 : 0);
+        for (let i = 0; i < docLabels.length * 3; i++) {
+            let lbl = labels.get(docLabels[i % docLabels.length])!;
+            let v: number[] = [];
+            for (let j = 1; j <= labels.size; j++) {
+                v.push((j == lbl) ? 1 : 0);
+            }
+            y_train[i] = tf.tensor1d(v);
+        }
+
+        let augment_out = dirname(process.argv[1]) + "/augmentData/";
+
+        let fit_data = function() {
+            for (let i = 0; i < docData.length * 3; i++) {
+                img2AugmentedTensor(docData[i % docData.length].getLocalPath(SVEDataVersion.Preview)).then(tensor => {
+                    x_train[i] = tensor;
+                    
+                    tf.node.encodePng(tensor).then(png => {
+                        if(!fs.existsSync(augment_out)) {
+                            fs.mkdirSync(augment_out, {recursive: true});
+                        }
+                        fs.writeFileSync(augment_out + Math.random().toString(36).substring(7) +".png", png);
+                    });
+                    if (x_train.filter(x => x === undefined || x === null).length === 0) {
+    
+                        //const xs = tf.data.generator(data);
+                        //const ys = tf.data.generator(label);
+    
+                        let xs = tf.data.array(x_train);
+                        let ys = tf.data.array(y_train);
+                        const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, x_train.length) /* bufferSize */).batch(Math.min(32, x_train.length), true);
+    
+                        model.fitDataset(ds, {epochs: 50}).then(info => {
+                            model.evaluateDataset(ds as tf.data.Dataset<{}>, {batches: 4}).then(score => {
+                                if ((score as any).length === undefined) {
+                                    (score as tf.Scalar).print()
+                                } else {
+                                    console.log("Loss: ");
+                                    (score as tf.Scalar[])[0].print();
+                                    console.log("Accuracy: ");
+                                    (score as tf.Scalar[])[1].print();
+                                }
+                                resolve();
+                            });
+                        }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
                     }
-                    let lt = tf.tensor1d(v);
-                    yield lt;
-                }
-            }
+                });
+            };
+        }
 
-            const xs = tf.data.generator(data);
-            const ys = tf.data.generator(label);
-            const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, docData.length) /* bufferSize */).batch(Math.min(32, docData.length), true);
-            model.fitDataset(ds, {epochs: 50}).then(info => {
-                model.evaluateDataset(ds as tf.data.Dataset<{}>, {verbose: 0}).then((score) => {
-                    console.log("CNN score:", score);
-                }, err => console.log("Evaluation failed: " + JSON.stringify(err)));
-                resolve();
-            }, err => { console.log("fitDataset failed: " + JSON.stringify(err)); reject(err); });
-        });
+        if(fs.existsSync(augment_out)) {
+            const rimraf = require("rimraf");
+            rimraf(augment_out, fit_data);
+        } else {
+            fit_data();
+        }    
     });
 }
 
