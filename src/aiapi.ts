@@ -87,8 +87,9 @@ export function predict(filename: string, model: string, relative: boolean = fal
                     const eTensor = tensor.expandDims(0).asType('float32').div(256.0);
                     const prediction = model.predict(eTensor) as tf.Tensor1D;
                     console.log("Prediction: " + JSON.stringify(prediction.dataSync()));
-                    console.log("Argmax: " + JSON.stringify(prediction.argMax().dataSync()[0]));
-                    const max = prediction.argMax().dataSync()[0] + 1;
+                    const maxIdx = prediction.as1D().argMax().dataSync()[0]
+                    console.log("Argmax: " + JSON.stringify(maxIdx));
+                    const max = maxIdx + 1;
                     resolve(max);
                 });
             }, err => reject(err));
