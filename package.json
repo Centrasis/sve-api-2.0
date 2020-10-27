@@ -31,7 +31,6 @@
     "get-video-dimensions": "^1.0.0",
     "hasard": "^1.6.1",
     "huge-uploader-nodejs": "^1.2.1",
-    "image-augment": "^1.1.1",
     "image-size": "^0.9.1",
     "mongoose": "^5.9.25",
     "mysql": "^2.18.1",

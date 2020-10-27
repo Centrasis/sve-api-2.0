@@ -10,6 +10,7 @@ import mysql from 'mysql';
 import { basename, dirname } from 'path';
 import * as sharp from "sharp";
 import * as hasard from 'hasard';
+import { ModuleKind } from 'typescript';
 
 var aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [224, 224];
@@ -27,34 +28,55 @@ function getModel(name: string): Promise<tf.LayersModel> {
                 model.add(tf.layers.conv2d({
                     inputShape: [imageSize[0], imageSize[1], 3],
                     filters: 64,
-                    kernelSize: [6, 6],
+                    strides: 2,
+                    kernelSize: [7, 7],
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.maxPooling2d({poolSize: [3, 3], strides: 2}));
+                model.add(tf.layers.conv2d({
+                    filters: 64,
+                    kernelSize: [3, 3],
+                    activation: 'relu',
+                }));
+                model.add(tf.layers.conv2d({
+                    filters: 64,
+                    kernelSize: [3, 3],
                     activation: 'relu',
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
-                    filters: 110,
-                    kernelSize: [5, 5],
+                    filters: 128,
+                    kernelSize: [3, 3],
+                    activation: 'relu'
+                }));
+                model.add(tf.layers.conv2d({
+                    filters: 128,
+                    kernelSize: [3, 3],
                     activation: 'relu'
                 }));
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [4, 4],
+                    filters: 256,
+                    kernelSize: [3, 3],
                     activation: 'relu'
                 }));
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+                model.add(tf.layers.conv2d({
+                    filters: 256,
+                    kernelSize: [3, 3],
+                    activation: 'relu'
+                }));
                 model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [4, 4],
+                    filters: 512,
+                    kernelSize: [3, 3],
+                    activation: 'relu'
+                }));
+                model.add(tf.layers.conv2d({
+                    filters: 512,
+                    kernelSize: [3, 3],
                     activation: 'relu'
                 }));
                 model.add(tf.layers.flatten());
-                model.add(tf.layers.dense({
-                    activation: 'sigmoid',
-                    units: 230
-                }));
                 model.add(tf.layers.dropout({
                     rate: 0.5
                 }));
@@ -63,9 +85,12 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     units: classes.size
                 }));
                 model.compile({
-                    optimizer: new tf.AdamOptimizer(0.001, 0.9, 0.999),
-                    loss: tf.losses.softmaxCrossEntropy,
-                    metrics: [tf.metrics.categoricalAccuracy]
+                    optimizer: new tf.AdamOptimizer(0.0002, 0.5, 0.999),
+                    loss: tf.metrics.categoricalCrossentropy,
+                    metrics: [
+                        tf.metrics.categoricalAccuracy,
+                        tf.metrics.meanSquaredError
+                    ]
                 });
                 resolve(model);
             });
@@ -79,16 +104,14 @@ export function predict(filename: string, model: string, relative: boolean = fal
             aiModelPath = dirname(process.argv[1]) + "/models/";
         }
 
-        tf.loadLayersModel("file://" + aiModelPath + model + "/model.json").then(model => {
-            console.log("Start recognition...");
-            
+        let mpath = "file://" + aiModelPath + model + "/model.json";
+        tf.loadLayersModel(mpath).then(model => {
             img2Tensor(filename).then(tensor => {
                 tf.tidy(() => {
-                    const eTensor = tensor.expandDims(0).asType('float32').div(256.0);
+                    const eTensor = tf.reshape(tensor, [1, imageSize[0], imageSize[1], 3]); // tensor.expandDims(0).asType('float32').div(256.0);
                     const prediction = model.predict(eTensor) as tf.Tensor1D;
                     console.log("Prediction: " + JSON.stringify(prediction.dataSync()));
                     const maxIdx = prediction.as1D().argMax().dataSync()[0];
-                    console.log("Argmax: " + JSON.stringify(maxIdx));
                     const max = maxIdx + 1;
                     resolve(max);
                 });
@@ -125,70 +148,105 @@ function img2Tensor(filename: string): Promise<tf.Tensor3D> {
 function img2AugmentedTensor(filename: string): Promise<tf.Tensor3D> {
     return new Promise<tf.Tensor3D>((resolve, reject) => {
         sharp.default(filename)
-        .blur(Math.random() + 0.3)
-//        .rotate(Math.random() * 360.0, {background: "black"})
-        .flip(Math.random() < 0.3)
+        .blur((Math.random() < 0.1) ? false : Math.random() * 2.0 + 0.3)
+        .rotate(Math.random() * 180.0 - 90.0, {background: "#000000"})
         .flop(Math.random() < 0.5)
-        .resize(imageSize[0], imageSize[1], {fit: "fill", kernel: "cubic", height: imageSize[1], width: imageSize[0], withoutEnlargement: false})
         .removeAlpha()
         .toFormat('png')
         .toBuffer({resolveWithObject: true})
         .then(({ data, info }) => {
-            const tensor = tf.tidy(() => { return tf.node.decodeImage(Buffer.from(data.buffer), 3) }) as tf.Tensor3D;
+            const tensor = tf.tidy(() => { return tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(data.buffer), 3), imageSize) }) as tf.Tensor3D;
             resolve(tensor);
         }).catch(err => reject(err));
     });
 }
 
+function makeHotEncodingTensor(idx: number, classes: number, scale: number = 1.0): tf.Tensor1D {
+    let v: number[] = new Array(classes).fill(0);
+    v[idx] = 1.0 * scale;
+    return tf.tensor1d(v);
+}
+
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        let x_train: tf.Tensor3D[] = new Array(docData.length * 3).fill(undefined);
-        let y_train: tf.Tensor1D[] = new Array(docLabels.length * 3);
+        const random_samples = 15;
 
-        for (let i = 0; i < docLabels.length * 3; i++) {
-            let lbl = labels.get(docLabels[i % docLabels.length])!;
-            let v: number[] = [];
-            for (let j = 1; j <= labels.size; j++) {
-                v.push((j == lbl) ? 1 : 0);
-            }
-            y_train[i] = tf.tensor1d(v);
-        }
+        let x_train: tf.Tensor3D[] = [];
+        let y_train: tf.Tensor1D[] = [];
+        let y_validate: tf.Tensor1D[] = [];
+        let x_validate: tf.Tensor3D[] = [];
 
         let augment_out = dirname(process.argv[1]) + "/augmentData/";
 
-        let fit_data = function() {
-            for (let i = 0; i < docData.length * 3; i++) {
-                img2AugmentedTensor(docData[i % docData.length].getLocalPath(SVEDataVersion.Preview)).then(tensor => {
-                    x_train[i] = tensor;
+        let fit_dataset = () => {
+            console.log("Train over: " + x_train.length + " samples");
+            console.log("Evaluate over: " + x_validate.length + " samples");
+
+            let xs = tf.data.array(x_train);
+            let ys = tf.data.array(y_train);
+            const ds = tf.data.zip({xs, ys}).repeat(5).shuffle(Math.round(Math.random() * x_train.length / 2.0 + x_train.length / 2.0), Math.random().toString(36).substring(7)).batch(32, true);
+
+            let xs_valid = tf.data.array(x_validate);
+            let ys_valid = tf.data.array(y_validate);
+            const ds_valid = tf.data.zip({xs: xs_valid, ys: ys_valid}).repeat(5).shuffle(Math.round(Math.random() * x_validate.length / 2.0 + x_validate.length / 2.0), Math.random().toString(36).substring(7)).batch(20, true);
+
+            model.fitDataset(ds, {epochs: 10, validationData: ds_valid}).then(info => {
+                console.log("Training complete! Start evaluation...");
+                model.evaluateDataset(ds_valid as tf.data.Dataset<{}>, {batches: undefined}).then(score => {
+                    if ((score as any).length === undefined) {
+                        (score as tf.Scalar).print();
+                    } else {
+                        console.log("Loss: ");
+                        (score as tf.Scalar[])[0].print();
+                        console.log("Accuracy: ");
+                        (score as tf.Scalar[])[1].print();
+                    }
+
+                    let i = Math.round(Math.random() * (x_validate.length - 1));
                     
-                    tf.node.encodePng(tensor).then(png => {
+                    let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*/) as tf.Tensor;
+                    console.log("Truth: ");
+                    y_validate[i].print();
+                    console.log("Prediction: ");
+                    pred.print();
+                    resolve();
+                });
+            }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
+        };
+
+        let generate_validationset = () => {
+            console.log("Generate validation data...");
+            let validationSize = Math.round(docData.length * random_samples * 1/4) + 1;
+            for (let i = 0; i < validationSize; i++) {
+                img2Tensor(docData[i % docData.length].getLocalPath(SVEDataVersion.Preview)).then(tensor => {
+                    x_validate.push(tensor);
+                    let lbl = labels.get(docLabels[i % docLabels.length])!;
+                    y_validate.push(makeHotEncodingTensor(lbl - 1, labels.size));
+                    if(x_validate.length === validationSize) {
+                        fit_dataset();
+                    }
+                });
+            }
+        }
+
+        let generate_trainset = function() {
+            console.log("Generate training data...");
+            let trainSize = docData.length * random_samples;
+            for (let i = 0; i < trainSize; i++) {
+                img2AugmentedTensor(docData[i % docData.length].getLocalPath(SVEDataVersion.Preview)).then(tensor => {
+                    x_train.push(tensor);
+                    let lbl = labels.get(docLabels[i % docLabels.length])!;
+                    //let l = makeHotEncodingTensor(lbl - 1, labels.size, 100 / docLabels.filter(d => d === docLabels[i % docLabels.length]).length);
+                    y_train.push(makeHotEncodingTensor(lbl - 1, labels.size));
+                    
+                    /*tf.node.encodePng(tensor).then(png => {
                         if(!fs.existsSync(augment_out)) {
                             fs.mkdirSync(augment_out, {recursive: true});
                         }
-                        fs.writeFileSync(augment_out + Math.random().toString(36).substring(7) +".png", png);
-                    });
-                    if (x_train.filter(x => x === undefined || x === null).length === 0) {
-    
-                        //const xs = tf.data.generator(data);
-                        //const ys = tf.data.generator(label);
-    
-                        let xs = tf.data.array(x_train);
-                        let ys = tf.data.array(y_train);
-                        const ds = tf.data.zip({xs, ys}).shuffle(Math.min(100, x_train.length) /* bufferSize */).batch(Math.min(32, x_train.length), true);
-    
-                        model.fitDataset(ds, {epochs: 50}).then(info => {
-                            model.evaluateDataset(ds as tf.data.Dataset<{}>, {batches: 4}).then(score => {
-                                if ((score as any).length === undefined) {
-                                    (score as tf.Scalar).print()
-                                } else {
-                                    console.log("Loss: ");
-                                    (score as tf.Scalar[])[0].print();
-                                    console.log("Accuracy: ");
-                                    (score as tf.Scalar[])[1].print();
-                                }
-                                resolve();
-                            });
-                        }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
+                        fs.writeFileSync(augment_out + Math.random().toString(36).substring(7) + ".png", png);
+                    });*/
+                    if (x_train.length === trainSize) {
+                        generate_validationset();
                     }
                 });
             };
@@ -196,9 +254,9 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
 
         if(fs.existsSync(augment_out)) {
             const rimraf = require("rimraf");
-            rimraf(augment_out, fit_data);
+            rimraf(augment_out, generate_trainset);
         } else {
-            fit_data();
+            generate_trainset();
         }    
     });
 }

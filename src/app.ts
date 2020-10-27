@@ -8,6 +8,7 @@ import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {getGameAPIRouter} from './gameapi';
+import * as fs from "fs";
 
 if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().SQLCredentials = {
@@ -79,9 +80,21 @@ if (process.argv.length <= 2) {
     } else {
         if (args[0].trim() == "predict") {
             let model = args[1];
-            let file = args[2];
+            let dir = args[2];
+            let poppredict = (list: string[]) => {
+                if (list.length === 0) {
+                    return;
+                }
 
-            predict(file, model, true).then(p => console.log("Predicted: " + JSON.stringify(p)));
+                let file = dir + "/" + list.pop() as string;
+                //console.log("Predict file: " + file);
+                predict(file, model, true).then(p => console.log("Predicted: " + JSON.stringify(p))).then(() => {
+                    poppredict(list);
+                });
+            };
+
+            let files = fs.readdirSync(dir);
+            poppredict(files);
         }
     }
 }
