@@ -38,34 +38,25 @@ function getModel(name: string): Promise<tf.LayersModel> {
                     kernelSize: [3, 3],
                     activation: 'relu',
                 }));
-                model.add(tf.layers.conv2d({
-                    filters: 64,
-                    kernelSize: [3, 3],
-                    activation: 'relu',
-                }));
+                model.add(tf.layers.batchNormalization());
                 model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
                 model.add(tf.layers.conv2d({
                     filters: 128,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.conv2d({
-                    filters: 256,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 256,
                     kernelSize: [3, 3],
                     activation: 'relu'
                 }));
                 model.add(tf.layers.batchNormalization());
+                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+                model.add(tf.layers.conv2d({
+                    filters: 256,
+                    kernelSize: [3, 3],
+                    activation: 'relu'
+                }));
+                model.add(tf.layers.conv2d({
+                    filters: 256,
+                    kernelSize: [3, 3],
+                    activation: 'relu'
+                }));
                 model.add(tf.layers.conv2d({
                     filters: 512,
                     kernelSize: [3, 3],
@@ -147,12 +138,19 @@ function img2Tensor(filename: string): Promise<tf.Tensor3D> {
 
 function img2AugmentedTensor(filename: string): Promise<tf.Tensor3D> {
     return new Promise<tf.Tensor3D>((resolve, reject) => {
-        sharp.default(filename)
-        .blur((Math.random() < 0.1) ? false : Math.random() * 2.0 + 0.3)
+        let img = sharp.default(filename)
+        .blur((Math.random() < 0.15) ? false : Math.random() * 3.0 + 0.3)
+        .greyscale(Math.random() < 0.1)
         .rotate(Math.random() * 180.0 - 90.0, {background: "#000000"})
-        .flop(Math.random() < 0.5)
-        .removeAlpha()
-        .toFormat('png')
+        .removeAlpha();
+        if(Math.random() < 0.2) {
+            img = img.modulate({
+                hue: Math.round(Math.random() * 270),
+                saturation: Math.random() + 1,
+                brightness: Math.random() + 1
+            });
+        }
+        img.toFormat('png')
         .toBuffer({resolveWithObject: true})
         .then(({ data, info }) => {
             const tensor = tf.tidy(() => { return tf.image.resizeBilinear(tf.node.decodeImage(Buffer.from(data.buffer), 3), imageSize) }) as tf.Tensor3D;
@@ -169,7 +167,7 @@ function makeHotEncodingTensor(idx: number, classes: number, scale: number = 1.0
 
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        const random_samples = 15;
+        const random_samples = 25;
 
         let x_train: tf.Tensor3D[] = [];
         let y_train: tf.Tensor1D[] = [];
@@ -202,13 +200,13 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         (score as tf.Scalar[])[1].print();
                     }
 
-                    let i = Math.round(Math.random() * (x_validate.length - 1));
-                    
-                    let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*/) as tf.Tensor;
-                    console.log("Truth: ");
-                    y_validate[i].print();
-                    console.log("Prediction: ");
-                    pred.print();
+                    for(let i = 0; i < x_validate.length; i++) {  
+                        let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*/) as tf.Tensor;
+                        console.log("Truth: ");
+                        y_validate[i].print();
+                        console.log("Prediction: ", pred.as1D().argMax().dataSync()[0] + 1);
+                        pred.print();
+                    }
                     resolve();
                 });
             }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
@@ -216,7 +214,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
 
         let generate_validationset = () => {
             console.log("Generate validation data...");
-            let validationSize = Math.round(docData.length * random_samples * 1/4) + 1;
+            let validationSize = docData.length;
             for (let i = 0; i < validationSize; i++) {
                 img2Tensor(docData[i % docData.length].getLocalPath(SVEDataVersion.Preview)).then(tensor => {
                     x_validate.push(tensor);
