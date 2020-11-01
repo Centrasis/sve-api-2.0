@@ -407,7 +407,7 @@ router.put("/model/:name/classify", (req, res) => {
     }
 });
 
-router.get("/model/:name/classification/:fid", (req, res) => {
+router.get("/model/:name/classification/:fid([\\+\\-]?\\d+)", (req, res) => {
     if (req.session!.user) {
         let fid: number = Number(req.params.fid);
         (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
