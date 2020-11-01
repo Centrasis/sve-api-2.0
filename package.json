@@ -6,6 +6,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "^2.6.0",
     "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.7.0",
     "@types/cookie-session": "^2.0.41",
     "@types/express": "^4.17.8",
     "@types/express-session": "^1.17.0",
@@ -29,7 +30,6 @@
     "fast-levenshtein": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "get-video-dimensions": "^1.0.0",
-    "hasard": "^1.6.1",
     "huge-uploader-nodejs": "^1.2.1",
     "image-size": "^0.9.1",
     "mongoose": "^5.9.25",

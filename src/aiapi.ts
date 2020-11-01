@@ -4,18 +4,171 @@ import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
 import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
 import { Request, Response, Router } from "express";
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs-node-gpu'; // '@tensorflow/tfjs-node'
 import * as fs from "fs";
 import mysql from 'mysql';
 import { basename, dirname } from 'path';
 import * as sharp from "sharp";
-import * as hasard from 'hasard';
-import { ModuleKind } from 'typescript';
+import { Console } from 'console';
 
 var aiModelPath = "/ai/models/";
-const imageSize: [number, number] = [224, 224];
+const imageSize: [number, number] = [100, 100];// [224, 224];
 var router = Router();
 ServerHelper.setupRouter(router);
+
+/*
+function constructOneShotCNN(numClasses: number): tf.LayersModel {
+    let submodels = [tf.sequential(), tf.sequential()];
+
+    let setupModel = (model: tf.Sequential) => {
+        model.add(tf.layers.inputLayer({inputShape: imageSize}));
+        model.add(tf.layers.conv2d({
+            inputShape: [imageSize[0], imageSize[1], 3],
+            filters: 64,
+            kernelSize: [20, 20],
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
+        }));
+        model.add(tf.layers.maxPooling2d({poolSize: [4, 4]}));
+        model.add(tf.layers.conv2d({
+            filters: 128,
+            kernelSize: [14, 14],
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
+        }));
+        model.add(tf.layers.maxPooling2d({poolSize: [4, 4]}));
+        model.add(tf.layers.conv2d({
+            filters: 128,
+            kernelSize: [8, 8],
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
+        }));
+        model.add(tf.layers.maxPooling2d({poolSize: [4, 4]}));
+        model.add(tf.layers.conv2d({
+            filters: 256,
+            kernelSize: [8, 8],
+            activation: 'relu',
+            kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
+        }));
+        model.add(tf.layers.maxPooling2d({poolSize: [4, 4]}));
+        model.add(tf.layers.flatten());
+        model.add(tf.layers.dense({
+            activation: 'sigmoid',
+            units: 4096
+        }));
+        
+    }
+
+    submodels.forEach(s => setupModel(s));
+
+    let sum = tf.layers.add(). .apply([submodels[0].output as tf.SymbolicTensor, (submodels[1].output as tf.SymbolicTensor)])
+    let pred = tf.layers.dense({
+        activation: 'softmax',
+        units: numClasses,
+        kernelInitializer: 'zeros'
+    }).apply(sum);
+
+    return tf.sequential({layers: pred});
+}*/
+
+
+function constructClassicalCNNShallow(numClasses) {
+    let model = tf.sequential();
+
+    let bigKernel: [number, number] = [Math.round(imageSize[0] / 16), Math.round(imageSize[0] / 16)];
+    let mediumKernel: [number, number] = [Math.round(imageSize[0] / 37), Math.round(imageSize[0] / 37)];
+    let smallKernel: [number, number] = [Math.max(Math.round(imageSize[0] / 74), 3), Math.max(Math.round(imageSize[0] / 74), 3)]
+
+    model.add(tf.layers.conv2d({
+        inputShape: [imageSize[0], imageSize[1], 3],
+        filters: 128,
+        strides: 4,
+        kernelSize: bigKernel,
+        activation: 'relu',
+    }));
+    model.add(tf.layers.maxPooling2d({ poolSize: smallKernel, strides: smallKernel[0] - 1 }));
+    model.add(tf.layers.conv2d({
+        filters: 256,
+        kernelSize: mediumKernel,
+        activation: 'relu',
+    }));
+    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
+    model.add(tf.layers.conv2d({
+        filters: 512,
+        kernelSize: smallKernel,
+        activation: 'relu'
+    }));
+    model.add(tf.layers.flatten());
+    model.add(tf.layers.dropout({
+        rate: 0.4,
+        trainable: true
+    }));
+    model.add(tf.layers.dense({
+        activation: 'softmax',
+        units: numClasses
+    }));
+
+    console.log("Model in: ", (model.input as tf.SymbolicTensor).shape);
+
+    return model;
+}
+
+function constructClassicalCNN(numClasses: number): tf.LayersModel {
+    let model = tf.sequential();
+    model.add(tf.layers.conv2d({
+        inputShape: [imageSize[0], imageSize[1], 3],
+        filters: 64,
+        strides: 4,
+        kernelSize: [14, 14],
+        activation: 'relu',
+    }));
+    model.add(tf.layers.maxPooling2d({poolSize: [3, 3], strides: 2}));
+    model.add(tf.layers.conv2d({
+        filters: 64,
+        kernelSize: [7, 7],
+        activation: 'relu',
+    }));
+//    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+    model.add(tf.layers.conv2d({
+        filters: 128,
+        kernelSize: [5, 5],
+        activation: 'relu'
+    }));
+    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
+    model.add(tf.layers.conv2d({
+        filters: 256,
+        kernelSize: [3, 3],
+        activation: 'relu'
+    }));
+    model.add(tf.layers.conv2d({
+        filters: 256,
+        kernelSize: [3, 3],
+        activation: 'relu'
+    }));
+    model.add(tf.layers.conv2d({
+        filters: 512,
+        kernelSize: [3, 3],
+        activation: 'relu'
+    }));
+    model.add(tf.layers.conv2d({
+        filters: 512,
+        kernelSize: [3, 3],
+        activation: 'relu'
+    }));
+    model.add(tf.layers.flatten());
+    model.add(tf.layers.dropout({
+        rate: 0.4,
+        trainable: true
+    }));
+    model.add(tf.layers.dense({
+        activation: 'softmax',
+        units: numClasses
+    }));
+    return model;
+}
 
 function getModel(name: string): Promise<tf.LayersModel> {
     if(fs.existsSync(aiModelPath + name + ".json")) {
@@ -24,57 +177,7 @@ function getModel(name: string): Promise<tf.LayersModel> {
         return new Promise<tf.LayersModel>((resolve, reject) => {
             getClasses().then(classes => {
                 console.log("Create model with: " + classes.size + " classes");
-                let model = tf.sequential();
-                model.add(tf.layers.conv2d({
-                    inputShape: [imageSize[0], imageSize[1], 3],
-                    filters: 64,
-                    strides: 2,
-                    kernelSize: [7, 7],
-                    activation: 'relu',
-                }));
-                model.add(tf.layers.maxPooling2d({poolSize: [3, 3], strides: 2}));
-                model.add(tf.layers.conv2d({
-                    filters: 64,
-                    kernelSize: [3, 3],
-                    activation: 'relu',
-                }));
-                model.add(tf.layers.batchNormalization());
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.conv2d({
-                    filters: 128,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.batchNormalization());
-                model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
-                model.add(tf.layers.conv2d({
-                    filters: 256,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 256,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 512,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.conv2d({
-                    filters: 512,
-                    kernelSize: [3, 3],
-                    activation: 'relu'
-                }));
-                model.add(tf.layers.flatten());
-                model.add(tf.layers.dropout({
-                    rate: 0.5
-                }));
-                model.add(tf.layers.dense({
-                    activation: 'softmax',
-                    units: classes.size
-                }));
+                let model = constructClassicalCNNShallow(classes.size); //constructClassicalCNN(classes.size);
                 model.compile({
                     optimizer: new tf.AdamOptimizer(0.0002, 0.5, 0.999),
                     loss: tf.metrics.categoricalCrossentropy,
@@ -166,6 +269,7 @@ function makeHotEncodingTensor(idx: number, classes: number, scale: number = 1.0
 }
 
 function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData: SVEData[], docLabels: string[]): Promise<void> {
+    console.log("Backend: " + JSON.stringify(tf.getBackend()));
     return new Promise<void>((resolve, reject) => {
         const random_samples = 25;
 
@@ -182,13 +286,13 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
 
             let xs = tf.data.array(x_train);
             let ys = tf.data.array(y_train);
-            const ds = tf.data.zip({xs, ys}).repeat(5).shuffle(Math.round(Math.random() * x_train.length / 2.0 + x_train.length / 2.0), Math.random().toString(36).substring(7)).batch(32, true);
+            const ds = tf.data.zip({xs, ys}).repeat(5).shuffle(Math.round(Math.random() * x_train.length / 2.0 + x_train.length / 2.0), Math.random().toString(36).substring(7)).batch(64, true);
 
             let xs_valid = tf.data.array(x_validate);
             let ys_valid = tf.data.array(y_validate);
-            const ds_valid = tf.data.zip({xs: xs_valid, ys: ys_valid}).repeat(5).shuffle(Math.round(Math.random() * x_validate.length / 2.0 + x_validate.length / 2.0), Math.random().toString(36).substring(7)).batch(20, true);
+            const ds_valid = tf.data.zip({xs: xs_valid, ys: ys_valid}).repeat(5).shuffle(Math.round(Math.random() * x_validate.length / 2.0 + x_validate.length / 2.0), Math.random().toString(36).substring(7)).batch(32, true);
 
-            model.fitDataset(ds, {epochs: 10, validationData: ds_valid}).then(info => {
+            model.fitDataset(ds, {epochs: 15, validationData: ds_valid}).then(info => {
                 console.log("Training complete! Start evaluation...");
                 model.evaluateDataset(ds_valid as tf.data.Dataset<{}>, {batches: undefined}).then(score => {
                     if ((score as any).length === undefined) {
@@ -200,13 +304,13 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         (score as tf.Scalar[])[1].print();
                     }
 
-                    for(let i = 0; i < x_validate.length; i++) {  
-                        let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*/) as tf.Tensor;
+                    /*for(let i = 0; i < x_validate.length; i++) {  
+                        let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*//*) as tf.Tensor;
                         console.log("Truth: ");
                         y_validate[i].print();
                         console.log("Prediction: ", pred.as1D().argMax().dataSync()[0] + 1);
                         pred.print();
-                    }
+                    }*/
                     resolve();
                 });
             }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
