@@ -85,19 +85,22 @@ function constructClassicalCNNShallow(numClasses) {
         strides: 4,
         kernelSize: bigKernel,
         activation: 'relu',
+        kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
     model.add(tf.layers.maxPooling2d({ poolSize: smallKernel, strides: smallKernel[0] - 1 }));
     model.add(tf.layers.conv2d({
         filters: 256,
         kernelSize: mediumKernel,
         activation: 'relu',
+        kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
     model.add(tf.layers.batchNormalization());
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
     model.add(tf.layers.conv2d({
         filters: 512,
         kernelSize: smallKernel,
-        activation: 'relu'
+        activation: 'relu',
+        kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
     model.add(tf.layers.flatten());
     model.add(tf.layers.dropout({
@@ -106,7 +109,8 @@ function constructClassicalCNNShallow(numClasses) {
     }));
     model.add(tf.layers.dense({
         activation: 'softmax',
-        units: numClasses
+        units: numClasses,
+        activityRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
 
     console.log("Model in: ", [(model.input as tf.SymbolicTensor).shape[1], (model.input as tf.SymbolicTensor).shape[2]]);
