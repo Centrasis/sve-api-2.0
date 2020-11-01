@@ -407,6 +407,26 @@ router.put("/model/:name/classify", (req, res) => {
     }
 });
 
+router.get("/model/:name/class", (req, res) => {
+    if (req.session!.user && req.body.file) {
+        let fid: number = Number(req.body.file);
+        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
+            if(err || result.length === 0) {
+                res.json({
+                    success: false
+                });
+            } else {
+                res.json({
+                    success: true,
+                    class: result[0].label as string
+                });
+            }
+        });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
 router.get("/model/:name/classes", (req, res) => {
     if (req.session!.user) {
         let name = decodeURI(req.params.name as string);
