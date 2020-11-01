@@ -109,11 +109,10 @@ function constructClassicalCNNShallow(numClasses) {
     }));
     model.add(tf.layers.dense({
         activation: 'softmax',
-        units: numClasses,
-        activityRegularizer: tf.regularizers.l2({l2: 2e-4})
+        units: numClasses
     }));
 
-    console.log("Model in: ", [(model.input as tf.SymbolicTensor).shape[1], (model.input as tf.SymbolicTensor).shape[2]]);
+    console.log("Model input: ", [(model.input as tf.SymbolicTensor).shape[1], (model.input as tf.SymbolicTensor).shape[2]]);
 
     return model;
 }
