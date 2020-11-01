@@ -109,7 +109,7 @@ function constructClassicalCNNShallow(numClasses) {
         units: numClasses
     }));
 
-    console.log("Model in: ", (model.input as tf.SymbolicTensor).shape);
+    console.log("Model in: ", [(model.input as tf.SymbolicTensor).shape[1], (model.input as tf.SymbolicTensor).shape[2]]);
 
     return model;
 }
