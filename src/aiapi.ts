@@ -87,6 +87,7 @@ function constructClassicalCNNShallow(numClasses) {
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.maxPooling2d({ poolSize: smallKernel, strides: smallKernel[0] - 1 }));
     model.add(tf.layers.conv2d({
         filters: 256,
@@ -102,10 +103,10 @@ function constructClassicalCNNShallow(numClasses) {
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.flatten());
     model.add(tf.layers.dropout({
-        rate: 0.4,
-        trainable: true
+        rate: 0.5
     }));
     model.add(tf.layers.dense({
         activation: 'softmax',
@@ -126,13 +127,14 @@ function constructClassicalCNN(numClasses: number): tf.LayersModel {
         kernelSize: [14, 14],
         activation: 'relu',
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.maxPooling2d({poolSize: [3, 3], strides: 2}));
     model.add(tf.layers.conv2d({
         filters: 64,
         kernelSize: [7, 7],
         activation: 'relu',
     }));
-//    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.maxPooling2d({poolSize: [2, 2]}));
     model.add(tf.layers.conv2d({
         filters: 128,
@@ -146,24 +148,28 @@ function constructClassicalCNN(numClasses: number): tf.LayersModel {
         kernelSize: [3, 3],
         activation: 'relu'
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.conv2d({
         filters: 256,
         kernelSize: [3, 3],
         activation: 'relu'
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.conv2d({
         filters: 512,
         kernelSize: [3, 3],
         activation: 'relu'
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.conv2d({
         filters: 512,
         kernelSize: [3, 3],
         activation: 'relu'
     }));
+    model.add(tf.layers.batchNormalization()); //*
     model.add(tf.layers.flatten());
     model.add(tf.layers.dropout({
-        rate: 0.4,
+        rate: 0.5,
         trainable: true
     }));
     model.add(tf.layers.dense({
