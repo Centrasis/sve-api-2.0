@@ -83,7 +83,8 @@ export class SVEServerData extends SVEData {
             try {
                 let stats = fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
                 size = stats["size"];
-            } catch {
+            } catch(e) {
+                console.log("Error on read file stats: " + JSON.stringify(e));
                 size = 0;
             }
         }
