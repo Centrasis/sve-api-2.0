@@ -4,7 +4,7 @@ import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
 import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
 import { Request, Response, Router } from "express";
-import * as tf from '@tensorflow/tfjs-node-gpu'; // '@tensorflow/tfjs-node'
+import * as tf from '@tensorflow/tfjs-node'; // '@tensorflow/tfjs-node'
 import * as fs from "fs";
 import mysql from 'mysql';
 import { basename, dirname } from 'path';
@@ -95,7 +95,7 @@ function constructClassicalCNNShallow(numClasses) {
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
-    model.add(tf.layers.batchNormalization());
+    model.add(tf.layers.batchNormalization()); 
     model.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
     model.add(tf.layers.conv2d({
         filters: 512,
@@ -301,7 +301,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             let ys_valid = tf.data.array(y_validate);
             const ds_valid = tf.data.zip({xs: xs_valid, ys: ys_valid}).repeat(5).shuffle(Math.round(Math.random() * x_validate.length / 2.0 + x_validate.length / 2.0), Math.random().toString(36).substring(7)).batch(32, true);
 
-            model.fitDataset(ds, {epochs: 15, validationData: ds_valid}).then(info => {
+            model.fitDataset(ds, {epochs: 25, validationData: ds_valid}).then(info => {
                 console.log("Training complete! Start evaluation...");
                 model.evaluateDataset(ds_valid as tf.data.Dataset<{}>, {batches: undefined}).then(score => {
                     if ((score as any).length === undefined) {
@@ -400,6 +400,7 @@ function trainModel(name: string, forceNew: boolean = false): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         getModel((forceNew) ? "" : name).then(model => {
             model.summary();
+            let errors = 0;
             getClasses().then(labels => {
                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels ORDER BY fid ASC", (err, docLbls) => {
                     if(err || docLbls.length === 0) {
@@ -423,7 +424,13 @@ function trainModel(name: string, forceNew: boolean = false): Promise<void> {
                                 let filesList = fs.readdirSync(dirname(process.argv[1]) + "/train_data");
                                 (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT path FROM files WHERE id = ?", [Number(element.fid)], (err, fileRes) => {
                                     if(err || fileRes.length === 0) {
-                                        console.log("Error on fetch files path: " + JSON.stringify(err));
+                                        console.log("Error on fetch files path for id: " + Number(element.fid) + ": " + JSON.stringify(err));
+                                        errors++;
+                                        if (docLbls.length === files.length + errors) {
+                                            console.log("Ready to fit data remote..");
+                                            fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
+                                        }
+                                        console.log("Error count:", errors);
                                         return;
                                     }
                                     let path = {filePath: dirname(process.argv[1]) + "/train_data/" + filesList.filter(f => basename(f) === basename(fileRes[0].path as string))[0], thumbnailPath: dirname(process.argv[1]) + "/train_data/" + filesList.filter(f => basename(f) === basename(fileRes[0].path as string))[0]};
@@ -434,7 +441,7 @@ function trainModel(name: string, forceNew: boolean = false): Promise<void> {
                                     }, (data) => {
                                         files.push(data);
                                         file_lbs.push(element.label as string);
-                                        if (docLbls.length === files.length) {
+                                        if (docLbls.length === files.length + errors) {
                                             console.log("Ready to fit data remote..");
                                             fitDataset(model, labels, files, file_lbs).then(() => {saveModel(name, model); resolve();}).catch(err => console.log("Error on fit: " + JSON.stringify(err)));
                                         }
