@@ -80,8 +80,12 @@ export class SVEServerData extends SVEData {
     public getSize(version: SVEDataVersion): number {
         let size = 0;
         if(this.localDataInfo !== undefined) {
-            let stats = fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
-            size = stats["size"];
+            try {
+                let stats = fs.statSync((version === SVEDataVersion.Full) ? this.localDataInfo.filePath : this.localDataInfo.thumbnailPath);
+                size = stats["size"];
+            } catch {
+                size = 0;
+            }
         }
 
         return size;
