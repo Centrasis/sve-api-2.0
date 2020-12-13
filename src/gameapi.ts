@@ -18,7 +18,8 @@ class SVEGame extends SVEBaseGame {
             maxPlayers: info.maxPlayers,
             name: info.name,
             minPlayers: info.minPlayers,
-            playersCount: info.playersCount
+            playersCount: info.playersCount,
+            peerID: info.peerID
         });
     }
 
