@@ -75,14 +75,20 @@ function constructOneShotCNN(numClasses: number): tf.LayersModel {
 function constructClassicalCNNShallow(numClasses) {
     let model = tf.sequential();
 
-    let bigKernel: [number, number] = [Math.round(imageSize[0] / 16), Math.round(imageSize[0] / 16)];
-    let mediumKernel: [number, number] = [Math.round(imageSize[0] / 37), Math.round(imageSize[0] / 37)];
-    let smallKernel: [number, number] = [Math.max(Math.round(imageSize[0] / 74), 3), Math.max(Math.round(imageSize[0] / 74), 3)]
+    let bigKernel: [number, number] = [Math.round(imageSize[0] / 8), Math.round(imageSize[0] / 8)];
+    let mediumKernel: [number, number] = [Math.round(bigKernel[0] / 4), Math.round(bigKernel[1] / 4)];
+    let smallKernel: [number, number] = [Math.max(Math.round(mediumKernel[0] / 2), 2), Math.max(Math.round(mediumKernel[1] / 2), 2)]
+
+    let bigStride: [number, number] = [4,4];//[Math.round(bigKernel[0] - Math.max(8, bigKernel[0] / 10)), Math.round(bigKernel[1] - Math.max(8, bigKernel[1] / 10))];
+    let mediumStride: [number, number] = [1,1];
+    let smallStride: [number, number] = mediumStride;
+
+    console.log("Big: ", bigKernel, bigStride, " Med: ", mediumKernel, mediumStride, " small: ", smallKernel, smallStride);
 
     model.add(tf.layers.conv2d({
         inputShape: [imageSize[0], imageSize[1], 3],
         filters: 128,
-        strides: 4,
+        strides: bigStride,
         kernelSize: bigKernel,
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
@@ -91,6 +97,7 @@ function constructClassicalCNNShallow(numClasses) {
     model.add(tf.layers.maxPooling2d({ poolSize: smallKernel, strides: smallKernel[0] - 1 }));
     model.add(tf.layers.conv2d({
         filters: 256,
+        strides: mediumStride,
         kernelSize: mediumKernel,
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
@@ -100,6 +107,7 @@ function constructClassicalCNNShallow(numClasses) {
     model.add(tf.layers.conv2d({
         filters: 512,
         kernelSize: smallKernel,
+        strides: smallStride,
         activation: 'relu',
         kernelRegularizer: tf.regularizers.l2({l2: 2e-4})
     }));
@@ -301,7 +309,7 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
             let ys_valid = tf.data.array(y_validate);
             const ds_valid = tf.data.zip({xs: xs_valid, ys: ys_valid}).repeat(5).shuffle(Math.round(Math.random() * x_validate.length / 2.0 + x_validate.length / 2.0), Math.random().toString(36).substring(7)).batch(32, true);
 
-            model.fitDataset(ds, {epochs: 25, validationData: ds_valid}).then(info => {
+            model.fitDataset(ds, {epochs: 10, validationData: ds_valid}).then(info => {
                 console.log("Training complete! Start evaluation...");
                 model.evaluateDataset(ds_valid as tf.data.Dataset<{}>, {batches: undefined}).then(score => {
                     if ((score as any).length === undefined) {

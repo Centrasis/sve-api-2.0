@@ -85,10 +85,11 @@ if (process.argv.length <= 2) {
                 if (list.length === 0) {
                     return;
                 }
-
+                const path = require('path');
                 let file = dir + "/" + list.pop() as string;
                 //console.log("Predict file: " + file);
-                predict(file, model, true).then(p => console.log("Predicted: " + JSON.stringify(p))).then(() => {
+                predict(file, model, true).then(p => {
+                    console.log(path.basename(file) + " Predicted: " + JSON.stringify(p));
                     poppredict(list);
                 });
             };
