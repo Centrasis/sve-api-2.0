@@ -3,57 +3,29 @@ import express, { Request, Response } from "express";
 import * as fs from "fs";
 import expressWs, {Router, Application, WebsocketMethod} from 'express-ws';
 import { SessionUserInitializer, SVEAccount } from 'svebaselib';
-import {SVEGame as SVEBaseGame, GameRequest, GameInfo} from 'svebaselib';
+import {GameRequest, GameInfo} from 'svebaselib';
 
 
-class SVEGame extends SVEBaseGame {
+class SVEGame {
+    public info: GameInfo;
+    public host: SVEAccount;
     public creation = new Date();
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
     constructor(host: SVEAccount, info: GameInfo) {
-        super({ 
-            gameState: info.gameState, 
-            gameType: info.gameType, 
-            host: host.getName(), 
-            maxPlayers: info.maxPlayers,
-            name: info.name,
-            minPlayers: info.minPlayers,
-            playersCount: info.playersCount,
-            peerID: info.peerID
-        });
+        this.info = info;
+        this.info.host = host.getName();
+        this.info.playersCount = 1;
+        this.host = host;
     }
 
-    public playerJoin(player: SVEAccount, ws: WebSocket) {
-        this.broadcastRequest({
-            action: "!join",
-            invoker: String(player.getID())
-        });
-
-        this.players.forEach((val, key, map) => {
-            ws.send(JSON.stringify({
-                action: "!join",
-                invoker: String(key.getID())
-            } as GameRequest));
-        });
-
-        this.players.set(player, ws);
+    public join() {
+        if (this.info.maxPlayers > this.info.playersCount!)
+            this.info.playersCount!++;
     }
 
-    public destroy() {
-        this.broadcastRequest({
-            invoker: this.host,
-            action: "!endGame"
-        });
-    }
-
-    public broadcastRequest(req: GameRequest) {
-        this.players.forEach((val, key, map) => {
-            SVEGame.sendGameRequest(val, req);
-        });
-    }
-
-    public static sendGameRequest(ws: WebSocket, req: GameRequest) {
-        ws.send(JSON.stringify(req));
+    public getAsInitializer(): GameInfo {
+        return this.info;
     }
 }
 
@@ -100,6 +72,7 @@ export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
         if(req.session!.user && games.has(gameID)) {
             new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
                 let game = games.get(gameID);
+                game!.join();
                 res.json(game!.getAsInitializer());
             });
         } else {
