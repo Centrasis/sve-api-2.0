@@ -2,7 +2,7 @@ import express, {RequestHandler} from 'express';
 import { router as auth } from './authenticator';
 import { router as sve } from './sveapi';
 import { router as ai, trainNewModel, predict } from './aiapi';
-import expressWs, {Application} from 'express-ws';
+//import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -29,7 +29,8 @@ if (process.argv.length <= 2) {
         exit(-1);
     });
 
-    const app: Application = expressWs(express()).app;
+    //const app: Application = expressWs(express()).app;
+    const app: express.Application = express();
     const port = process.env.PORT || 80;
 
     let opts: SessionOptions = {
