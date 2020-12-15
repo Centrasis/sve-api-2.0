@@ -39,7 +39,6 @@ export function getGameAPIRouter(router: express.Router): express.Router {
 
             games.forEach((val, key, map) => {
                 let info = val.getAsInitializer();
-                info.playersCount = val.players.size;
                 retList.push(info);
             });
 
