@@ -3,7 +3,6 @@ RUN echo "setting work dir..."
 WORKDIR /usr/src/app
 RUN apt-get update
 RUN apt-get install ffmpeg libavcodec-extra -y
-RUN npm install -g npm@latest
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
 COPY ./sslcert/ ./api/sslcert/
