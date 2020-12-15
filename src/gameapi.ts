@@ -66,6 +66,27 @@ export function getGameAPIRouter(router: express.Router): express.Router {
         }
     });
 
+    router.put("/update/:gid(\\w+)", function (req: Request, res: Response) {
+        let gameID: string = req.params.gid as string;
+        console.log("New valid update request for game: " + gameID);
+        if(req.session!.user && games.has(gameID)) {
+            new SVEAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                let game = games.get(gameID);
+                if (game!.info.host === user.getName()) {
+                    game!.info = req.body as GameInfo;
+                    res.json(game!.getAsInitializer());
+                } else {
+                    res.sendStatus(401);
+                }
+            });
+        } else {
+            console.log("Invalid game join request!");
+            res.json({
+                success: false
+            });
+        }
+    });
+
     router.get("/join/:gid(\\w+)", function (req: Request, res: Response) {
         let gameID: string = req.params.gid as string;
         console.log("New valid request for game: " + gameID);
@@ -77,9 +98,7 @@ export function getGameAPIRouter(router: express.Router): express.Router {
             });
         } else {
             console.log("Invalid game join request!");
-            res.json({
-                success: false
-            });
+            res.sendStatus(404);
         }
     });
 
