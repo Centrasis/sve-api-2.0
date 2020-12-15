@@ -1,7 +1,7 @@
 import ServerHelper from './serverhelper';
 import express, { Request, Response } from "express";
 import * as fs from "fs";
-import expressWs, {Router, Application, WebsocketMethod} from 'express-ws';
+//import expressWs, {Router, Application, WebsocketMethod} from 'express-ws';
 import { SessionUserInitializer, SVEAccount } from 'svebaselib';
 import {GameRequest, GameInfo} from 'svebaselib';
 
@@ -29,7 +29,7 @@ class SVEGame {
     }
 }
 
-export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
+export function getGameAPIRouter(router: express.Router): express.Router {
     var games: Map<string, SVEGame> = new Map<string, SVEGame>();
     ServerHelper.setupRouter(router);
 
@@ -66,7 +66,7 @@ export function getGameAPIRouter(router: expressWs.Router): expressWs.Router {
         }
     });
 
-    router.get("/join/:gid(\w+)", function (req: Request, res: Response) {
+    router.get("/join/:gid(\\w+)", function (req: Request, res: Response) {
         let gameID: string = req.params.gid as string;
         console.log("New valid request for game: " + gameID);
         if(req.session!.user && games.has(gameID)) {
