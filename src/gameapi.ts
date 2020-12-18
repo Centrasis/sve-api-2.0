@@ -2,7 +2,7 @@ import ServerHelper from './serverhelper';
 import express, { Request, Response } from "express";
 import * as fs from "fs";
 //import expressWs, {Router, Application, WebsocketMethod} from 'express-ws';
-import { SessionUserInitializer, SVEAccount } from 'svebaselib';
+import { GameState, SessionUserInitializer, SVEAccount } from 'svebaselib';
 import {GameRequest, GameInfo} from 'svebaselib';
 
 
@@ -74,6 +74,9 @@ export function getGameAPIRouter(router: express.Router): express.Router {
                 if (game!.info.host === user.getName()) {
                     game!.info = req.body as GameInfo;
                     res.json(game!.getAsInitializer());
+                    if (game!.info.gameState !== GameState.Undetermined) {
+                        games.delete(game!.info.name);
+                    }
                 } else {
                     res.sendStatus(401);
                 }
