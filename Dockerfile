@@ -12,5 +12,9 @@ COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
 RUN npm install --prefix ./api
 
+ENV ACCOUNT_PORT=3001
+ENV SVE_PORT=3000
+
 EXPOSE 3000
+EXPOSE 3001
 CMD [ "npm", "start", "--prefix", "./api"]

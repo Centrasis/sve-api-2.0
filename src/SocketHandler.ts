@@ -2,6 +2,7 @@ import * as socketio from "socket.io";
 import { Request, RequestHandler } from "express";
 import { Server as HttpServer } from 'http';
 import { SessionUserInitializer, SVEAccount } from "svebaselib";
+import { SVEServerAccount } from "./serverBaseLib/SVEServerAccount";
 
 export class SocketHandler {
     protected server: socketio.Server;
@@ -23,17 +24,19 @@ export class SocketHandler {
         this.server.on("connection", (socket: socketio.Socket) => {
             let req = (socket.request as Request);
             console.log("Session: " + JSON.stringify(req.session));
-            self.clientList.set(socket, new SVEAccount(req.session!.user as SessionUserInitializer));
+            SVEServerAccount.getByRequest(req).then((user) => {
+                self.clientList.set(socket, user);
 
-            self.onConnect(socket, req);
+                self.onConnect(socket, req);
 
-            socket.on("message", function(message: any) {
-                console.log(message);
-                self.onMessage(socket, message, req);
-            });
+                socket.on("message", function(message: any) {
+                    console.log(message);
+                    self.onMessage(socket, message, req);
+                });
 
-            socket.on("disconnect", (reason) => {
-                self.onDisconnect(socket);
+                socket.on("disconnect", (reason) => {
+                    self.onDisconnect(socket);
+                });
             });
         });
     }

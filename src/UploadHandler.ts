@@ -5,6 +5,7 @@ import {SocketHandler} from "./SocketHandler";
 import { pathToRegexp, match, parse, compile } from "path-to-regexp";
 import { SessionUserInitializer, SVEAccount, SVEProject, SVESystemInfo } from "svebaselib";
 import { userInfo } from "os";
+import { SVEServerAccount } from "./serverBaseLib/SVEServerAccount";
 
 export class UploadHandler extends SocketHandler {
     protected innerHandler: SocketHandler;
@@ -26,10 +27,10 @@ export class UploadHandler extends SocketHandler {
         if (res.length > 1 && res[1] !== null) {
             console.log("Receive file transmission for url: " + req.url + "..");
 
-            new SVEAccount(req.session!.user as SessionUserInitializer, (user) => {
+            SVEServerAccount.getByRequest(req).then((user) => {
                 new SVEProject(Number(res[1]), user, (p) => {
                 });
-            })
+            });
         } else {
             super.onConnect(socket, req);
         }

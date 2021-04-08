@@ -3,23 +3,26 @@ import mongoose from 'mongoose';
 import { SVEServerSystemInfo } from './SVEServerSystemInfo';
 
 const tokenSchema = new mongoose.Schema({
-    token: String,
-    type: Number,
+    token: {
+        type: String,
+        index: { unique: true, expires: '3d' }
+    },
     time: Date,
-    target: Number
+    type: Number,
+    target: Number,
+    index: { expires: '3d' },
 });
 const TokenModel = mongoose.model('Token', tokenSchema);
 
 export class SVEServerToken extends SVEToken {
-    public static register(type: TokenType, target: SVEAccount | SVEGroup): Promise<string> {
+    public static register(owner: SVEAccount, type: TokenType, target: SVEAccount | SVEGroup): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             if (SVEServerSystemInfo.getSystemStatus().tokenSystem) {
                 let token = [...Array(30)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
                 let t = new TokenModel({
                     token: token,
                     type: Number(type),
-                    target: target.getID(),
-                    time: new Date()
+                    target: target.getID()
                 });
                 t.save((err, tk) => {
                     if (err) {

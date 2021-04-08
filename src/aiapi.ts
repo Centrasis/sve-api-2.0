@@ -465,7 +465,7 @@ function trainModel(name: string, forceNew: boolean = false): Promise<void> {
 }
 
 router.get("/models/:name/:file", (req, res) => {
-    if (req.session!.user) {
+    SVEAccount.getByRequest(req).then((user) => {
         let file = decodeURI(req.params.file as string);
         let name = decodeURI(req.params.name as string);
 
@@ -474,69 +474,39 @@ router.get("/models/:name/:file", (req, res) => {
         } else {
             res.sendStatus(400);
         }
-    } else {
+    }, err => {
         res.sendStatus(401);
-    }
+    });
 });
-
-/*
-router.post("/model/:name/train", (req, res) => {
-    if (req.session!.user) {
-        let name = decodeURI(req.params.name as string);
-
-        if(!(name.startsWith(".") || name.includes(".."))) {
-            console.log("Patch model: " + name);
-            trainModel(name).then(() => res.sendStatus(204), err => res.sendStatus(500));
-        } else {
-            res.sendStatus(400);
-        }
-    } else {
-        res.sendStatus(401);
-    }
-});
-
-router.post("/model/:name/retrain", (req, res) => {
-    if (req.session!.user) {
-        let name = decodeURI(req.params.name as string);
-
-        if(!(name.startsWith(".") || name.includes(".."))) {
-            console.log("Patch model: " + name);
-            trainNewModel(name).then(() => res.sendStatus(204), err => res.sendStatus(500));
-        } else {
-            res.sendStatus(400);
-        }
-    } else {
-        res.sendStatus(401);
-    }
-});
-*/
 
 router.put("/model/:name/classify", (req, res) => {
-    if (req.session!.user && req.body.file && req.body.class) {
-        let fid: number = Number(req.body.file);
-        let className: string = req.body.class as string;
-        if (isNaN(fid)) {
-            res.sendStatus(400);
-            return;
-        }
-        (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
-            if(err || result.length === 0) {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentLabels (fid, label) VALUES (?, ?)", [fid, className], (err, result) => {
-                    res.sendStatus(204);
-                });
-            } else {
-                (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE documentLabels SET label = ? WHERE fid = ?", [className, fid], (err, result) => {
-                    res.sendStatus(204);
-                });
+    SVEAccount.getByRequest(req).then((user) => {
+        if(req.body.file && req.body.class) {
+            let fid: number = Number(req.body.file);
+            let className: string = req.body.class as string;
+            if (isNaN(fid)) {
+                res.sendStatus(400);
+                return;
             }
-        });
-    } else {
+            (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
+                if(err || result.length === 0) {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO documentLabels (fid, label) VALUES (?, ?)", [fid, className], (err, result) => {
+                        res.sendStatus(204);
+                    });
+                } else {
+                    (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("UPDATE documentLabels SET label = ? WHERE fid = ?", [className, fid], (err, result) => {
+                        res.sendStatus(204);
+                    });
+                }
+            });
+        }
+    }, err => {
         res.sendStatus(401);
-    }
+    });
 });
 
 router.get("/model/:name/classification/:fid([\\+\\-]?\\d+)", (req, res) => {
-    if (req.session!.user) {
+    SVEAccount.getByRequest(req).then((user) => {
         let fid: number = Number(req.params.fid);
         (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM documentLabels WHERE fid = ?", [fid], (err, result) => {
             if(err || result.length === 0) {
@@ -550,13 +520,13 @@ router.get("/model/:name/classification/:fid([\\+\\-]?\\d+)", (req, res) => {
                 });
             }
         });
-    } else {
+    }, err => {
         res.sendStatus(401);
-    }
+    });
 });
 
 router.get("/model/:name/classes", (req, res) => {
-    if (req.session!.user) {
+    SVEAccount.getByRequest(req).then((user) => {
         let name = decodeURI(req.params.name as string);
         getClasses().then(labels => {
             let ret: any[] = [];
@@ -571,9 +541,9 @@ router.get("/model/:name/classes", (req, res) => {
             console.log(err);
             res.sendStatus(500);
         });
-    } else {
+    }, err => {
         res.sendStatus(401);
-    }
+    });
 });
 
 export {

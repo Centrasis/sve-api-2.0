@@ -1,6 +1,18 @@
 import mysql from 'mysql';
-import {SVEAccount, LoginState, SessionUserInitializer, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo} from 'svebaselib';
+import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerType, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo} from 'svebaselib';
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
+import mongoose from 'mongoose';
+import { Request } from "express";
+
+const loginSchema = new mongoose.Schema({
+    sessionID: {
+        type: String,
+        index: { unique: true, expires: '1d' }
+    },
+    target: SessionUserInitializerType,
+    index: { expires: '1d' },
+});
+const LoginModel = mongoose.model('LoginToken', loginSchema);
 
 export class SVEServerAccount extends SVEAccount {
     // if onLogin is set a login will be perfomed. Otherwise the class will only be created
@@ -25,6 +37,50 @@ export class SVEServerAccount extends SVEAccount {
         });
     }
 
+    public static getByRequest(req: Request): Promise<SVEServerAccount> {
+        return new Promise<SVEServerAccount>((resolve, reject) => {
+            if (req.session!.user) {
+                // we have a valid session!
+                let acc = new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                    resolve(acc);
+                 });
+            } else {
+                let userSessionID: string | undefined = undefined;
+                if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
+                    userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
+                } else {
+                    if(req.query.sessionID !== undefined) {
+                        userSessionID = req.query.sessionID as string;
+                    }
+                }
+
+                if (userSessionID !== undefined) {
+                    let search: any = { sessionID: userSessionID };
+                    LoginModel.find(search, (err, tokens) => {
+                        if(err) {
+                            console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
+                            reject();
+                        } else {
+                            if (tokens.length > 0) {
+                                let acc = new SVEServerAccount((tokens[0] as any).target as SessionUserInitializer, (user: SVEAccount) => {
+                                    resolve(acc);
+                                });
+                            } else {
+                                reject();
+                            }
+                        }
+                    });
+                } else {
+                    reject();
+                }
+            }  
+        });
+    }
+
+    public static generateID(): string {
+        return [...Array(30)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
+    }
+
     protected doLogin(info: BasicUserLoginInfo): Promise<LoginState> {
         if (!SVESystemInfo.getIsServer()) {
             console.log("Is weirdly Client!");
@@ -41,15 +97,28 @@ export class SVEServerAccount extends SVEAccount {
 
                         this.loginState = (result.length === 1) ? LoginState.LoggedInByUser : LoginState.NotLoggedIn;
                         if (this.loginState === LoginState.LoggedInByUser) {
+                            this.sessionID = SVEServerAccount.generateID();
                             this.name = result[0].name;
                             this.id = result[0].id;
+
+                            let t = new LoginModel({
+                                sessionID: this.sessionID,
+                                target: this.getInitializer()
+                            });
+                            t.save((err, tk) => {
+                                if (err) {
+                                    console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
+                                    reject(this.loginState);
+                                } else {
+                                    resolve(this.loginState);
+                                }
+                            });
                         } else {
                             if (result.length > 1) {
                                 console.log("ERROR: Double entry! " + JSON.stringify(result));
                             }
+                            resolve(this.loginState);
                         }
-
-                        resolve(this.loginState);
                     });
                 } else {
                     console.log("ERROR: persistentDatabase was NOT connected!");

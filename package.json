@@ -2,7 +2,7 @@
   "name": "sve-api-2.0",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "",
   "dependencies": {
     "@tensorflow/tfjs": "^2.6.0",
     "@tensorflow/tfjs-node": "^2.7.0",
@@ -50,7 +50,7 @@
   "scripts": {
     "tsc": "tsc -b",
     "install": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/server_api_media.js & node dist/server_api_accounts.js"
   },
   "repository": {
     "type": "git",
