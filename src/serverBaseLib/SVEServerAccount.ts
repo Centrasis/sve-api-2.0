@@ -7,11 +7,12 @@ import { Request } from "express";
 const loginSchema = new mongoose.Schema({
     sessionID: {
         type: String,
-        index: { unique: true, expires: '1d' }
+        index: { unique: true, expires: 86400 }
     },
-    target: SessionUserInitializerType,
-    index: { expires: '1d' },
-});
+    userID: Number,
+    userName: String,
+    loginState: Number
+}, {timestamps: true});
 const LoginModel = mongoose.model('LoginToken', loginSchema);
 
 export class SVEServerAccount extends SVEAccount {
@@ -62,7 +63,12 @@ export class SVEServerAccount extends SVEAccount {
                             reject();
                         } else {
                             if (tokens.length > 0) {
-                                let acc = new SVEServerAccount((tokens[0] as any).target as SessionUserInitializer, (user: SVEAccount) => {
+                                let acc = new SVEServerAccount({
+                                    id: (tokens[0] as any).userID,
+                                    name: (tokens[0] as any).userName,
+                                    loginState: (tokens[0] as any).loginState as LoginState,
+                                    sessionID: userSessionID
+                                } as SessionUserInitializer, (user: SVEAccount) => {
                                     resolve(acc);
                                 });
                             } else {
@@ -103,7 +109,9 @@ export class SVEServerAccount extends SVEAccount {
 
                             let t = new LoginModel({
                                 sessionID: this.sessionID,
-                                target: this.getInitializer()
+                                userID: this.id,
+                                userName: this.name,
+                                loginState: Number(this.loginState)
                             });
                             t.save((err, tk) => {
                                 if (err) {

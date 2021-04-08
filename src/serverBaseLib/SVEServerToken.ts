@@ -5,13 +5,12 @@ import { SVEServerSystemInfo } from './SVEServerSystemInfo';
 const tokenSchema = new mongoose.Schema({
     token: {
         type: String,
-        index: { unique: true, expires: '3d' }
+        index: { unique: true, expires: 259200 }
     },
     time: Date,
     type: Number,
-    target: Number,
-    index: { expires: '3d' },
-});
+    target: Number
+}, {timestamps: true});
 const TokenModel = mongoose.model('Token', tokenSchema);
 
 export class SVEServerToken extends SVEToken {
