@@ -44,8 +44,8 @@ export class SVEServerAccount extends SVEAccount {
         return new Promise<SVEServerAccount>((resolve, reject) => {
             if (req.session!.user) {
                 // we have a valid session!
-                let acc = new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
-                    resolve(acc);
+                new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                    resolve(user as SVEServerAccount);
                 });
             } else {
                 let userSessionID: string | undefined = undefined;
