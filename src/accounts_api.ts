@@ -25,12 +25,7 @@ router.get('/check', function (req: Request, res: Response) {
     };
 
     SVEAccount.getByRequest(req).then((user: SVEBaseAccount) => {
-        status.loggedInAs = {
-            id: user.getID(),
-            loginState: user.getLoginState(),
-            name: user.getName(),
-            sessionID: ""
-        };
+        status.loggedInAs = user.getInitializer();
         res.json(status);
     }, err => {
         res.json(status);
@@ -105,12 +100,9 @@ router.post('/doLogin', function (req: Request, res: Response) {
             acc.setSessionID(req.session!.id);
             req.session!.user = acc;
             console.log("Logged in user: " + req.session!.user.getName());
-            res.json({
-                success: user.getState() !== LoginState.NotLoggedIn,
-                user: acc.getName(),
-                id: acc.getID(),
-                sessionID: acc.getInitializer().sessionID
-            });
+            let ret: any = user.getInitializer() as any;
+            ret.success = user.getState() !== LoginState.NotLoggedIn;
+            res.json(ret);
         } else {
             req.session!.user = undefined;
             res.json({

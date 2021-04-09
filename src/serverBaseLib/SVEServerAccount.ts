@@ -45,7 +45,6 @@ export class SVEServerAccount extends SVEAccount {
             if (req.session!.user) {
                 // we have a valid session!
                 let acc = new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
-                    console.log("Get user from session: " + acc.getName());
                     resolve(acc);
                 });
             } else {
@@ -56,11 +55,9 @@ export class SVEServerAccount extends SVEAccount {
                     if(req.query.sessionID !== undefined) {
                         userSessionID = req.query.sessionID as string;
                     }
-                    console.log("Inquery: ", req.query);
                 }
                 
                 if (userSessionID !== undefined) {
-                    console.log("Got user sessionID: " + String(userSessionID));
                     LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
                         if(err) {
                             console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
@@ -76,13 +73,12 @@ export class SVEServerAccount extends SVEAccount {
                                     resolve(acc);
                                 });
                             } else {
-                                console.log("Token not found! User ident failed!");
+                                console.log("Token(" + String(userSessionID) + ") not found! User ident failed!");
                                 reject();
                             }
                         }
                     });
                 } else {
-                    console.log("User ident failed!");
                     reject();
                 }
             }  
@@ -113,17 +109,17 @@ export class SVEServerAccount extends SVEAccount {
                             this.name = result[0].name;
                             this.id = result[0].id;
 
-                            let t = new LoginModel({
+                            LoginModel.create({
                                 sessionID: this.sessionID,
                                 userID: this.id,
                                 userName: this.name,
                                 loginState: Number(this.loginState)
-                            });
-                            t.save((err, tk) => {
+                            }, (err, tk) => {
                                 if (err) {
                                     console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                                     reject(this.loginState);
                                 } else {
+                                    console.log("Created token in mongodb! -> " + JSON.stringify(tk));
                                     resolve(this.loginState);
                                 }
                             });

@@ -4,7 +4,6 @@ import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {getGameAPIRouter} from './gameapi';
-import * as fs from "fs";
 
 if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().SQLCredentials = {
