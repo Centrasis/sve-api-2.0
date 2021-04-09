@@ -50,7 +50,7 @@
   "scripts": {
     "tsc": "tsc -b",
     "install": "tsc",
-    "start": "node dist/server_api_media.js & node dist/server_api_accounts.js"
+    "start": "node dist/server_api_media.js & node dist/server_api_accounts.js & node dist/server_api_ai.js & node dist/server_api_games.js"
   },
   "repository": {
     "type": "git",

@@ -48,53 +48,7 @@ if (process.argv.length <= 2) {
 
     app.use('/', sve);
 
-    //app.use('/ai', ai);
-
-    /*let games = getGameAPIRouter(express.Router());
-    app.use("/games", games);*/
-
     app.listen(port, function () {
         console.log('SVE Media API is listening on port ' + port + '!');
     });
-} else {
-    var args = process.argv.slice(2);
-    console.log("Serverless mode active! -> " + args[0]);
-    if (args[0].trim() == "train") {
-        console.log("Configure client..");
-        SVESystemInfo.getInstance().sources.persistentDatabase = args[2];
-        let list = args[3].split(":");
-        SVESystemInfo.getInstance().SQLCredentials = {
-            MySQL_DB: "snowvision_db",
-            MySQL_Password: list[1],
-            MySQL_User: list[0],
-        };
-        SVESystemInfo.getInstance().sources.sveDataPath = "https://" + args[2] + "/api";
-        SVESystemInfo.getInstance().sources.sveService = undefined;
-        SVESystemInfo.initSystem().then((val) => {
-            console.log("Initialized client..");
-            trainNewModel(args[1], true).then(() => {
-                console.log("Trained modell!");
-            }, err => console.log("Error: " + JSON.stringify(err)));
-        }, err => console.log("Setup error: " + err));
-    } else {
-        if (args[0].trim() == "predict") {
-            let model = args[1];
-            let dir = args[2];
-            let poppredict = (list: string[]) => {
-                if (list.length === 0) {
-                    return;
-                }
-                const path = require('path');
-                let file = dir + "/" + list.pop() as string;
-                //console.log("Predict file: " + file);
-                predict(file, model, true).then(p => {
-                    console.log(path.basename(file) + " Predicted: " + JSON.stringify(p));
-                    poppredict(list);
-                });
-            };
-
-            let files = fs.readdirSync(dir);
-            poppredict(files);
-        }
-    }
 }
