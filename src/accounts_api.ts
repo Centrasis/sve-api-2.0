@@ -75,7 +75,6 @@ router.put('/user/new', function (req: Request, res: Response) {
         SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
             if(tokenOK) {
                 SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
-                    usr.setSessionID(req.session!.id);
                     req.session!.user = usr;
                     console.log("Registered new user: " + usr.getName());
                     res.json({
@@ -97,7 +96,6 @@ router.post('/doLogin', function (req: Request, res: Response) {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
-            acc.setSessionID(req.session!.id);
             req.session!.user = acc;
             console.log("Logged in user: " + req.session!.user.getName());
             let ret: any = user.getInitializer() as any;
