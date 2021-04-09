@@ -108,7 +108,8 @@ router.post('/doLogin', function (req: Request, res: Response) {
             res.json({
                 success: user.getState() !== LoginState.NotLoggedIn,
                 user: acc.getName(),
-                id: acc.getID()
+                id: acc.getID(),
+                sessionID: acc.getInitializer().sessionID
             });
         } else {
             req.session!.user = undefined;
