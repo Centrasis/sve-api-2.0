@@ -46,12 +46,12 @@ if (process.argv.length <= 2) {
     var sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    app.use('/api', sve);
+    app.use('/', sve);
 
-    app.use('/ai', ai);
+    //app.use('/ai', ai);
 
-    let games = getGameAPIRouter(express.Router());
-    app.use("/games", games);
+    /*let games = getGameAPIRouter(express.Router());
+    app.use("/games", games);*/
 
     app.listen(port, function () {
         console.log('SVE Media API is listening on port ' + port + '!');
