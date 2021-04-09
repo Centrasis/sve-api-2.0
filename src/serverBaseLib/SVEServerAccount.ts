@@ -64,13 +64,13 @@ export class SVEServerAccount extends SVEAccount {
                             reject();
                         } else {
                             if (tokens.length > 0) {
-                                let acc = new SVEServerAccount({
+                                new SVEServerAccount({
                                     id: (tokens[0] as any).userID,
                                     name: (tokens[0] as any).userName,
                                     loginState: (tokens[0] as any).loginState as LoginState,
                                     sessionID: userSessionID
                                 } as SessionUserInitializer, (user: SVEAccount) => {
-                                    resolve(acc);
+                                    resolve(user as SVEServerAccount);
                                 });
                             } else {
                                 console.log("Token(" + String(userSessionID) + ") not found! User ident failed!");
