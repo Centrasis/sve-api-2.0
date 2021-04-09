@@ -58,9 +58,9 @@ export class SVEServerAccount extends SVEAccount {
                     }
                     console.log("Inquery: ", req.query);
                 }
-                console.log("Got user sessionID: " + String(userSessionID));
-
+                
                 if (userSessionID !== undefined) {
+                    console.log("Got user sessionID: " + String(userSessionID));
                     let search: any = { sessionID: userSessionID };
                     LoginModel.find(search, (err, tokens) => {
                         if(err) {
@@ -77,11 +77,13 @@ export class SVEServerAccount extends SVEAccount {
                                     resolve(acc);
                                 });
                             } else {
+                                console.log("Token not found! User ident failed!");
                                 reject();
                             }
                         }
                     });
                 } else {
+                    console.log("User ident failed!");
                     reject();
                 }
             }  
