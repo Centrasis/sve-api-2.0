@@ -3,6 +3,8 @@ import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerTy
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 import mongoose from 'mongoose';
 import { Request } from "express";
+import { json } from 'body-parser';
+import { stringify } from 'querystring';
 
 const loginSchema = new mongoose.Schema({
     sessionID: {
@@ -43,6 +45,7 @@ export class SVEServerAccount extends SVEAccount {
             if (req.session!.user) {
                 // we have a valid session!
                 let acc = new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
+                    console.log("Get user from session: " + acc.getName());
                     resolve(acc);
                 });
             } else {
@@ -53,7 +56,9 @@ export class SVEServerAccount extends SVEAccount {
                     if(req.query.sessionID !== undefined) {
                         userSessionID = req.query.sessionID as string;
                     }
+                    console.log("Inquery: ", req.query);
                 }
+                console.log("Got user sessionID: " + String(userSessionID));
 
                 if (userSessionID !== undefined) {
                     let search: any = { sessionID: userSessionID };
