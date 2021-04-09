@@ -5,13 +5,21 @@ import { SVEServerSystemInfo } from './SVEServerSystemInfo';
 const tokenSchema = new mongoose.Schema({
     token: {
         type: String,
-        index: { unique: true, expires: 259200 }
+        index: { unique: true, expires: 604800 } // 7 days
     },
+    name: String,
     time: Date,
     type: Number,
     target: Number
 }, {timestamps: true});
 const TokenModel = mongoose.model('Token', tokenSchema);
+
+export interface TokenInfo {
+    name: String;
+    time: Date;
+    type: TokenType;
+    target: Number;
+}
 
 export class SVEServerToken extends SVEToken {
     public static register(owner: SVEAccount, type: TokenType, target: SVEAccount | SVEGroup): Promise<string> {
@@ -21,7 +29,8 @@ export class SVEServerToken extends SVEToken {
                 let t = new TokenModel({
                     token: token,
                     type: Number(type),
-                    target: target.getID()
+                    target: target.getID(),
+                    name: target.getName()
                 });
                 t.save((err, tk) => {
                     if (err) {
@@ -67,14 +76,19 @@ export class SVEServerToken extends SVEToken {
         });
     }
 
-    public static use(type: TokenType, token: string, targetID: number): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public static use(type: TokenType, token: string, targetID: number): Promise<TokenInfo> {
+        return new Promise<TokenInfo>((resolve, reject) => {
             TokenModel.findOne({token: token, type: Number(type), target: targetID}, (err, tokens) => {
-                if(err) {
+                if(err || tokens == null) {
                     console.log("MONGOOSE USE ERROR:" + JSON.stringify(err));
                     reject();
                 } else {
-                    resolve(true);
+                    resolve({
+                        name: (tokens[0] as any).name,
+                        time: (tokens[0] as any).time,
+                        type: (tokens[0] as any).type as TokenType,
+                        target: (tokens[0] as any).target,
+                    } as TokenInfo);
                 }
             });
         });

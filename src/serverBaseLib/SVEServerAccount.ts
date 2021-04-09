@@ -1,10 +1,11 @@
 import mysql from 'mysql';
-import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerType, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo} from 'svebaselib';
+import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerType, BasicUserInitializer, BasicUserLoginInfo, TokenUserLoginInfo, isSessionUserInitializer} from 'svebaselib';
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 import mongoose from 'mongoose';
 import { Request } from "express";
 import { json } from 'body-parser';
 import { stringify } from 'querystring';
+import { idText } from 'typescript';
 
 const loginSchema = new mongoose.Schema({
     sessionID: {
@@ -21,6 +22,27 @@ export class SVEServerAccount extends SVEAccount {
     // if onLogin is set a login will be perfomed. Otherwise the class will only be created
     public constructor(user: SessionUserInitializer | BasicUserLoginInfo | BasicUserInitializer | TokenUserLoginInfo, onLogin?: (usr: SVEAccount) => void) {
         super(user, onLogin);
+    }
+
+    static makeLogin(user: String, id: Number): Promise<SVEServerAccount> {
+        return new Promise<SVEServerAccount>((resolve, reject) => {
+            let sessID = this.generateID();
+            LoginModel.create({
+                sessionID: sessID,
+                userID: id,
+                userName: user,
+                loginState: LoginState.LoggedInByToken
+            }, (err, tk) => {
+                if (err) {
+                    console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
+                    reject();
+                } else {
+                    new SVEServerAccount({id: id, name: user, sessionID: sessID, loginState: LoginState.LoggedInByToken} as SessionUserInitializer, usr => {
+                        resolve(usr as SVEServerAccount);
+                    });
+                }
+            });
+        });
     }
 
     protected getByID(id: number): Promise<boolean> {
@@ -73,7 +95,6 @@ export class SVEServerAccount extends SVEAccount {
                                     resolve(user as SVEServerAccount);
                                 });
                             } else {
-                                console.log("Token(" + String(userSessionID) + ") not found! User ident failed!");
                                 reject();
                             }
                         }
@@ -119,7 +140,6 @@ export class SVEServerAccount extends SVEAccount {
                                     console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                                     reject(this.loginState);
                                 } else {
-                                    console.log("Created token in mongodb! -> " + JSON.stringify(tk));
                                     resolve(this.loginState);
                                 }
                             });

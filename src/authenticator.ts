@@ -117,19 +117,19 @@ router.post('/token/use', function (req: Request, res: Response) {
                                     });
                                 }
                                 SVEToken.remove(tokenType, token, targetID).then(val => {});
-                                res.sendStatus(val ? 204 : 404);
+                                res.sendStatus((val !== undefined) ? 204 : 404);
                             });
                         }, err => res.sendStatus(401));
                     } else {
                         if (tokenType == TokenType.DeviceToken) {
-                            new SVEAccount({id: targetID, name: "TokenUser", sessionID: SVEAccount.generateID(), loginState: LoginState.LoggedInByToken} as SessionUserInitializer, (user) => {
+                            SVEAccount.makeLogin(val.name, val.target).then(user => {
                                 if (user !== undefined) {
                                     req.session!.user = user;
                                     res.json(user.getInitializer());
                                 } else {
                                     res.sendStatus(404);
                                 }
-                            });
+                            }, err => res.sendStatus(501));
                         } else {
                             res.sendStatus(501);
                         }
