@@ -61,8 +61,7 @@ export class SVEServerAccount extends SVEAccount {
                 
                 if (userSessionID !== undefined) {
                     console.log("Got user sessionID: " + String(userSessionID));
-                    let search: any = { sessionID: userSessionID };
-                    LoginModel.find(search, (err, tokens) => {
+                    LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
                         if(err) {
                             console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
                             reject();
