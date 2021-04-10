@@ -98,6 +98,7 @@ export function setupGameAPI(app: express.Application): Application {
     router.put("/new", function (req: Request, res: Response) {
         SVEServerAccount.getByRequest(req).then((user) => {
             let gi: SVEGameInfo = req.body as SVEGameInfo;
+            console.log("New game request: ", gi);
             if(gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
                 games.set(gi.name, new SVEServerGame(user, gi));
                 console.log("Created new game: " + gi.name);
@@ -139,7 +140,7 @@ export function setupGameAPI(app: express.Application): Application {
     router.ws("/:gid(\\w+)", function (ws: WebSocket, req) {
         SVEServerAccount.getByRequest(req).then((user) => {
             let gameID: string = req.params.gid as string;
-            console.log("New valid request for game: " + gameID);
+            console.log("New valid request for game join: " + gameID);
             if(games.has(gameID)) {
                 let game = games.get(gameID);
                 game!.join(user, ws).then(() => {
