@@ -118,10 +118,6 @@ router.post('/doLogin', function (req: Request, res: Response) {
         } else {
             res.sendStatus(400);
         }
-    } 
-    
-    if (!(req.body.user && typeof req.body.user === "string") && (req.body.token !== undefined)) {
-        res.sendStatus(400);
     }
 });
 
