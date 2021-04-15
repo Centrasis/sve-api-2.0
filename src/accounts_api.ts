@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo, Token} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -110,19 +110,25 @@ router.post('/doLogin', function (req: Request, res: Response) {
         }
     };
 
-    if (req.body.user && typeof req.body.user === "string") {
-        if (req.body.token) {
-            acc = new SVEAccount({
-                name: req.body.user as string, 
-                token:req.body.token as string
-            }, onLogin);
-        } else {
-            acc = new SVEAccount({
-                name: req.body.user as string, 
-                pass:req.body.pw as string
-            }, onLogin);
-        }
+    if (req.body.token !== undefined) {
+        acc = new SVEAccount({
+            name: (req.body as Token).name as string, 
+            id: (req.body as Token).target as number, 
+            token: (req.body as Token).token as string
+        }, onLogin);
     } else {
+        if (req.body.user && typeof req.body.user === "string") {
+            
+                
+            } else {
+                acc = new SVEAccount({
+                    name: req.body.user as string, 
+                    pass:req.body.pw as string
+                }, onLogin);
+            }
+    } 
+    
+    if (!(req.body.user && typeof req.body.user === "string") && (req.body.token !== undefined)) {
         res.sendStatus(400);
     }
 });

@@ -3,14 +3,11 @@ import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerTy
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 import mongoose from 'mongoose';
 import { Request } from "express";
-import { json } from 'body-parser';
-import { stringify } from 'querystring';
-import { idText } from 'typescript';
 
 const loginSchema = new mongoose.Schema({
     sessionID: {
         type: String,
-        index: { unique: true, expires: 86400 }
+        index: { unique: true, expires: 86400 } // 1day
     },
     userID: Number,
     userName: String,

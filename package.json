@@ -24,20 +24,21 @@
     "express": "^4.17.1",
     "express-easy-zip": "^1.1.5",
     "express-session": "^1.17.1",
+    "express-useragent": "^1.0.15",
     "express-ws": "^4.0.0",
     "fast-levenshtein": "^3.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "get-video-dimensions": "^1.0.0",
     "huge-uploader-nodejs": "^1.2.1",
     "image-size": "^0.9.1",
-    "mongoose": "^5.9.25",
+    "mongoose": "^5.12.3",
     "mysql": "^2.18.1",
     "path-to-regexp": "^6.1.0",
     "prompt": "^1.0.0",
     "querystring": "^0.2.0",
     "rimraf": "^3.0.2",
     "sharp": "^0.26.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.1",
     "sql": "^0.78.0",
     "svebaselib": "git+https://github.com/ftl999/sveBaseLib.git",
     "svegamesapi": "git+https://github.com/ftl999/sveGamesAPI.git",
@@ -47,6 +48,7 @@
     "ws": "^7.3.1"
   },
   "devDependencies": {
+    "@types/express-useragent": "^1.0.0",
     "@types/ws": "^7.4.1"
   },
   "scripts": {
