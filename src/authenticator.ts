@@ -1,10 +1,11 @@
 import { Request, Response, Router } from "express";
 import ServerHelper from './serverhelper';
-import {Token, TokenType, SVEAccount as SVEBaseAccount, SVEGroup as SVEBaseGroup, APIStatus} from 'svebaselib';
+import {Token, TokenType, SVEAccount as SVEBaseAccount, SVEGroup as SVEBaseGroup, APIStatus, TokenInfo} from 'svebaselib';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
+import { tokensToFunction } from "path-to-regexp";
 
 var router = Router();
 const apiVersion = 1;
@@ -96,7 +97,17 @@ router.delete('/token', function (req: Request, res: Response) {
                 res.sendStatus(val ? 204 : 404);
             });
         } else {
-            res.sendStatus(400);
+            if (req.body.tokenInfo !== undefined) {
+                if (user.getID() == Number(req.body.tokenInfo.target) || user.getName() == req.body.tokenInfo.name) {
+                    SVEToken.removeByInfo(req.body.tokenInfo as TokenInfo).then(val => {
+                        res.sendStatus(val ? 204 : 404);
+                    });
+                } else {
+                    res.sendStatus(401);
+                }
+            } else {
+                res.sendStatus(400);
+            }
         }
     }, err => {
         res.sendStatus(401);

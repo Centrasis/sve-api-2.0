@@ -103,6 +103,28 @@ export class SVEServerToken extends SVEToken {
         });
     }
 
+    public static removeByInfo(token: TokenInfo): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            TokenModel.findOneAndRemove(
+                { 
+                    type: Number(token.type), 
+                    target: token.target,
+                    deviceAgent: token.deviceAgent,
+                }, 
+                {
+                    useFindAndModify: false,
+                }, 
+                (err, tokens) => {
+                    if(err) {
+                        console.log("MONGOOSE REMOVE ERROR:" + JSON.stringify(err));
+                        reject();
+                    } else {
+                        resolve(true);
+                    }
+            });
+        });
+    }
+
     public static getAll(type: TokenType, user: SVEAccount): Promise<TokenInfo[]> {
         return new Promise<TokenInfo[]>((resolve, reject) => {
             TokenModel.find({target: user.getID(), type: Number(type)}, (err, tokens) => {
