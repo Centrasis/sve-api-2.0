@@ -6,6 +6,7 @@ import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSys
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 
 import { Request, Response, Router } from "express";
+import { rejects } from 'assert';
 
 var router = Router();
 ServerHelper.setupRouter(router);
@@ -102,8 +103,6 @@ router.post('/doLogin', function (req: Request, res: Response) {
         }
     };
 
-    console.log("Try login user: ", req.body);
-
     if (req.body.token !== undefined) {
         acc = new SVEAccount({
             name: (req.body as Token).name as string, 
@@ -112,14 +111,13 @@ router.post('/doLogin', function (req: Request, res: Response) {
         }, onLogin);
     } else {
         if (req.body.user && typeof req.body.user === "string") {
-            
-                
-            } else {
-                acc = new SVEAccount({
-                    name: req.body.user as string, 
-                    pass:req.body.pw as string
-                }, onLogin);
-            }
+            acc = new SVEAccount({
+                name: req.body.user as string, 
+                pass:req.body.pw as string
+            }, onLogin);        
+        } else {
+            res.sendStatus(400);
+        }
     } 
     
     if (!(req.body.user && typeof req.body.user === "string") && (req.body.token !== undefined)) {
