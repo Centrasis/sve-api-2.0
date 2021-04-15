@@ -1,27 +1,19 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo, Token} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEAccount as SVEBaseAccount, TokenType, BasicUserLoginInfo, Token, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
-import {apiVersion as authVersion} from './authenticator';
 
 import { Request, Response, Router } from "express";
-
-import { APIStatus } from "./sveapi";
-
-const apiVersion = 1.0;
 
 var router = Router();
 ServerHelper.setupRouter(router);
 
 router.get('/check', function (req: Request, res: Response) {
     let status: APIStatus = {
-        status: SVESystemInfo.getSystemStatus(),
-        version: {
-            fileAPI: apiVersion,
-            authAPI: authVersion
-        }
+        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        version: "2.0" 
     };
 
     SVEAccount.getByRequest(req).then((user: SVEBaseAccount) => {
@@ -109,6 +101,8 @@ router.post('/doLogin', function (req: Request, res: Response) {
             });
         }
     };
+
+    console.log("Try login user: ", req.body);
 
     if (req.body.token !== undefined) {
         acc = new SVEAccount({

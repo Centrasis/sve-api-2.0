@@ -1,7 +1,7 @@
 import ServerHelper from './serverhelper';
 import express, { Request, Response } from "express";
 import expressWs, {Application} from 'express-ws';
-import { SessionUserInitializer, SVEAccount } from 'svebaselib';
+import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
 import WebSocket from 'ws';
@@ -74,6 +74,15 @@ export function setupGameAPI(app: express.Application): Application {
         }, err => {
             res.sendStatus(401);
         });
+    });
+
+    router.get('/check', function (req: Request, res: Response) {
+        let status: APIStatus = {
+            status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+            version: "1.0" 
+        };
+    
+        res.json(status);
     });
 
     router.get("/players/:gid(\\w+)", (req, res) => {

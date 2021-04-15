@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
@@ -7,7 +7,6 @@ import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
 import {SVEServerProjectQuery as SVEProjectQuery} from './serverBaseLib/SVEServerProjectQuery';
-import {apiVersion as authVersion} from './authenticator';
 
 import { Request, Response, Router } from "express";
 
@@ -22,28 +21,13 @@ import { dirname } from 'path';
 const tmpDir = './tmp';
 mkdir(tmpDir, (err) => {});
 var router = Router();
-const apiVersion = 1.0;
 
 ServerHelper.setupRouter(router);
 
-interface APIVersion {
-    fileAPI: Number;
-    authAPI: Number;
-}
-
-export interface APIStatus {
-    status: SVESystemState,
-    version: APIVersion,
-    loggedInAs?: SessionUserInitializer
-}
-
 router.get('/check', function (req: Request, res: Response) {
     let status: APIStatus = {
-        status: SVESystemInfo.getSystemStatus(),
-        version: {
-            fileAPI: apiVersion,
-            authAPI: authVersion
-        } 
+        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        version: "2.0" 
     };
 
     SVEAccount.getByRequest(req).then((user) => {

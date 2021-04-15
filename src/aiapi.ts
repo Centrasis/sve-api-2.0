@@ -1,7 +1,7 @@
 import ServerHelper from './serverhelper';
 import {SVEServerSystemInfo as SVESystemInfo } from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
-import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType} from 'svebaselib';
+import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
 import { Request, Response, Router } from "express";
 import * as tf from '@tensorflow/tfjs-node'; // '@tensorflow/tfjs-node'
@@ -9,12 +9,20 @@ import * as fs from "fs";
 import mysql from 'mysql';
 import { basename, dirname } from 'path';
 import * as sharp from "sharp";
-import { Console } from 'console';
 
 var aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [100, 100];// [224, 224];
 var router = Router();
 ServerHelper.setupRouter(router);
+
+router.get('/check', function (req: Request, res: Response) {
+    let status: APIStatus = {
+        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        version: "1.0" 
+    };
+
+    res.json(status);
+});
 
 /*
 function constructOneShotCNN(numClasses: number): tf.LayersModel {

@@ -1,10 +1,8 @@
 import { Request, Response, Router } from "express";
 import ServerHelper from './serverhelper';
-import {Token, TokenType, SessionUserInitializer, SVEAccount as SVEBaseAccount, SVEGroup as SVEBaseGroup, LoginState} from 'svebaselib';
+import {Token, TokenType, SVEAccount as SVEBaseAccount, SVEGroup as SVEBaseGroup, APIStatus} from 'svebaselib';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
-import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
-import * as ua from 'express-useragent';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 
@@ -12,6 +10,20 @@ var router = Router();
 const apiVersion = 1;
 
 ServerHelper.setupRouter(router);
+
+router.get('/check', function (req: Request, res: Response) {
+    let status: APIStatus = {
+        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        version: "2.0" 
+    };
+
+    SVEAccount.getByRequest(req).then((user: SVEBaseAccount) => {
+        status.loggedInAs = user.getInitializer();
+        res.json(status);
+    }, err => {
+        res.json(status);
+    });
+});
 
 router.post('/token/new', function (req: Request, res: Response) {
     SVEAccount.getByRequest(req).then((user) => {
