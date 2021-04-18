@@ -1,7 +1,7 @@
 FROM node:latest
 ARG server
 
-RUN echo "setting up for: $server"
+RUN echo "setting up for: '$server'"
 WORKDIR /usr/src/app
 RUN if ["$server" = "media"] ; then apt-get update ; fi
 RUN if ["$server" = "media"] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
