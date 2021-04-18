@@ -54,8 +54,7 @@
   "scripts": {
     "tsc": "tsc -b",
     "install": "tsc",
-    "run_all": "node dist/server_api_media.js & node dist/server_api_accounts.js & node dist/server_api_ai.js & node dist/server_api_games.js",
-    "start": "echo \"Default start not present!\" && exit 0",
+    "start": "node dist/server_api_media.js & node dist/server_api_accounts.js & node dist/server_api_ai.js & node dist/server_api_games.js",
     "accounts": "node dist/server_api_accounts.js",
     "media": "node dist/server_api_media.js",
     "ai": "node dist/server_api_ai.js",
