@@ -29,6 +29,7 @@
     "get-video-dimensions": "^1.0.0",
     "huge-uploader-nodejs": "^1.2.1",
     "image-size": "^0.9.1",
+    "lodash": "^4.17.21",
     "mongoose": "^5.12.3",
     "mysql": "^2.18.1",
     "path-to-regexp": "^6.1.0",
@@ -42,7 +43,7 @@
     "svegamesapi": "git+https://github.com/ftl999/sveGamesAPI.git",
     "typescript": "^3.9.7",
     "url": "^0.11.0",
-    "video-thumbnail-generator": "^1.1.3",
+    "video-thumbnail-generator": "^1.0.8",
     "ws": "^7.3.1"
   },
   "devDependencies": {
