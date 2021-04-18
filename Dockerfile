@@ -1,10 +1,10 @@
-FROM node:latest
+FROM alpine:3.10
+ENV NODE_VERSION 14.16.1
 ARG server
 
 RUN echo "setting up for: '$server'"
 WORKDIR /usr/src/app
-RUN apt-get update
-RUN apt-get install -y python3-pip python3-dev
+RUN if ["$server" = "media"] ; then apt-get update ; fi
 RUN if ["$server" = "media"] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
