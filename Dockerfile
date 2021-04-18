@@ -3,8 +3,8 @@ ARG server
 
 RUN echo "setting up for: $server"
 WORKDIR /usr/src/app
-RUN if ["$server" == "media"] ; then apt-get update ; fi
-RUN if ["$server" == "media"] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
+RUN if ["$server" = "media"] ; then apt-get update ; fi
+RUN if ["$server" = "media"] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
 COPY ./sslcert/ ./api/sslcert/
