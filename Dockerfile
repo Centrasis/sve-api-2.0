@@ -1,10 +1,10 @@
 FROM node:latest
 ARG server
 
-RUN echo "setting work dir..."
+RUN echo "setting up for: $server"
 WORKDIR /usr/src/app
-RUN apt-get update
-RUN apt-get install ffmpeg libavcodec-extra -y
+RUN if ["$server" == "media"] ; apt-get update
+RUN if ["$server" == "media"] ; apt-get install ffmpeg libavcodec-extra -y
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
 COPY ./sslcert/ ./api/sslcert/
@@ -20,4 +20,4 @@ ENV GAME_PORT=3000
 ENV AI_PORT=3000
 
 EXPOSE 3000
-CMD [ "npm", $server, "--prefix", "./api"]
+CMD [ "npm", "$server", "--prefix", "./api"]
