@@ -1,5 +1,4 @@
-FROM alpine:3.10
-ENV NODE_VERSION 14.16.1
+FROM node:14.15.1
 ARG server
 
 RUN echo "setting up for: '$server'"
