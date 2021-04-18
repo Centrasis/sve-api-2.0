@@ -1,4 +1,7 @@
 FROM node:latest
+ARG port
+ARG server
+
 RUN echo "setting work dir..."
 WORKDIR /usr/src/app
 RUN apt-get update
@@ -12,13 +15,10 @@ COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
 RUN npm install --prefix ./api
 
-ENV ACCOUNT_PORT=3001
-ENV SVE_PORT=3000
-ENV GAME_PORT=3002
-ENV AI_PORT=3003
+ENV ACCOUNT_PORT=$port
+ENV SVE_PORT=$port
+ENV GAME_PORT=$port
+ENV AI_PORT=$port
 
-EXPOSE 3000
-EXPOSE 3001
-EXPOSE 3002
-EXPOSE 3003
-CMD [ "npm", "start", "--prefix", "./api"]
+EXPOSE $port
+CMD [ "npm", $server, "--prefix", "./api"]
