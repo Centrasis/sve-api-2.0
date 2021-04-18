@@ -4,7 +4,7 @@ import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
 import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
 import { Request, Response, Router } from "express";
-import * as tf from '@tensorflow/tfjs-node'; // '@tensorflow/tfjs-node'
+//import * as tf from '@tensorflow/tfjs-node'; // '@tensorflow/tfjs-node'
 import * as fs from "fs";
 import mysql from 'mysql';
 import { basename, dirname } from 'path';
@@ -17,7 +17,7 @@ ServerHelper.setupRouter(router);
 
 router.get('/check', function (req: Request, res: Response) {
     let status: APIStatus = {
-        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        status: false,//SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
         version: "1.0" 
     };
 
@@ -81,7 +81,7 @@ function constructOneShotCNN(numClasses: number): tf.LayersModel {
 
 
 function constructClassicalCNNShallow(numClasses) {
-    let model = tf.sequential();
+    /*let model = tf.sequential();
 
     let bigKernel: [number, number] = [Math.round(imageSize[0] / 8), Math.round(imageSize[0] / 8)];
     let mediumKernel: [number, number] = [Math.round(bigKernel[0] / 4), Math.round(bigKernel[1] / 4)];
@@ -131,10 +131,10 @@ function constructClassicalCNNShallow(numClasses) {
 
     console.log("Model input: ", [(model.input as tf.SymbolicTensor).shape[1], (model.input as tf.SymbolicTensor).shape[2]]);
 
-    return model;
+    return model;*/
 }
 
-function constructClassicalCNN(numClasses: number): tf.LayersModel {
+/*function constructClassicalCNN(numClasses: number): tf.LayersModel {
     let model = tf.sequential();
     model.add(tf.layers.conv2d({
         inputShape: [imageSize[0], imageSize[1], 3],
@@ -329,13 +329,6 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                         (score as tf.Scalar[])[1].print();
                     }
 
-                    /*for(let i = 0; i < x_validate.length; i++) {  
-                        let pred = model.predict(tf.reshape(x_validate[i], [1, imageSize[0], imageSize[1], 3])/*.expandDims(0).asType('float32').div(256.0)*//*) as tf.Tensor;
-                        console.log("Truth: ");
-                        y_validate[i].print();
-                        console.log("Prediction: ", pred.as1D().argMax().dataSync()[0] + 1);
-                        pred.print();
-                    }*/
                     resolve();
                 });
             }).catch(err => { console.log("fitDataset failed: ", err); reject(err); });
@@ -366,12 +359,6 @@ function fitDataset(model: tf.LayersModel, labels: Map<string, number>, docData:
                     //let l = makeHotEncodingTensor(lbl - 1, labels.size, 100 / docLabels.filter(d => d === docLabels[i % docLabels.length]).length);
                     y_train.push(makeHotEncodingTensor(lbl - 1, labels.size));
                     
-                    /*tf.node.encodePng(tensor).then(png => {
-                        if(!fs.existsSync(augment_out)) {
-                            fs.mkdirSync(augment_out, {recursive: true});
-                        }
-                        fs.writeFileSync(augment_out + Math.random().toString(36).substring(7) + ".png", png);
-                    });*/
                     if (x_train.length === trainSize) {
                         generate_validationset();
                     }
@@ -553,7 +540,7 @@ router.get("/model/:name/classes", (req, res) => {
         res.sendStatus(401);
     });
 });
-
+*/
 export {
     router
 };

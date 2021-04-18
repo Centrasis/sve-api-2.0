@@ -4,8 +4,6 @@
   "description": "",
   "main": "",
   "dependencies": {
-    "@tensorflow/tfjs": "^2.6.0",
-    "@tensorflow/tfjs-node": "^2.7.0",
     "@types/cookie-session": "^2.0.41",
     "@types/express": "^4.17.8",
     "@types/express-session": "^1.17.0",

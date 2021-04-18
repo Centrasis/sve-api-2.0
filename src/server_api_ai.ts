@@ -1,5 +1,5 @@
 import express, {RequestHandler} from 'express';
-import { router as ai, trainNewModel, predict } from './aiapi';
+import { router as ai } from './aiapi';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -46,7 +46,7 @@ if (process.argv.length <= 2) {
     app.listen(port, function () {
         console.log('SVE AI API is listening on port ' + port + '!');
     });
-} else {
+} /*else {
     var args = process.argv.slice(2);
     console.log("Serverless mode active! -> " + args[0]);
     if (args[0].trim() == "train") {
@@ -87,4 +87,4 @@ if (process.argv.length <= 2) {
             poppredict(files);
         }
     }
-}
+}*/
