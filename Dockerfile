@@ -12,7 +12,7 @@ COPY ./api/dist/ ./api/dist/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
-RUN npm install -g npm@7.10.0
+RUN npm install -g npm@latest
 RUN npm install --prefix ./api
 
 ENV ACCOUNT_PORT=3000
