@@ -6,7 +6,7 @@ import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSys
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 
 import { Request, Response, Router } from "express";
-import { rejects } from 'assert';
+import { router as auth } from './authenticator';
 
 var router = Router();
 ServerHelper.setupRouter(router);
@@ -120,6 +120,8 @@ router.post('/doLogin', function (req: Request, res: Response) {
         }
     }
 });
+
+router.use("/auth", auth);
 
 export {
     router
