@@ -3,16 +3,16 @@ import express, { Request, Response } from "express";
 import expressWs, {Application} from 'express-ws';
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
-import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
+//import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
 import WebSocket from 'ws';
 
 
 class SVEServerGame {
-    public info: SVEGameInfo;
+    public info: any /*SVEGameInfo*/;
     public creation = new Date();
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
-    constructor(host: SVEAccount, info: SVEGameInfo) {
+    constructor(host: SVEAccount, info: any /*SVEGameInfo*/) {
         this.info = info;
         this.info.host = host;
     }
@@ -46,11 +46,11 @@ class SVEServerGame {
 
     public endGame() {
         this.players.forEach((val, key, m) => {
-            val.close(Number(GameRejectReason.GameEnded));
+            //val.close(Number(GameRejectReason.GameEnded));
         });
     }
 
-    public getAsInitializer(): SVEGameInfo {
+    public getAsInitializer(): any /*SVEGameInfo*/ {
         return this.info;
     }
 }
@@ -63,7 +63,7 @@ export function setupGameAPI(app: express.Application): Application {
 
     router.get("/list", (req, res) => {
         SVEServerAccount.getByRequest(req).then((user) => {
-            let retList: SVEGameInfo[] = [];
+            let retList: any /*SVEGameInfo*/[] = [];
 
             games.forEach((val, key, map) => {
                 let info = val.getAsInitializer();
@@ -78,7 +78,7 @@ export function setupGameAPI(app: express.Application): Application {
 
     router.get('/check', function (req: Request, res: Response) {
         let status: APIStatus = {
-            status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+            status: false, //SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
             version: "1.0" 
         };
     
@@ -106,7 +106,7 @@ export function setupGameAPI(app: express.Application): Application {
 
     router.put("/new", function (req: Request, res: Response) {
         SVEServerAccount.getByRequest(req).then((user) => {
-            let gi: SVEGameInfo = req.body as SVEGameInfo;
+            let gi: any /*SVEGameInfo*/ = req.body as any /*SVEGameInfo*/;
             console.log("New game request: ", gi);
             if(gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
                 games.set(gi.name, new SVEServerGame(user, gi));
@@ -127,12 +127,12 @@ export function setupGameAPI(app: express.Application): Application {
             if(games.has(gameID)) {
                 let game = games.get(gameID);
                 if (game!.info.host.getName() === user.getName()) {
-                    game!.info = req.body as SVEGameInfo;
+                    game!.info = req.body as any /*SVEGameInfo*/;
                     res.json(game!.getAsInitializer());
-                    if (game!.info.state == GameState.Finished) {
+                    /*if (game!.info.state == GameState.Finished) {
                         game!.endGame();
                         games.delete(game!.info.name);
-                    }
+                    }*/
                     res.sendStatus(204);
                 } else {
                     res.sendStatus(401);
@@ -154,7 +154,7 @@ export function setupGameAPI(app: express.Application): Application {
                 let game = games.get(gameID);
                 game!.join(user, ws).then(() => {
                 }, err => {
-                    ws.close(Number(GameRejectReason.GameFull));
+                   // ws.close(Number(GameRejectReason.GameFull));
                 });
             };
         }, err => {
