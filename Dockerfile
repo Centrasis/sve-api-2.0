@@ -1,7 +1,7 @@
 FROM node:12.18.1
 ARG server
 
-RUN echo "setting up for: '$server'"
+CMD ["echo", "setting up for: '$server'"]
 WORKDIR /usr/src/app
 RUN if [ "$server" = "media" ] ; then apt-get update ; fi
 RUN if [ "$server" = "media" ] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
@@ -19,4 +19,4 @@ ENV GAME_PORT=3000
 ENV AI_PORT=3000
 
 EXPOSE 3000
-RUN npm run $server --prefix ./api
+RUN ["bash", "-c", "npm run", "echo ${server}", "--prefix ./api"]
