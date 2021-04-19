@@ -10,6 +10,7 @@ COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
 RUN npm install -g npm@6.14.12
 RUN npm install --prefix ./api
+RUN npm run tsc --prefix ./api
 
 ENV ACCOUNT_PORT=3000
 ENV SVE_PORT=3001
