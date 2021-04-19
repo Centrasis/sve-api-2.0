@@ -3,7 +3,7 @@ import {SVEServerSystemInfo as SVESystemInfo } from './serverBaseLib/SVEServerSy
 import {SVEServerData as SVEData } from './serverBaseLib/SVEServerData';
 import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount, SVEServerRootAccount} from './serverBaseLib/SVEServerAccount';
-import { Request, Response, Router } from "express";
+import { Application, Request, Response, Router } from "express";
 //import * as tf from '@tensorflow/tfjs-node'; // '@tensorflow/tfjs-node'
 import * as fs from "fs";
 import mysql from 'mysql';
@@ -541,6 +541,13 @@ router.get("/model/:name/classes", (req, res) => {
     });
 });
 */
+
+class Initializer {
+    public static init(app: Application) {
+        app.use("/", router)
+    }
+}
+
 export {
-    router
+    Initializer
 };

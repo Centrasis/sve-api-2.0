@@ -1,5 +1,5 @@
 import express, {RequestHandler} from 'express';
-import { router as ai } from './aiapi';
+import { Initializer as ai } from './aiapi';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -41,7 +41,7 @@ if (process.argv.length <= 2) {
     var sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    app.use('/', ai);
+    ai.init(app.use('/', ));
 
     app.listen(port, function () {
         console.log('SVE AI API is listening on port ' + port + '!');

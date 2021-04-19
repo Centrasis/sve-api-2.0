@@ -1,5 +1,5 @@
 import ServerHelper from './serverhelper';
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import expressWs, {Application} from 'express-ws';
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
@@ -55,10 +55,9 @@ class SVEServerGame {
 }
 
 var games: Map<string, SVEServerGame> = new Map<string, SVEServerGame>();
-var router = express.Router();
+var router: Router = Router();
 ServerHelper.setupRouter(router);
 
-var router = express.Router();
 
 router.get("/list", (req, res) => {
     SVEServerAccount.getByRequest(req).then((user) => {
@@ -145,20 +144,28 @@ router.put("/update/:gid(\\w+)", function (req: Request, res: Response) {
     });
 });
 
-router.ws("/:gid(\\w+)", function (ws: WebSocket, req) {
-    SVEServerAccount.getByRequest(req).then((user) => {
-        let gameID: string = req.params.gid as string;
-        console.log("New valid request for game join: " + gameID);
-        if(games.has(gameID)) {
-            let game = games.get(gameID);
-            game!.join(user, ws).then(() => {
+class Initializer {
+    public static init(app: Application | express.Application) {
+        expressWs(app);
+        (app as Application).use("/", router);
+        (app as Application).ws("/:gid(\\w+)", function (ws: WebSocket, req) {
+            SVEServerAccount.getByRequest(req).then((user) => {
+                let gameID: string = req.params.gid as string;
+                console.log("New valid request for game join: " + gameID);
+                if(games.has(gameID)) {
+                    let game = games.get(gameID);
+                    game!.join(user, ws).then(() => {
+                    }, err => {
+                        // ws.close(Number(GameRejectReason.GameFull));
+                    });
+                };
             }, err => {
-                // ws.close(Number(GameRejectReason.GameFull));
+                console.log("Invalid game join request!");
             });
-        };
-    }, err => {
-        console.log("Invalid game join request!");
-    });
-});
+        });
+    }
+}
 
-export { router }
+export {
+    Initializer
+};

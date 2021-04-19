@@ -5,7 +5,7 @@ import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 
-import { Request, Response, Router } from "express";
+import { Application, Request, Response, Router } from "express";
 import { router as auth } from './authenticator';
 
 var router = Router();
@@ -120,6 +120,12 @@ router.post('/doLogin', function (req: Request, res: Response) {
 
 router.use("/auth", auth);
 
+class Initializer {
+    public static init(app: Application) {
+        app.use("/", router)
+    }
+}
+
 export {
-    router
+    Initializer
 };

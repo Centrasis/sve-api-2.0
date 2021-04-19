@@ -8,7 +8,7 @@ import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerProject as SVEProject} from './serverBaseLib/SVEServerProject';
 import {SVEServerProjectQuery as SVEProjectQuery} from './serverBaseLib/SVEServerProjectQuery';
 
-import { Request, Response, Router } from "express";
+import { Request, Response, Router, Application } from "express";
 
 import * as fs from "fs";
 
@@ -768,6 +768,12 @@ router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     });
 });
 
+class Initializer {
+    public static init(app: Application) {
+        app.use("/", router)
+    }
+}
+
 export {
-    router
+    Initializer
 };

@@ -1,5 +1,5 @@
 import express, {RequestHandler} from 'express';
-import { router as sve } from './sveapi';
+import { Initializer as sve } from './sveapi';
 //import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
@@ -42,7 +42,7 @@ if (process.argv.length <= 2) {
     var sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    app.use('/', sve);
+    sve.init(app);
 
     app.listen(port, function () {
         console.log('SVE Media API is listening on port ' + port + '!');

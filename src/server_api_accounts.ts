@@ -1,5 +1,5 @@
 import express, {RequestHandler} from 'express';
-import { router as sve_acc } from './accounts_api';
+import { Initializer as sve_acc } from './accounts_api';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -40,7 +40,7 @@ if (process.argv.length <= 2) {
     var sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    app.use('/', sve_acc);
+    sve_acc.init(app);
 
     app.listen(port, function () {
         console.log('Accounts API is listening on port ' + port + '!');
