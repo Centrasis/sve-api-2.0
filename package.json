@@ -61,7 +61,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://78.47.147.146:3000/root/sve-api-2.0.git"
+    "url": "https://github.com/ftl999/sve-api-2.0.git"
   },
   "author": "SVE",
   "license": "ISC"
