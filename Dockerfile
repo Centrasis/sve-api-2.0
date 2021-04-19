@@ -1,8 +1,8 @@
 FROM node:14.16.1
 
 WORKDIR /usr/src/app
-RUN if [ "$server" = "media" ] ; then apt-get update ; fi
-RUN if [ "$server" = "media" ] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
+RUN apt-get update
+RUN apt-get install ffmpeg libavcodec-extra -y
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
 COPY ./api/package-lock.json ./api/package-lock.json
