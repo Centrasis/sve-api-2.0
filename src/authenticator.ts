@@ -169,7 +169,6 @@ router.post('/token/use', function (req: Request, res: Response) {
                         if (token.type == TokenType.DeviceToken) {
                             SVEAccount.makeLogin(val.name, val.target).then(user => {
                                 if (user !== undefined) {
-                                    req.session!.user = user;
                                     res.json(user.getInitializer());
                                 } else {
                                     res.sendStatus(404);
