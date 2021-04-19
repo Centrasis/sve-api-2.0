@@ -1,7 +1,6 @@
 FROM node:14.16.1
 ARG server
 
-CMD ["echo", "setting up for: '$server'"]
 WORKDIR /usr/src/app
 RUN if [ "$server" = "media" ] ; then apt-get update ; fi
 RUN if [ "$server" = "media" ] ; then apt-get install ffmpeg libavcodec-extra -y ; fi
