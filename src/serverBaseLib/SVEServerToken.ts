@@ -51,18 +51,7 @@ export class SVEServerToken extends SVEToken {
                     console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
                     reject();
                 } else {
-                    let found = false;
-                    tokens.forEach(tk => {
-                        let time = new Date(Number((tk as any).time));
-                        time.setDate((tk as any).time.getDate() + 7);
-                        if (time > new Date()) {
-                            found = true;
-                        } else {
-                            tk.remove();
-                        }
-                    });
-
-                    resolve(found);
+                    resolve(true);
                 }
             });
         });
