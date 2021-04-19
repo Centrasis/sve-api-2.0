@@ -21,4 +21,4 @@ ENV GAME_PORT=3000
 ENV AI_PORT=3000
 
 EXPOSE 3000
-CMD [ "npm", "run", $server, "--prefix", "./api"]
+RUN npm run $server --prefix ./api
