@@ -52,7 +52,7 @@
   "scripts": {
     "tsc": "tsc -b",
     "install": "tsc",
-    "start": "node dist/server.js accounts media",
+    "start": "node dist/server.js accounts media ai games",
     "accounts": "node dist/server_api_accounts.js",
     "media": "node dist/server_api_media.js",
     "ai": "node dist/server_api_ai.js",

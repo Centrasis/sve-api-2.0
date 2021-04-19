@@ -2,7 +2,8 @@ import express, {RequestHandler} from 'express';
 import { router as sve } from './sveapi';
 import { router as sve_acc } from './accounts_api';
 import { router as ai } from './aiapi';
-//import expressWs, {Application} from 'express-ws';
+import { router as games } from './gameapi';
+import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -44,11 +45,11 @@ let servers: Map<string, [express.Router, number]> = new Map<string, [express.Ro
 servers.set("media", [sve, Number(process.env.SVE_PORT) || 80]);
 servers.set("accounts", [sve_acc, Number(process.env.ACCOUNT_PORT) || 81]);
 servers.set("ai", [ai, Number(process.env.AI_PORT) || 82]);
+servers.set("games", [games, Number(process.env.GAME_PORT) || 83]);
 
 process.argv.forEach(function (val, index, array) {
-    console.log(index + ': ' + val);
     if (servers.has(val)) {
-        const app: express.Application = express();
+        const app: Application = expressWs(express()).app;
         app.use(sess);
         app.use('/', servers.get(val)![0]);
         app.listen(servers.get(val)![1], function () {
