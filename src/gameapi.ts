@@ -3,15 +3,15 @@ import express, { Request, Response, Router } from "express";
 import expressWs, {Application} from 'express-ws';
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
-//import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
+import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
 import WebSocket from 'ws';
 
 class SVEServerGame {
-    public info: any /*SVEGameInfo*/;
+    public info: SVEGameInfo;
     public creation = new Date();
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
-    constructor(host: SVEAccount, info: any /*SVEGameInfo*/) {
+    constructor(host: SVEAccount, info: SVEGameInfo) {
         this.info = info;
         this.info.host = host;
     }
@@ -49,7 +49,7 @@ class SVEServerGame {
         });
     }
 
-    public getAsInitializer(): any /*SVEGameInfo*/ {
+    public getAsInitializer(): SVEGameInfo {
         return this.info;
     }
 }
@@ -61,7 +61,7 @@ ServerHelper.setupRouter(router);
 
 router.get("/list", (req, res) => {
     SVEServerAccount.getByRequest(req).then((user) => {
-        let retList: any /*SVEGameInfo*/[] = [];
+        let retList: SVEGameInfo[] = [];
 
         games.forEach((val, key, map) => {
             let info = val.getAsInitializer();
@@ -69,6 +69,22 @@ router.get("/list", (req, res) => {
         });
 
         res.json(retList);
+    }, err => {
+        res.sendStatus(401);
+    });
+});
+
+router.get("/list/types", (req, res) => {
+    SVEServerAccount.getByRequest(req).then((user) => {
+        let retList: SVEGameInfo[] = [];
+
+        res.json([
+            "Survival",
+            "TheGame",
+            "Uno",
+            "Busdriver",
+            "Wizard"
+        ]);
     }, err => {
         res.sendStatus(401);
     });
@@ -104,7 +120,7 @@ router.get("/players/:gid(\\w+)", (req, res) => {
 
 router.put("/new", function (req: Request, res: Response) {
     SVEServerAccount.getByRequest(req).then((user) => {
-        let gi: any /*SVEGameInfo*/ = req.body as any /*SVEGameInfo*/;
+        let gi: SVEGameInfo = req.body as SVEGameInfo;
         console.log("New game request: ", gi);
         if(gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
             games.set(gi.name, new SVEServerGame(user, gi));
@@ -125,7 +141,7 @@ router.put("/update/:gid(\\w+)", function (req: Request, res: Response) {
         if(games.has(gameID)) {
             let game = games.get(gameID);
             if (game!.info.host.getName() === user.getName()) {
-                game!.info = req.body as any /*SVEGameInfo*/;
+                game!.info = req.body as SVEGameInfo;
                 res.json(game!.getAsInitializer());
                 /*if (game!.info.state == GameState.Finished) {
                     game!.endGame();
