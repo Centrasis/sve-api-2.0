@@ -122,11 +122,13 @@ router.put("/new", function (req: Request, res: Response) {
     SVEServerAccount.getByRequest(req).then((user) => {
         let gi: SVEGameInfo = req.body as SVEGameInfo;
         console.log("New game request: ", gi);
-        if(gi.host !== undefined && gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
+        if(gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
+            gi.host = user;
             games.set(gi.name, new SVEServerGame(user, gi));
             console.log("Created new game: " + gi.name);
             res.sendStatus(204);
         } else {
+            console.log("Rejected new game: " + gi.name);
             res.sendStatus(400);
         }
     }, err => {
