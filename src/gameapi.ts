@@ -8,12 +8,14 @@ import WebSocket from 'ws';
 
 class SVEServerGame {
     public info: SVEGameInfo;
+    public meta: any;
     public creation = new Date();
     public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
     constructor(host: SVEAccount, info: SVEGameInfo) {
         this.info = info;
         this.info.host = host;
+        this.meta = {};
     }
 
     public join(usr: SVEAccount, ws: WebSocket): Promise<void> {
@@ -132,6 +134,39 @@ router.put("/new", function (req: Request, res: Response) {
         } else {
             console.log("Rejected new game: " + gi.name);
             res.sendStatus(400);
+        }
+    }, err => {
+        res.sendStatus(401);
+    });
+});
+
+router.get("/meta/:gid", function (req: Request, res: Response) {
+    let gameID: string = req.params.gid as string;
+    SVEServerAccount.getByRequest(req).then((user) => {
+        if(games.has(gameID)) {
+            let game = games.get(gameID);
+            res.json(game!.meta);
+        } else {
+            res.sendStatus(404);
+        }
+    }, err => {
+        res.sendStatus(401);
+    });
+});
+
+router.put("/meta/:gid", function (req: Request, res: Response) {
+    let gameID: string = req.params.gid as string;
+    SVEServerAccount.getByRequest(req).then((user) => {
+        if(games.has(gameID)) {
+            let game = games.get(gameID);
+            if (((typeof game!.info.host === "string") ? game!.info.host : game!.info.host.getName()) === user.getName()) {
+                game!.meta = req.body.meta as any;
+                res.sendStatus(204);
+            } else {
+                res.sendStatus(401);
+            }
+        } else {
+            res.sendStatus(404);
         }
     }, err => {
         res.sendStatus(401);
