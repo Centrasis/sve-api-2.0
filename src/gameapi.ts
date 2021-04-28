@@ -160,7 +160,7 @@ router.put("/meta/:gid", function (req: Request, res: Response) {
         if(games.has(gameID)) {
             let game = games.get(gameID);
             if (((typeof game!.info.host === "string") ? game!.info.host : game!.info.host.getName()) === user.getName()) {
-                game!.meta = req.body.meta as any;
+                game!.meta = req.body as any;
                 res.sendStatus(204);
             } else {
                 res.sendStatus(401);
