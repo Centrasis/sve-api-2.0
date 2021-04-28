@@ -50,7 +50,9 @@ class SVEServerGame {
     }
 
     public getAsInitializer(): SVEGameInfo {
-        return this.info;
+        let i = this.info;
+        i.host = (typeof i.host === "string") ? i.host : i.host.getName();
+        return i;
     }
 }
 
@@ -142,8 +144,14 @@ router.put("/update/:gid(\\w+)", function (req: Request, res: Response) {
     SVEServerAccount.getByRequest(req).then((user) => {
         if(games.has(gameID)) {
             let game = games.get(gameID);
-            if (game!.info.host.getName() === user.getName()) {
-                game!.info = req.body as SVEGameInfo;
+            if (((typeof game!.info.host === "string") ? game!.info.host : game!.info.host.getName()) === user.getName()) {
+                let gi = req.body as SVEGameInfo;
+                game!.info.id = gi.id;
+                game!.info.maxPlayers = gi.maxPlayers;
+                game!.info.minPlayers = gi.minPlayers;
+                game!.info.name = gi.name;
+                game!.info.state = gi.state;
+
                 res.json(game!.getAsInitializer());
                 /*if (game!.info.state == GameState.Finished) {
                     game!.endGame();
