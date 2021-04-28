@@ -175,6 +175,32 @@ export class SVEServerAccount extends SVEAccount {
             });
         });
     };
+
+    public static registerTemporaryUser(name: string): Promise<SVEAccount> {
+        return new Promise<SVEAccount>((resolve, reject) => {
+            new SVEServerAccount({
+                id: -9,
+                loginState: LoginState.LoggedInByToken,
+                name: name,
+                sessionID: SVEServerAccount.generateID(),
+                requester: undefined
+            } as SessionUserInitializer, usr => {
+                LoginModel.create({
+                    sessionID: usr.getSessionID(),
+                    userID: usr.getID(),
+                    userName: usr.getName(),
+                    loginState: usr.getLoginState()
+                }, (err, tk) => {
+                    if (err) {
+                        console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
+                        reject();
+                    } else {
+                        resolve(usr);
+                    }
+                });
+            });   
+        });
+    }
 }
 
 export class SVEServerRootAccount extends SVEServerAccount {

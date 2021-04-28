@@ -62,23 +62,35 @@ router.post('/user/change/:op([pw|email])', function (req: Request, res: Respons
 });
 
 router.put('/user/new', function (req: Request, res: Response) {
-    if (req.body.newUser !== undefined && req.body.newPassword !== undefined && req.body.token !== undefined) {
+    if (req.body.newUser !== undefined) {
+        let isTemporary: boolean = (req.body.temporary !== undefined && (req.body.temporary as boolean));
         let name: string = req.body.newUser as string;
-        let pass: string = req.body.newPassword as string;
-        SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
-            if(tokenOK) {
-                SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
-                    console.log("Registered new user: " + usr.getName());
-                    res.json({
-                        success: usr.getState() !== LoginState.NotLoggedIn,
-                        user: usr.getName(),
-                        id: usr.getID()
-                    });
-                }, err => res.sendStatus(400));
+        if(isTemporary) {
+            SVEAccount.registerTemporaryUser(name).then(usr => {
+                console.log("Registered temporary user: " + usr.getName());
+                res.json(usr.getInitializer());
+            }, err => res.sendStatus(500));
+        } else {         
+            if (req.body.newPassword !== undefined && req.body.token !== undefined) {
+                let pass: string = req.body.newPassword as string;
+                SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
+                    if(tokenOK) {
+                        SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
+                            console.log("Registered new user: " + usr.getName());
+                            res.json({
+                                success: usr.getState() !== LoginState.NotLoggedIn,
+                                user: usr.getName(),
+                                id: usr.getID()
+                            });
+                        }, err => res.sendStatus(400));
+                    } else {
+                        res.sendStatus(404);
+                    }
+                }, err => res.sendStatus(500));
             } else {
-                res.sendStatus(404);
+                res.sendStatus(400);
             }
-        }, err => res.sendStatus(500));
+        }
     } else {
         res.sendStatus(400);
     }
