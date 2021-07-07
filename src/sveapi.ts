@@ -673,11 +673,13 @@ router.put('/project/:id([\\+\\-]?\\d+)/data/upload', (req: Request, res: Respon
 });
 
 router.post('/project/:id([\\+\\-]?\\d+)/data/upload', (req: Request, res: Response) => {
+    console.log("Try upload");
     SVEAccount.getByRequest(req).then((user) => {
         const idx = Number(req.params.id);
         const p = new SVEProject(idx, user, (prj) => {
             prj.getGroup()!.getRightsForUser(user).then(val => {
                 if (val.write) {
+                    console.log("Can upload");
                     HugeUploader(req, tmpDir, 9999, 50).then((assembleChunks) => {
                         res.writeHead(204, 'No Content');
                         res.end();
