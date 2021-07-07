@@ -94,7 +94,7 @@ router.get("/list/types", (req, res) => {
     });
 });
 
-router.get('/check', function (req: Request, res: Response) {
+router.get('/check', (req: Request, res: Response) => {
     let status: APIStatus = {
         status: false, //SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
         version: "1.0" 
@@ -122,7 +122,7 @@ router.get("/players/:gid(\\w+)", (req, res) => {
     });
 });
 
-router.put("/new", function (req: Request, res: Response) {
+router.put("/new", (req: Request, res: Response) => {
     SVEServerAccount.getByRequest(req).then((user) => {
         let gi: SVEGameInfo = req.body as SVEGameInfo;
         console.log("New game request: ", gi);
@@ -140,11 +140,11 @@ router.put("/new", function (req: Request, res: Response) {
     });
 });
 
-router.get("/meta/:gid", function (req: Request, res: Response) {
-    let gameID: string = req.params.gid as string;
+router.get("/meta/:gid", (req: Request, res: Response) => {
+    const gameID: string = req.params.gid as string;
     SVEServerAccount.getByRequest(req).then((user) => {
         if(games.has(gameID)) {
-            let game = games.get(gameID);
+            const game = games.get(gameID);
             res.json(game!.meta);
         } else {
             res.sendStatus(404);
@@ -154,11 +154,11 @@ router.get("/meta/:gid", function (req: Request, res: Response) {
     });
 });
 
-router.put("/meta/:gid", function (req: Request, res: Response) {
-    let gameID: string = req.params.gid as string;
+router.put("/meta/:gid", (req: Request, res: Response) => {
+    const gameID: string = req.params.gid as string;
     SVEServerAccount.getByRequest(req).then((user) => {
         if(games.has(gameID)) {
-            let game = games.get(gameID);
+            const game = games.get(gameID);
             if (((typeof game!.info.host === "string") ? game!.info.host : game!.info.host.getName()) === user.getName()) {
                 game!.meta = req.body as any;
                 res.sendStatus(204);
@@ -173,14 +173,14 @@ router.put("/meta/:gid", function (req: Request, res: Response) {
     });
 });
 
-router.put("/update/:gid(\\w+)", function (req: Request, res: Response) {
-    let gameID: string = req.params.gid as string;
+router.put("/update/:gid(\\w+)", (req: Request, res: Response) => {
+    const gameID: string = req.params.gid as string;
     console.log("New valid update request for game: " + gameID);
     SVEServerAccount.getByRequest(req).then((user) => {
         if(games.has(gameID)) {
-            let game = games.get(gameID);
+            const game = games.get(gameID);
             if (((typeof game!.info.host === "string") ? game!.info.host : game!.info.host.getName()) === user.getName()) {
-                let gi = req.body as SVEGameInfo;
+                const gi = req.body as SVEGameInfo;
                 game!.info.id = gi.id;
                 game!.info.maxPlayers = gi.maxPlayers;
                 game!.info.minPlayers = gi.minPlayers;
@@ -211,10 +211,10 @@ class Initializer {
         (app as Application).use("/", router);
         (app as Application).ws("/:gid(\\w+)", function (ws: WebSocket, req) {
             SVEServerAccount.getByRequest(req).then((user) => {
-                let gameID: string = req.params.gid as string;
+                const gameID: string = req.params.gid as string;
                 console.log("New valid request for game join: " + gameID);
                 if(games.has(gameID)) {
-                    let game = games.get(gameID);
+                    const game = games.get(gameID);
                     game!.join(user, ws).then(() => {
                     }, err => {
                         // ws.close(Number(GameRejectReason.GameFull));

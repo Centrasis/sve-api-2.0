@@ -19,15 +19,15 @@ import { mkdir } from 'fs';
 import { dirname } from 'path';
 
 const tmpDir = './tmp';
-mkdir(tmpDir, (err) => {});
-var router = Router();
+mkdir(tmpDir, (err) => {const x = 0;});
+const router = Router();
 
 ServerHelper.setupRouter(router);
 
-router.get('/check', function (req: Request, res: Response) {
-    let status: APIStatus = {
+router.get('/check', (req: Request, res: Response) => {
+    const status: APIStatus = {
         status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
-        version: "2.0" 
+        version: "2.0"
     };
 
     SVEAccount.getByRequest(req).then((user) => {
@@ -43,10 +43,10 @@ router.get('/check', function (req: Request, res: Response) {
     });
 });
 
-router.get('/groups', function (req: Request, res: Response) {
+router.get('/groups', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         SVEGroup.getGroupsOf(user).then((val: SVEBaseGroup[]) => {
-            let list: number[] = [];
+            const list: number[] = [];
             val.forEach((g: SVEBaseGroup) => list.push(g.getID()));
             res.json(list);
         }, (err: any) => {
@@ -57,13 +57,13 @@ router.get('/groups', function (req: Request, res: Response) {
     });
 });
 
-router.get('/query/:query', function (req: Request, res: Response) {
+router.get('/query/:query', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let query = decodeURI(req.params.query as string);
+        const query = decodeURI(req.params.query as string);
         SVEProjectQuery.query(query, user).then((results) => {
-            let resList: RawQueryResult[] = [];
+            const resList: RawQueryResult[] = [];
             results.forEach(res => {
-                let typ = (res.constructor.name === SVEProject.name) ? QueryResultType.Project : QueryResultType.Group;
+                const typ = (res.constructor.name === SVEProject.name) ? QueryResultType.Project : QueryResultType.Group;
                 resList.push({
                     typ: typ,
                     id: res.getID(),
@@ -77,34 +77,34 @@ router.get('/query/:query', function (req: Request, res: Response) {
     });
 });
 
-router.get('/group/:id([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)/rights', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-            new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
-                if(group !== undefined && !isNaN(group.getID())) {
-                    group.getRightsForUser(user).then((rights) => {
-                        res.json(rights);
-                    });
-                } else {
-                    res.sendStatus(404);
-                }
-            });
+        const idx = Number(req.params.id);
+        const g = new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+            if(group !== undefined && !isNaN(group.getID())) {
+                group.getRightsForUser(user).then((rights) => {
+                    res.json(rights);
+                });
+            } else {
+                res.sendStatus(404);
+            }
+        });
     }, err => {
         res.sendStatus(401);
     });
 });
 
-router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
+router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let gid = Number(req.params.id);
-        let uid = Number(req.params.uid);
+        const gid = Number(req.params.id);
+        const uid = Number(req.params.uid);
 
-        new SVEGroup({id: gid}, user, (group?: SVEBaseGroup) => {
+        const g = new SVEGroup({id: gid}, user, (group?: SVEBaseGroup) => {
             if(group !== undefined && !isNaN(group.getID())) {
                 group.getRightsForUser(user).then((rights) => {
                     if(rights.admin) {
-                        new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
-                            let newRights = req.body as UserRights;
+                        const a = new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
+                            const newRights = req.body as UserRights;
                             (group as SVEGroup).setRightsForUser(reqUser, newRights).then((val) => {
                                 res.sendStatus((val) ? 200 : 500);
                                 console.log("Applied new rights: " + JSON.stringify(newRights) + " success: " + val);
@@ -123,16 +123,16 @@ router.put('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
     });
 });
 
-router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let gid = Number(req.params.id);
-        let uid = Number(req.params.uid);
+        const gid = Number(req.params.id);
+        const uid = Number(req.params.uid);
 
-        new SVEGroup({id: gid}, user, (group?: SVEBaseGroup) => {
+        const g = new SVEGroup({id: gid}, user, (group?: SVEBaseGroup) => {
             if(group !== undefined && !isNaN(group.getID())) {
                 group.getRightsForUser(user).then((rights) => {
                     if(rights.read) {
-                        new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
+                        const a = new SVEAccount({id: uid} as BasicUserInitializer, (reqUser: SVEBaseAccount) => {
                             group.getRightsForUser(reqUser).then((reqRights) => {
                                 res.json(reqRights);
                             });
@@ -150,33 +150,33 @@ router.get('/group/:id([\\+\\-]?\\d+)/user/:uid([\\+\\-]?\\d+)/rights', function
     });
 });
 
-router.get('/group/:id([\\+\\-]?\\d+)/users', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)/users', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-            new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
-                if(group !== undefined && !isNaN(group.getID())) {
-                    group.getRightsForUser(user).then((rights) => {
-                        if(rights.read) {
-                            group.getUsers().then(usrs => {
-                                res.json(usrs);
-                            }, err => res.sendStatus(500));
-                        } else {
-                            res.sendStatus(401);
-                        }
-                    });
-                } else {
-                    res.sendStatus(404);
-                }
-            });
+        const idx = Number(req.params.id);
+        const g = new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+            if(group !== undefined && !isNaN(group.getID())) {
+                group.getRightsForUser(user).then((rights) => {
+                    if(rights.read) {
+                        group.getUsers().then(usrs => {
+                            res.json(usrs);
+                        }, err => res.sendStatus(500));
+                    } else {
+                        res.sendStatus(401);
+                    }
+                });
+            } else {
+                res.sendStatus(404);
+            }
+        });
     }, err => {
         res.sendStatus(401);
     });
 });
 
-router.delete('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.delete('/group/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+        const idx = Number(req.params.id);
+        const g = new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
             if (group === undefined || isNaN(group.getID())) {
                 res.sendStatus(404);
             } else {
@@ -197,11 +197,11 @@ router.delete('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response
     });
 });
 
-router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
+router.put('/group/:id([\\+\\-]?\\d+|new)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         if (req.params.id !== "new") {
-            let idx = Number(req.params.id);
-            new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+            const idx = Number(req.params.id);
+            const g = new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
                 (group! as SVEGroup).setName(req.body.name);
                 group!.store().then(val => {
                     if(val) {
@@ -216,7 +216,7 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
             });
         } else {
             if(req.body.name !== undefined) {
-                new SVEGroup({name: req.body.name, id: NaN} as GroupInitializer, user, (group?: SVEBaseGroup) => {
+                const g = new SVEGroup({name: req.body.name, id: NaN} as GroupInitializer, user, (group?: SVEBaseGroup) => {
                     if(group === undefined) {
                         res.sendStatus(403);
                     } else {
@@ -243,15 +243,15 @@ router.put('/group/:id([\\+\\-]?\\d+|new)', function (req: Request, res: Respons
     });
 });
 
-router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.get('/group/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
+        const idx = Number(req.params.id);
+        const g = new SVEGroup({id: idx}, user, (group?: SVEBaseGroup) => {
             if(group !== undefined && !isNaN(group.getID())) {
                 group.getRightsForUser(user).then((rights) => {
                     if(rights.read) {
                         group.getProjects().then((prjs) => {
-                            let list: number[] = [];
+                            const list: number[] = [];
                             prjs.forEach(p => list.push(p.getID()));
                             res.json({
                                 group: {
@@ -280,11 +280,11 @@ router.get('/group/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     });
 });
 
-router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Response) {
+router.put('/project/:prj([\\+\\-]?\\d+|new)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         if (req.params.prj !== "new") {
-            let idx: number = Number(req.params.prj);
-            new SVEProject(idx as number, user, (self) => {
+            const idx: number = Number(req.params.prj);
+            const p = new SVEProject(idx as number, user, (self) => {
                 self.getGroup().getRightsForUser(user).then(rights => {
                     self.setName(req.body.name);
                     self.setType(req.body.type as SVEProjectType);
@@ -312,8 +312,8 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
                 });
             });
         } else {
-            new SVEGroup({id: Number(req.body.group.id)}, user, (group) => {
-                new SVEProject({
+            const g = new SVEGroup({id: Number(req.body.group.id)}, user, (group) => {
+                const p = new SVEProject({
                     id: NaN,
                     group: group,
                     name: req.body.name, 
@@ -340,10 +340,10 @@ router.put('/project/:prj([\\+\\-]?\\d+|new)', function (req: Request, res: Resp
     });
 });
 
-router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.delete('/project/:prj([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx: number = Number(req.params.prj);
-        new SVEProject(idx as number, user, (self) => {
+        const idx: number = Number(req.params.prj);
+        const p = new SVEProject(idx as number, user, (self) => {
             (self as SVEProject).remove().then(success => {
                 if(success) {
                     res.sendStatus(204);
@@ -357,17 +357,17 @@ router.delete('/project/:prj([\\+\\-]?\\d+)', function (req: Request, res: Respo
     });
 });
 
-router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx: number = Number(req.params.id);
-        new SVEProject(idx as number, user, (self) => {
+        const idx: number = Number(req.params.id);
+        const p = new SVEProject(idx as number, user, (self) => {
             if (isNaN(self.getID())) {
                 res.sendStatus(404);
             } else {
                 try {
                     self.getGroup().getRightsForUser(user).then(val => {
                         if(val.read) {
-                            let init: any = self.getAsInitializer();
+                            const init: any = self.getAsInitializer();
                             init.group = init.group.getID();
                             init.owner = (typeof init.owner !== "number") ? init.owner.getID() : init.owner;
                             res.json(init);
@@ -385,15 +385,15 @@ router.get('/project/:id([\\+\\-]?\\d+)', function (req: Request, res: Response)
     });
 });
 
-router.get('/project/:id([\\+\\-]?\\d+)/data', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)/data', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEProject(idx, user, (self) => {
+        const idx = Number(req.params.id);
+        const p = new SVEProject(idx, user, (self) => {
             if(self !== undefined && !isNaN(self.getID())) {
                 self.getGroup().getRightsForUser(user).then(val => {
                     if (val.read) {
                         self.getData().then((data) => {
-                            let list: SVEDataInitializer[] = [];
+                            const list: SVEDataInitializer[] = [];
                             data.forEach(d => { list.push({
                                     id: d.getID(),
                                     type: d.getType(),
@@ -424,9 +424,9 @@ interface FileRequest {
 }
 
 function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, req: Request): FileRequest {
-    let version = (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview;
-    let total = file.getSize(version);
-    let resHead: any = {
+    const version = (fetchType === "download" || fetchType === "full") ? SVEDataVersion.Full : SVEDataVersion.Preview;
+    const total = file.getSize(version);
+    const resHead: any = {
         'Cache-Control': file.getCacheType(),
         'Content-Type': file.getContentType(version),
         'Accept-Ranges': 'bytes',
@@ -436,12 +436,12 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
     };
     let retCode = 200;
 
-    let r = req.range(total);// max file size
+    const r = req.range(total);// max file size
     let range: Range | undefined = (r !== undefined && r !== -1 && r !== -2 && (r as Ranges).length > 0) ? r[0] : undefined;
     if(range !== undefined) {
-        let start = (range.start && !isNaN(range.start)) ? range.start : 0;
-        let end = (range.end && !isNaN(range.end)) ? range.end : total - 1;
-        let chunksize = (end - start) + 1;
+        const start = (range.start && !isNaN(range.start)) ? range.start : 0;
+        const end = (range.end && !isNaN(range.end)) ? range.end : total - 1;
+        const chunksize = (end - start) + 1;
         resHead['Content-Range'] = "bytes " + start + "-" + end + "/" + total;
         resHead['Content-Length'] = chunksize;
         retCode = 206;
@@ -468,12 +468,12 @@ function setFileRequestHeaders(file: SVEData, fetchType: string, res: Response, 
     };
 }
 
-router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let pid = Number(req.params.id);
-        let fid = Number(req.params.fid);
-        let fetchType = req.params.fetchType as string || "full";
-        new SVEProject(pid, user, (project) => {
+        const pid = Number(req.params.id);
+        const fid = Number(req.params.fid);
+        const fetchType = req.params.fetchType as string || "full";
+        const p = new SVEProject(pid, user, (project) => {
             if(project !== undefined && !isNaN(project.getID())) {
                 project.getGroup().getRightsForUser(user).then(val => {
                     if (val.read) {
@@ -491,20 +491,20 @@ router.head('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|fu
     });
 });
 
-router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|full|preview|download)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let pid = Number(req.params.id);
-        let fid = Number(req.params.fid);
-        let fetchType = req.params.fetchType as string || "full";
-        new SVEProject(pid, user, (self) => {
+        const pid = Number(req.params.id);
+        const fid = Number(req.params.fid);
+        const fetchType = req.params.fetchType as string || "full";
+        const p = new SVEProject(pid, user, (self) => {
             if(self !== undefined && !isNaN(self.getID())) {
                 self.getGroup().getRightsForUser(user).then(val => {
                     if (val.read) {
                         (self as SVEProject).getDataById(fid).then(file => {
-                            let fReq = setFileRequestHeaders(file, fetchType, res, req);
+                            const fReq = setFileRequestHeaders(file, fetchType, res, req);
                             if (fReq.OK) {
                                 file.getStream(
-                                    (fetchType == "download" || fetchType == "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
+                                    (fetchType === "download" || fetchType === "full") ? SVEDataVersion.Full : SVEDataVersion.Preview,
                                     fReq.range
                                 ).then(stream => {
                                     stream.pipe(res);
@@ -529,7 +529,7 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)/:fetchType(|ful
 
 function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
     fs.mkdir(dirname(newPath), {recursive: true}, (err) => {
-        fs.rename(oldPath, newPath, function (err) {
+        fs.rename(oldPath, newPath, (err) => {
             if (err) {
                 if (err.code === 'EXDEV') {
                     copy();
@@ -542,13 +542,13 @@ function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
         });
     
         function copy() {
-            var readStream = fs.createReadStream(oldPath);
-            var writeStream = fs.createWriteStream(newPath);
+            const readStream = fs.createReadStream(oldPath);
+            const writeStream = fs.createWriteStream(newPath);
     
             readStream.on('error', callback);
             writeStream.on('error', callback);
     
-            readStream.on('close', function () {
+            readStream.on('close', () => {
                 fs.unlink(oldPath, callback);
             });
     
@@ -557,11 +557,11 @@ function move(oldPath: string, newPath: string, callback: (err?:any) => void) {
     });
 }
 
-router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let pid = Number(req.params.id);
-        let fid = Number(req.params.fid);
-        new SVEProject(pid, user, (self) => {
+        const pid = Number(req.params.id);
+        const fid = Number(req.params.fid);
+        const p = new SVEProject(pid, user, (self) => {
             if(self !== undefined && !isNaN(self.getID())) {
                 self.getGroup().getRightsForUser(user).then(val => {
                     if (val.write) {
@@ -583,17 +583,17 @@ router.delete('/project/:id([\\+\\-]?\\d+)/data/:fid([\\+\\-]?\\d+)', function (
     });
 });
 
-router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: Response) {
+router.get('/project/:id([\\+\\-]?\\d+)/data/zip', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEProject(idx, user, (prj) => {
+        const idx = Number(req.params.id);
+        const p = new SVEProject(idx, user, (prj) => {
             prj.getGroup()!.getRightsForUser(user).then(val => {
                 if (val.read) {
-                    let files: any = [];
-                    let ownerNames: Map<number, string> = new Map<number, string>();
+                    const files: any = [];
+                    const ownerNames: Map<number, string> = new Map<number, string>();
                     let fCount = 0;
 
-                    let finalizeDownload = () => {
+                    const finalizeDownload = () => {
                         try {
                             (res as any).zip({
                                 files: files,
@@ -605,7 +605,7 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
                         }
                     };
 
-                    let addFile = (file: SVEData, owner: string) => {
+                    const addFile = (file: SVEData, owner: string) => {
                         files.push({
                             path: file.getLocalPath(SVEDataVersion.Full),
                             name: owner + "/" + file.getName()
@@ -642,13 +642,13 @@ router.get('/project/:id([\\+\\-]?\\d+)/data/zip', function (req: Request, res: 
     });
 });
 
-router.put('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
+router.put('/project/:id([\\+\\-]?\\d+)/data/upload', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEProject(idx, user, (prj) => {
+        const idx = Number(req.params.id);
+        const p = new SVEProject(idx, user, (prj) => {
             prj.getGroup()!.getRightsForUser(user).then(val => {
                 if (val.write) {
-                    new SVEData(user, {
+                    const d = new SVEData(user, {
                         id: NaN,
                         type: SVEData.getTypeFrom(req.body.fileName as string),
                         owner: user,
@@ -672,10 +672,10 @@ router.put('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, re
     });
 });
 
-router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, res: Response) {
+router.post('/project/:id([\\+\\-]?\\d+)/data/upload', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEProject(idx, user, (prj) => {
+        const idx = Number(req.params.id);
+        const p = new SVEProject(idx, user, (prj) => {
             prj.getGroup()!.getRightsForUser(user).then(val => {
                 if (val.write) {
                     HugeUploader(req, tmpDir, 9999, 50).then((assembleChunks) => {
@@ -683,14 +683,14 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
                         res.end();
                         if (assembleChunks) {
                             assembleChunks().then(data => {
-                                let postProcessing = async() => {
-                                    let fileDest = (prj as SVEProject).getDataPath() + "/" + user.getName() + "/" + data.postParams.fileName;
+                                const postProcessing = async() => {
+                                    const fileDest = (prj as SVEProject).getDataPath() + "/" + user.getName() + "/" + data.postParams.fileName;
                                     move(data.filePath, fileDest, (err) => {
                                         if(err) {
                                             console.log("Error on copy: " + JSON.stringify(err));
                                         } else {
                                             console.log("Received file: " + JSON.stringify(data.postParams));
-                                            new SVEData(user, {
+                                            const d = new SVEData(user, {
                                                 id: (data.postParams.fid !== undefined && data.postParams.fid != "undefined") ? Number(data.postParams.fid) : undefined,
                                                 type: SVEData.getTypeFromExt(fileDest), 
                                                 owner: user, parentProject: prj, 
@@ -723,7 +723,7 @@ router.post('/project/:id([\\+\\-]?\\d+)/data/upload', function (req: Request, r
     });
 });
 
-router.get('/data/latest', function (req: Request, res: Response) {
+router.get('/data/latest', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         SVEData.getLatestUpload(user).then(data => {
             if (data.getID() < 0) {
@@ -745,10 +745,10 @@ router.get('/data/latest', function (req: Request, res: Response) {
     });
 });
 
-router.get('/data/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.get('/data/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let idx = Number(req.params.id);
-        new SVEData(user, idx, (self) => {
+        const idx = Number(req.params.id);
+        const d = new SVEData(user, idx, (self) => {
             if (self.getID() < 0) {
                 res.sendStatus(404);
             } else {

@@ -8,13 +8,13 @@ import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 import { Application, Request, Response, Router } from "express";
 import { router as auth } from './authenticator';
 
-var router = Router();
+const router = Router();
 ServerHelper.setupRouter(router);
 
-router.get('/check', function (req: Request, res: Response) {
-    let status: APIStatus = {
+router.get('/check', (req: Request, res: Response) => {
+    const status: APIStatus = {
         status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
-        version: "2.0" 
+        version: "2.0"
     };
 
     SVEAccount.getByRequest(req).then((user: SVEBaseAccount) => {
@@ -25,10 +25,10 @@ router.get('/check', function (req: Request, res: Response) {
     });
 });
 
-router.get('/user/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
+router.get('/user/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then(loggedUser => {
-        let idx = Number(req.params.id);
-        let user = new SVEAccount({id: idx} as BasicUserInitializer, (state) => {
+        const idx = Number(req.params.id);
+        const user = new SVEAccount({id: idx} as BasicUserInitializer, (state) => {
             res.json({
                 id: user.getID(),
                 loginState: user.getLoginState(),
@@ -38,13 +38,13 @@ router.get('/user/:id([\\+\\-]?\\d+)', function (req: Request, res: Response) {
     }, err => res.sendStatus(401));
 });
 
-router.post('/user/change/:op([pw|email])', function (req: Request, res: Response) {
+router.post('/user/change/:op([pw|email])', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let operation = req.params.op as string;
+        const operation = req.params.op as string;
         if (operation === "pw") {
             if(req.body.oldPassword !== undefined && req.body.newPassword !== undefined) {
-                let oldPw = req.body.oldPassword as string;
-                let newPw = req.body.newPassword as string;
+                const oldPw = req.body.oldPassword as string;
+                const newPw = req.body.newPassword as string;
                 user.changePassword(oldPw, newPw).then(val => {
                     res.sendStatus((val) ? 204 : 400);
                 }, err => res.sendStatus(500))
@@ -58,21 +58,21 @@ router.post('/user/change/:op([pw|email])', function (req: Request, res: Respons
                 res.sendStatus(501);
             }
         }
-    }, err => res.sendStatus(401));   
+    }, err => res.sendStatus(401));
 });
 
-router.put('/user/new', function (req: Request, res: Response) {
+router.put('/user/new', (req: Request, res: Response) => {
     if (req.body.newUser !== undefined) {
-        let isTemporary: boolean = (req.body.temporary !== undefined && (req.body.temporary as boolean));
-        let name: string = req.body.newUser as string;
+        const isTemporary: boolean = (req.body.temporary !== undefined && (req.body.temporary as boolean));
+        const name: string = req.body.newUser as string;
         if(isTemporary) {
             SVEAccount.registerTemporaryUser(name).then(usr => {
                 console.log("Registered temporary user: " + usr.getName());
                 res.json(usr.getInitializer());
             }, err => res.sendStatus(500));
-        } else {         
+        } else {
             if (req.body.newPassword !== undefined && req.body.token !== undefined) {
-                let pass: string = req.body.newPassword as string;
+                const pass: string = req.body.newPassword as string;
                 SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
                     if(tokenOK) {
                         SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
@@ -96,7 +96,7 @@ router.put('/user/new', function (req: Request, res: Response) {
     }
 });
 
-router.post('/doLogin', function (req: Request, res: Response) {
+router.post('/doLogin', (req: Request, res: Response) => {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
@@ -114,8 +114,8 @@ router.post('/doLogin', function (req: Request, res: Response) {
 
     if (req.body.token !== undefined) {
         acc = new SVEAccount({
-            name: (req.body as Token).name as string, 
-            id: (req.body as Token).target as number, 
+            name: (req.body as Token).name as string,
+            id: (req.body as Token).target as number,
             token: (req.body as Token).token as string
         }, onLogin);
     } else {
@@ -123,7 +123,7 @@ router.post('/doLogin', function (req: Request, res: Response) {
             acc = new SVEAccount({
                 name: req.body.user as string, 
                 pass:req.body.pw as string
-            }, onLogin);        
+            }, onLogin);
         } else {
             res.sendStatus(400);
         }

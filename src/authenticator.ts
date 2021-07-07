@@ -5,17 +5,16 @@ import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSys
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
 import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
-import { tokensToFunction } from "path-to-regexp";
 
-var router = Router();
+const router = Router();
 const apiVersion = 1;
 
 ServerHelper.setupRouter(router);
 
-router.get('/check', function (req: Request, res: Response) {
-    let status: APIStatus = {
+router.get('/check', (req: Request, res: Response) => {
+    const status: APIStatus = {
         status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
-        version: "2.0" 
+        version: "2.0"
     };
 
     SVEAccount.getByRequest(req).then((user: SVEBaseAccount) => {
@@ -26,10 +25,10 @@ router.get('/check', function (req: Request, res: Response) {
     });
 });
 
-router.post('/token/new', function (req: Request, res: Response) {
+router.post('/token/new', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
-        let tokenType: TokenType = Number(req.body.type) as TokenType;
-        let targetID: number = Number(req.body.target);
+        const tokenType: TokenType = Number(req.body.type) as TokenType;
+        const targetID: number = Number(req.body.target);
         if(isNaN(targetID)) {
             res.sendStatus(400);
             return;
@@ -43,7 +42,7 @@ router.post('/token/new', function (req: Request, res: Response) {
             }, err => res.sendStatus(500));
         } else {
             if (tokenType === TokenType.RessourceToken) {
-                new SVEGroup({id: targetID}, user, (group) => {
+                const g = new SVEGroup({id: targetID}, user, (group) => {
                     group!.getRightsForUser(user).then(rights => {
                         if (rights.write || rights.admin) {
                             SVEToken.register(user, tokenType, group as SVEBaseGroup).then(token => {
@@ -65,15 +64,15 @@ router.post('/token/new', function (req: Request, res: Response) {
     });
 });
 
-router.post('/token/validate', function (req: Request, res: Response) {
+router.post('/token/validate', (req: Request, res: Response) => {
     if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
-        let tokenType: TokenType = Number(req.body.type) as TokenType;
-        let targetID: number = Number(req.body.target);
+        const tokenType: TokenType = Number(req.body.type) as TokenType;
+        const targetID: number = Number(req.body.target);
         if(isNaN(targetID)) {
             res.sendStatus(400);
             return;
         }
-        let token = req.body.token as string;
+        const token = req.body.token as string;
         SVEToken.tokenExists(tokenType, token, targetID).then(val => {
             res.sendStatus(val ? 204 : 404);
         }, err => res.sendStatus(500));
@@ -82,23 +81,23 @@ router.post('/token/validate', function (req: Request, res: Response) {
     }
 });
 
-router.delete('/token', function (req: Request, res: Response) {
+router.delete('/token', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
-            let tokenType: TokenType = Number(req.body.type) as TokenType;
-            let targetID: number = Number(req.body.target);
+            const tokenType: TokenType = Number(req.body.type) as TokenType;
+            const targetID: number = Number(req.body.target);
             if(isNaN(targetID)) {
                 res.sendStatus(400);
                 return;
             }
-            let token = req.body.token as string;
+            const token = req.body.token as string;
 
             SVEToken.remove(tokenType, token, targetID).then(val => {
                 res.sendStatus(val ? 204 : 404);
             });
         } else {
             if (req.body.tokenInfo !== undefined) {
-                if (user.getID() == Number(req.body.tokenInfo.target) || user.getName() == req.body.tokenInfo.name) {
+                if (user.getID() === Number(req.body.tokenInfo.target) || user.getName() === req.body.tokenInfo.name) {
                     SVEToken.removeByInfo(req.body.tokenInfo as TokenInfo).then(val => {
                         res.sendStatus(val ? 204 : 404);
                     });
@@ -114,7 +113,7 @@ router.delete('/token', function (req: Request, res: Response) {
     });
 });
 
-router.get('/token/devices', function (req: Request, res: Response) {
+router.get('/token/devices', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         SVEToken.getAll(TokenType.DeviceToken, user).then(tks => {
             res.json(tks);
@@ -126,7 +125,7 @@ router.get('/token/devices', function (req: Request, res: Response) {
     });
 });
 
-router.get('/token/ressources', function (req: Request, res: Response) {
+router.get('/token/ressources', (req: Request, res: Response) => {
     SVEAccount.getByRequest(req).then((user) => {
         SVEToken.getAll(TokenType.RessourceToken, user).then(tks => {
             res.json(tks);
@@ -138,20 +137,20 @@ router.get('/token/ressources', function (req: Request, res: Response) {
     });
 });
 
-router.post('/token/use', function (req: Request, res: Response) {
+router.post('/token/use', (req: Request, res: Response) => {
     if (req.body.type !== undefined && req.body.target !== undefined && req.body.token !== undefined) {
-        let token = req.body as Token;
+        const token = req.body as Token;
         if(isNaN(token.target)) {
             res.sendStatus(400);
             return;
-        }      
-        
+        }
+
         SVEToken.tokenExists(token.type, token.token, token.target).then(val => {
             if(val) {
                 SVEToken.use(token.type, token.token, token.target).then(val => {
-                    if (token.type == TokenType.RessourceToken) {
+                    if (token.type === TokenType.RessourceToken) {
                         SVEAccount.getByRequest(req).then((user) => {
-                            new SVEGroup({id: token.target}, user, group => {
+                            const g = new SVEGroup({id: token.target}, user, group => {
                                 if(group !== undefined && !isNaN(group!.getID())) {
                                     (group! as SVEGroup).getRightsForUser(user).then(rights => {
                                         (group! as SVEGroup).setRightsForUser(user, {
@@ -166,7 +165,7 @@ router.post('/token/use', function (req: Request, res: Response) {
                             });
                         }, err => res.sendStatus(401));
                     } else {
-                        if (token.type == TokenType.DeviceToken) {
+                        if (token.type === TokenType.DeviceToken) {
                             SVEAccount.makeLogin(val.name, val.target).then(user => {
                                 if (user !== undefined) {
                                     res.json(user.getInitializer());

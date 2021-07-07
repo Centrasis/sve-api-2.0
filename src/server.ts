@@ -30,7 +30,7 @@ SVESystemInfo.initSystem().then((val) => {
     exit(-1);
 });
 
-let opts: SessionOptions = {
+const opts: SessionOptions = {
     name: 'sve-session',
     secret: process.env.SECRET || "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
     cookie: {
@@ -40,20 +40,20 @@ let opts: SessionOptions = {
     resave: true,
     saveUninitialized: true
 };
-var sess: RequestHandler = session.default(opts);
+const sess: RequestHandler = session.default(opts);
 
-let servers: Map<string, [any, number]> = new Map<string, [any, number]>();
+const servers: Map<string, [any, number]> = new Map<string, [any, number]>();
 servers.set("media", [sve, Number(process.env.SVE_PORT) || 80]);
 servers.set("accounts", [sve_acc, Number(process.env.ACCOUNT_PORT) || 81]);
 servers.set("ai", [ai, Number(process.env.AI_PORT) || 82]);
 servers.set("games", [games, Number(process.env.GAME_PORT) || 83]);
 
-process.argv.forEach(function (val, index, array) {
+process.argv.forEach((val, index, array) => {
     if (servers.has(val)) {
         const app: express.Application = express();
         app.use(sess);
         servers.get(val)![0].init(app);
-        app.listen(servers.get(val)![1], function () {
+        app.listen(servers.get(val)![1], () => {
             console.log('SVE ' + val + ' API is listening on port ' + String(servers.get(val)![1]) + '!');
         });
     }

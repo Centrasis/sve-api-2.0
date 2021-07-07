@@ -1,10 +1,8 @@
 import * as socketio from "socket.io";
 import { Request } from "express";
-import * as path from "path";
 import {SocketHandler} from "./SocketHandler";
-import { pathToRegexp, match, parse, compile } from "path-to-regexp";
-import { SessionUserInitializer, SVEAccount, SVEProject, SVESystemInfo } from "svebaselib";
-import { userInfo } from "os";
+import { pathToRegexp } from "path-to-regexp";
+import { SVEProject } from "svebaselib";
 import { SVEServerAccount } from "./serverBaseLib/SVEServerAccount";
 
 export class UploadHandler extends SocketHandler {
@@ -13,8 +11,8 @@ export class UploadHandler extends SocketHandler {
 
     constructor(uri: string, handler: SocketHandler) {
         super(handler);
-        let keys: any[] = [];
-        let url = pathToRegexp(uri, keys);
+        const keys: any[] = [];
+        const url = pathToRegexp(uri, keys);
         this.uri = [
             url,
             keys
@@ -23,13 +21,12 @@ export class UploadHandler extends SocketHandler {
     }
 
     protected onConnect(socket: socketio.Socket, req: Request) {
-        let res: RegExpExecArray | [] = this.uri[0].exec(req.url) || [];
+        const res: RegExpExecArray | [] = this.uri[0].exec(req.url) || [];
         if (res.length > 1 && res[1] !== null) {
             console.log("Receive file transmission for url: " + req.url + "..");
 
             SVEServerAccount.getByRequest(req).then((user) => {
-                new SVEProject(Number(res[1]), user, (p) => {
-                });
+                const _p = new SVEProject(Number(res[1]), user, (p) => {});
             });
         } else {
             super.onConnect(socket, req);

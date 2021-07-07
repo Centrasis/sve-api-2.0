@@ -23,7 +23,7 @@ export class SVEServerAccount extends SVEAccount {
 
     static makeLogin(user: String, id: Number): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
-            let sessID = this.generateID();
+            const sessID = this.generateID();
             LoginModel.create({
                 sessionID: sessID,
                 userID: id,
@@ -34,7 +34,7 @@ export class SVEServerAccount extends SVEAccount {
                     console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                     reject();
                 } else {
-                    new SVEServerAccount({id: id, name: user, sessionID: sessID, loginState: LoginState.LoggedInByToken} as SessionUserInitializer, usr => {
+                    const a = new SVEServerAccount({id: id, name: user, sessionID: sessID, loginState: LoginState.LoggedInByToken} as SessionUserInitializer, usr => {
                         resolve(usr as SVEServerAccount);
                     });
                 }
@@ -67,7 +67,7 @@ export class SVEServerAccount extends SVEAccount {
                     resolve(user as SVEServerAccount);
                 });
             } else {*/
-                let userSessionID: string | undefined = undefined;
+                let userSessionID: string | undefined;
                 if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
                     userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
                 } else {
@@ -75,7 +75,7 @@ export class SVEServerAccount extends SVEAccount {
                         userSessionID = req.query.sessionID as string;
                     }
                 }
-                
+
                 if (userSessionID !== undefined) {
                     LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
                         if(err) {
@@ -83,7 +83,7 @@ export class SVEServerAccount extends SVEAccount {
                             reject();
                         } else {
                             if (tokens.length > 0) {
-                                new SVEServerAccount({
+                                const a = new SVEServerAccount({
                                     id: (tokens[0] as any).userID,
                                     name: (tokens[0] as any).userName,
                                     loginState: (tokens[0] as any).loginState as LoginState,
@@ -178,7 +178,7 @@ export class SVEServerAccount extends SVEAccount {
 
     public static registerTemporaryUser(name: string): Promise<SVEAccount> {
         return new Promise<SVEAccount>((resolve, reject) => {
-            new SVEServerAccount({
+            const a = new SVEServerAccount({
                 id: -9,
                 loginState: LoginState.LoggedInByToken,
                 name: name,
@@ -198,7 +198,7 @@ export class SVEServerAccount extends SVEAccount {
                         resolve(usr);
                     }
                 });
-            });   
+            });
         });
     }
 }

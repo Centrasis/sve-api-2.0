@@ -1,17 +1,17 @@
 import express from "express";
-var cookieParser = require('cookie-parser');
-var compression = require('compression');
-var bodyParser = require('body-parser');
-var zip = require('express-easy-zip');
-import * as ua from 'express-useragent';
+import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import { json as jsonBody, urlencoded as urlencodedBody } from 'body-parser';
+import zip = require('express-easy-zip');
+import {express as expressUA} from 'express-useragent';
 
 export default class ServerHelper {
-    public static setupRouter(app: express.Router) { 
-        app.use(bodyParser.json());
+    public static setupRouter(app: express.Router) {
+        app.use(jsonBody());
         app.use(cookieParser());
         app.use(compression());
-        app.use(bodyParser.urlencoded({ extended: false }));
+        app.use(urlencodedBody({ extended: false }));
         app.use(zip());
-        app.use(ua.express());
+        app.use(expressUA());
     }
 }
