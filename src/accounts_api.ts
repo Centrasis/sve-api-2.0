@@ -96,12 +96,21 @@ router.put('/user/new', (req: Request, res: Response) => {
     }
 });
 
+router.get("/samllogin", (req: Request, res: Response) => {
+    sp.create_login_request_url(idp, {}, function(err, login_url, request_id) {
+      if (err != null)
+        return res.send(500);
+      res.redirect(login_url);
+    });
+});
+
 router.post('/doLogin', (req: Request, res: Response) => {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
             console.log("Logged in user: " + user.getName());
-            let ret: any = user.getInitializer() as any;
+            if (req.body.method && typeof req.body.method === "string" && req.body.method === "SAML") {
+            const ret: any = user.getInitializer() as any;
             ret.success = user.getState() !== LoginState.NotLoggedIn;
             res.json(ret);
         } else {
@@ -121,7 +130,7 @@ router.post('/doLogin', (req: Request, res: Response) => {
     } else {
         if (req.body.user && typeof req.body.user === "string") {
             acc = new SVEAccount({
-                name: req.body.user as string, 
+                name: req.body.user as string,
                 pass:req.body.pw as string
             }, onLogin);
         } else {

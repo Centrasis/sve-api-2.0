@@ -41,8 +41,8 @@
     "sharp": "^0.26.0",
     "socket.io": "^2.4.1",
     "sql": "^0.78.0",
-    "svebaselib": "git+https://github.com/ftl999/sveBaseLib.git#0.8.0",
-    "svegamesapi": "git+https://github.com/ftl999/sveGamesAPI.git#0.0.1",
+    "svebaselib": "git+https://github.com/Centrasis/sveBaseLib.git#0.8.0",
+    "svegamesapi": "git+https://github.com/Centrasis/sveGamesAPI.git#0.0.1",
     "typescript": "^3.9.10",
     "url": "^0.11.0",
     "video-thumbnail-generator": "^1.0.8",
@@ -63,7 +63,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ftl999/sve-api-2.0.git"
+    "url": "https://github.com/Centrasis/sve-api-2.0.git"
   },
   "author": "SVE",
   "license": "ISC"
