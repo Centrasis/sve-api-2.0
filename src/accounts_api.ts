@@ -97,11 +97,11 @@ router.put('/user/new', (req: Request, res: Response) => {
 });
 
 router.get("/samllogin", (req: Request, res: Response) => {
-    sp.create_login_request_url(idp, {}, function(err, login_url, request_id) {
+    /*sp.create_login_request_url(idp, {}, function(err, login_url, request_id) {
       if (err != null)
         return res.send(500);
       res.redirect(login_url);
-    });
+    });*/
 });
 
 router.post('/doLogin', (req: Request, res: Response) => {
@@ -110,31 +110,32 @@ router.post('/doLogin', (req: Request, res: Response) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
             console.log("Logged in user: " + user.getName());
             if (req.body.method && typeof req.body.method === "string" && req.body.method === "SAML") {
-            const ret: any = user.getInitializer() as any;
-            ret.success = user.getState() !== LoginState.NotLoggedIn;
-            res.json(ret);
-        } else {
-            res.json({
-                success: false,
-                user: ""
-            });
-        }
-    };
+                const ret: any = user.getInitializer() as any;
+                ret.success = user.getState() !== LoginState.NotLoggedIn;
+                res.json(ret);
+            } else {
+                res.json({
+                    success: false,
+                    user: ""
+                });
+            }
+        };
 
-    if (req.body.token !== undefined) {
-        acc = new SVEAccount({
-            name: (req.body as Token).name as string,
-            id: (req.body as Token).target as number,
-            token: (req.body as Token).token as string
-        }, onLogin);
-    } else {
-        if (req.body.user && typeof req.body.user === "string") {
+        if (req.body.token !== undefined) {
             acc = new SVEAccount({
-                name: req.body.user as string,
-                pass:req.body.pw as string
+                name: (req.body as Token).name as string,
+                id: (req.body as Token).target as number,
+                token: (req.body as Token).token as string
             }, onLogin);
         } else {
-            res.sendStatus(400);
+            if (req.body.user && typeof req.body.user === "string") {
+                acc = new SVEAccount({
+                    name: req.body.user as string,
+                    pass:req.body.pw as string
+                }, onLogin);
+            } else {
+                res.sendStatus(400);
+            }
         }
     }
 });
