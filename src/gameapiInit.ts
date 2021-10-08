@@ -5,10 +5,10 @@ import * as WebSocket from 'ws';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 
 class Initializer {
-    public static init(app: Application) {
-        expressWs(app as ExpressApp);
-        app.use("/", router);
-        app.ws("/:gid(\\w+)", (ws: WebSocket, req) => {
+    public static init(app: ExpressApp) {
+        /*expressWs(app);
+        (app as Application).use("/", router);
+        (app as Application).ws("/:gid(\\w+)", (ws: WebSocket, req) => {
             SVEServerAccount.getByRequest(req).then((user) => {
                 const gameID: string = req.params.gid as string;
                 // tslint:disable-next-line: no-console
@@ -25,7 +25,7 @@ class Initializer {
                 // tslint:disable-next-line: no-console
                 console.log("Invalid game join request!");
             });
-        });
+        });*/
     }
 }
 

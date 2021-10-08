@@ -3,7 +3,7 @@ import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
-//import {Initializer as games} from './gameapiInit';
+import {Initializer as games} from './gameapiInit';
 import expressWs from 'express-ws';
 
 if (process.argv.length <= 2) {
@@ -41,7 +41,7 @@ if (process.argv.length <= 2) {
     const sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    //games.init(app as expressWs.Application);
+    games.init(app);
 
     app.listen(port, () => {
         console.log('SVE Games API is listening on port ' + port + '!');
