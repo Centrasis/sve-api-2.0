@@ -2,7 +2,7 @@ import express, {RequestHandler} from 'express';
 import { Initializer as sve } from './sveapi';
 import { Initializer as sve_acc } from './accounts_api';
 import { Initializer as ai } from './aiapi';
-import { Initializer as games } from './gameapi';
+import { Initializer as games } from './gameapiInit';
 import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";

@@ -3,7 +3,8 @@ import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
-import {Initializer as games} from './gameapi';
+import {Initializer as games} from './gameapiInit';
+import expressWs from 'express-ws';
 
 if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().SQLCredentials = {
@@ -24,10 +25,10 @@ if (process.argv.length <= 2) {
         exit(-1);
     });
 
-    const app: Application = express();
+    const app: Application = expressWs(express()).app;
     const port = process.env.GAME_PORT || 83;
 
-    let opts: SessionOptions = {
+    const opts: SessionOptions = {
         name: 'sve-session',
         secret: process.env.SECRET || "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
         cookie: {
@@ -37,12 +38,12 @@ if (process.argv.length <= 2) {
         resave: true,
         saveUninitialized: true
     };
-    var sess: RequestHandler = session.default(opts);
+    const sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    games.init(app);
+    games.init(app as expressWs.Application);
 
-    app.listen(port, function () {
+    app.listen(port, () => {
         console.log('SVE Games API is listening on port ' + port + '!');
     });
 }
