@@ -10,15 +10,15 @@ import mysql from 'mysql';
 import { basename, dirname } from 'path';
 import * as sharp from "sharp";
 
-var aiModelPath = "/ai/models/";
+const aiModelPath = "/ai/models/";
 const imageSize: [number, number] = [100, 100];// [224, 224];
-var router = Router();
+const router = Router();
 ServerHelper.setupRouter(router);
 
-router.get('/check', function (req: Request, res: Response) {
-    let status: APIStatus = {
-        status: false,//SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
-        version: "1.0" 
+router.get('/check', (req: Request, res: Response) => {
+    const status: APIStatus = {
+        status: false,// SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        version: "1.0"
     };
 
     res.json(status);

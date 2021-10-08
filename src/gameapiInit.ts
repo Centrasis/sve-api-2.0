@@ -6,8 +6,8 @@ import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 
 class Initializer {
     public static init(app: ExpressApp) {
+        app.use("/", router);
         /*expressWs(app);
-        (app as Application).use("/", router);
         (app as Application).ws("/:gid(\\w+)", (ws: WebSocket, req) => {
             SVEServerAccount.getByRequest(req).then((user) => {
                 const gameID: string = req.params.gid as string;

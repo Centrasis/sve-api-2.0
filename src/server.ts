@@ -46,7 +46,7 @@ const servers: Map<string, [any, number]> = new Map<string, [any, number]>();
 servers.set("media", [sve, Number(process.env.SVE_PORT) || 80]);
 servers.set("accounts", [sve_acc, Number(process.env.ACCOUNT_PORT) || 81]);
 servers.set("ai", [ai, Number(process.env.AI_PORT) || 82]);
-//servers.set("games", [games, Number(process.env.GAME_PORT) || 83]);
+servers.set("games", [games, Number(process.env.GAME_PORT) || 83]);
 
 process.argv.forEach((val, index, array) => {
     if (servers.has(val)) {
