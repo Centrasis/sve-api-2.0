@@ -112,16 +112,9 @@ router.post('/doLogin', (req: Request, res: Response) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
             // tslint:disable-next-line: no-console
             console.log("Logged in user: " + user.getName());
-            if (req.body.method && typeof req.body.method === "string" && req.body.method === "SAML") {
-                const ret: any = user.getInitializer() as any;
-                ret.success = user.getState() !== LoginState.NotLoggedIn;
-                res.json(ret);
-            } else {
-                res.json({
-                    success: false,
-                    user: ""
-                });
-            }
+            const ret: any = user.getInitializer() as any;
+            ret.success = user.getState() !== LoginState.NotLoggedIn;
+            res.json(ret);
         } else {
             res.sendStatus(401);
         }
