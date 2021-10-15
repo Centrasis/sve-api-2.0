@@ -4,7 +4,6 @@ import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
-import * as fs from "fs";
 
 if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().SQLCredentials = {
@@ -19,8 +18,10 @@ if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().sources.sveDataPath = process.env.sveDataPath || '/mnt/MediaStorage/SnowVisionData';
 
     SVESystemInfo.initSystem().then((val) => {
+        // tslint:disable-next-line: no-console
         console.log('SVE System status: ' + JSON.stringify(SVESystemInfo.getSystemStatus()) + ' and isServer = ' + SVESystemInfo.getIsServer() + '!');
     }, (val) => {
+        // tslint:disable-next-line: no-console
         console.log('SVE System initialization failed: ' + JSON.stringify(val) + '!');
         exit(-1);
     });
@@ -28,7 +29,7 @@ if (process.argv.length <= 2) {
     const app: express.Application = express();
     const port = process.env.AI_PORT || 82;
 
-    let opts: SessionOptions = {
+    const opts: SessionOptions = {
         name: 'sve-session',
         secret: process.env.SECRET || "sadz456&&S(Dcn0eiasufzhaiesufzaipfuz",
         cookie: {
@@ -38,12 +39,13 @@ if (process.argv.length <= 2) {
         resave: true,
         saveUninitialized: true
     };
-    var sess: RequestHandler = session.default(opts);
+    const sess: RequestHandler = session.default(opts);
     app.use(sess);
 
     ai.init(app.use('/', ));
 
-    app.listen(port, function () {
+    app.listen(port, () => {
+        // tslint:disable-next-line: no-console
         console.log('SVE AI API is listening on port ' + port + '!');
     });
 } /*else {

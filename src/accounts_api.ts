@@ -67,6 +67,7 @@ router.put('/user/new', (req: Request, res: Response) => {
         const name: string = req.body.newUser as string;
         if(isTemporary) {
             SVEAccount.registerTemporaryUser(name).then(usr => {
+                // tslint:disable-next-line: no-console
                 console.log("Registered temporary user: " + usr.getName());
                 res.json(usr.getInitializer());
             }, err => res.sendStatus(500));
@@ -75,7 +76,8 @@ router.put('/user/new', (req: Request, res: Response) => {
                 const pass: string = req.body.newPassword as string;
                 SVEToken.tokenExists(Number(req.body.token.type) as TokenType, req.body.token.token as string, NaN).then(tokenOK => {
                     if(tokenOK) {
-                        SVEAccount.registerNewUser({ name: name, pass: pass } as  BasicUserLoginInfo).then(usr => {
+                        SVEAccount.registerNewUser({ name, pass } as  BasicUserLoginInfo).then(usr => {
+                            // tslint:disable-next-line: no-console
                             console.log("Registered new user: " + usr.getName());
                             res.json({
                                 success: usr.getState() !== LoginState.NotLoggedIn,
@@ -108,6 +110,7 @@ router.post('/doLogin', (req: Request, res: Response) => {
     let acc: SVEAccount;
     const onLogin = (user: SVEBaseAccount) => {
         if (user.getState() !== LoginState.NotLoggedIn) {
+            // tslint:disable-next-line: no-console
             console.log("Logged in user: " + user.getName());
             if (req.body.method && typeof req.body.method === "string" && req.body.method === "SAML") {
                 const ret: any = user.getInitializer() as any;
@@ -119,23 +122,25 @@ router.post('/doLogin', (req: Request, res: Response) => {
                     user: ""
                 });
             }
-        };
+        } else {
+            res.sendStatus(401);
+        }
+    };
 
-        if (req.body.token !== undefined) {
+    if (req.body.token !== undefined) {
+        acc = new SVEAccount({
+            name: (req.body as Token).name as string,
+            id: (req.body as Token).target as number,
+            token: (req.body as Token).token as string
+        }, onLogin);
+    } else {
+        if (req.body.user && typeof req.body.user === "string") {
             acc = new SVEAccount({
-                name: (req.body as Token).name as string,
-                id: (req.body as Token).target as number,
-                token: (req.body as Token).token as string
+                name: req.body.user as string,
+                pass:req.body.pw as string
             }, onLogin);
         } else {
-            if (req.body.user && typeof req.body.user === "string") {
-                acc = new SVEAccount({
-                    name: req.body.user as string,
-                    pass:req.body.pw as string
-                }, onLogin);
-            } else {
-                res.sendStatus(400);
-            }
+            res.sendStatus(400);
         }
     }
 });

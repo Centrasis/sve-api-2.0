@@ -3,13 +3,12 @@ import { Initializer as sve } from './sveapi';
 import { Initializer as sve_acc } from './accounts_api';
 import { Initializer as ai } from './aiapi';
 import { Initializer as games } from './gameapiInit';
-import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
-import { ClassElement } from 'typescript';
 
+// tslint:disable-next-line: no-console
 console.log("run server with arguments: ", process.argv);
 
 SVESystemInfo.getInstance().SQLCredentials = {
@@ -24,8 +23,10 @@ SVESystemInfo.getInstance().sources.volatileDatabase = process.env.volatileDB ||
 SVESystemInfo.getInstance().sources.sveDataPath = process.env.sveDataPath || '/mnt/MediaStorage/SnowVisionData';
 
 SVESystemInfo.initSystem().then((val) => {
+    // tslint:disable-next-line: no-console
     console.log('SVE System status: ' + JSON.stringify(SVESystemInfo.getSystemStatus()) + ' and isServer = ' + SVESystemInfo.getIsServer() + '!');
 }, (val) => {
+    // tslint:disable-next-line: no-console
     console.log('SVE System initialization failed: ' + JSON.stringify(val) + '!');
     exit(-1);
 });
@@ -54,6 +55,7 @@ process.argv.forEach((val, index, array) => {
         app.use(sess);
         servers.get(val)![0].init(app);
         app.listen(servers.get(val)![1], () => {
+            // tslint:disable-next-line: no-console
             console.log('SVE ' + val + ' API is listening on port ' + String(servers.get(val)![1]) + '!');
         });
     }
