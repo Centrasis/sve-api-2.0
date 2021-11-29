@@ -1,4 +1,5 @@
 import express, {RequestHandler, Application} from 'express';
+import {Application as ExpressApp} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
@@ -19,13 +20,15 @@ if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().sources.sveDataPath = process.env.sveDataPath || '/mnt/MediaStorage/SnowVisionData';
 
     SVESystemInfo.initSystem().then((val) => {
+        // tslint:disable-next-line: no-console
         console.log('SVE System status: ' + JSON.stringify(SVESystemInfo.getSystemStatus()) + ' and isServer = ' + SVESystemInfo.getIsServer() + '!');
     }, (val) => {
+        // tslint:disable-next-line: no-console
         console.log('SVE System initialization failed: ' + JSON.stringify(val) + '!');
         exit(-1);
     });
 
-    const app: Application = expressWs(express()).app;
+    const app: ExpressApp = expressWs(express()).app;
     const port = process.env.GAME_PORT || 83;
 
     const opts: SessionOptions = {
@@ -44,6 +47,7 @@ if (process.argv.length <= 2) {
     games.init(app);
 
     app.listen(port, () => {
+        // tslint:disable-next-line: no-console
         console.log('SVE Games API is listening on port ' + port + '!');
     });
 }

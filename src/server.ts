@@ -1,4 +1,5 @@
 import express, {RequestHandler} from 'express';
+import expressWs, {Application as ExpressApp} from 'express-ws';
 import { Initializer as sve } from './sveapi';
 import { Initializer as sve_acc } from './accounts_api';
 import { Initializer as ai } from './aiapi';
@@ -51,7 +52,7 @@ servers.set("games", [games, Number(process.env.GAME_PORT) || 83]);
 
 process.argv.forEach((val, index, array) => {
     if (servers.has(val)) {
-        const app: express.Application = express();
+        const app: ExpressApp = expressWs(express()).app;
         app.use(sess);
         servers.get(val)![0].init(app);
         app.listen(servers.get(val)![1], () => {

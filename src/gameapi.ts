@@ -50,10 +50,30 @@ class SVEServerGame {
         });
     }
 
+    public disconnect(ws: WebSocket) {
+        let toRemove: SVEAccount | undefined;
+        this.players.forEach((val, key, m) => {
+            if (val === ws)
+                toRemove = key;
+        });
+
+        if (toRemove !== undefined)
+            this.players.delete(toRemove);
+    }
+
     public getAsInitializer(): SVEGameInfo {
         const i = this.info;
         i.host = (typeof i.host === "string") ? i.host : i.host.getName();
         return i;
+    }
+
+    public broadcast(invoker: SVEAccount, msg: any) {
+        this.players.forEach((val, key, m) => {
+            val.send(JSON.stringify({
+                invoker: invoker.getName(),
+                msg
+            }));
+        });
     }
 }
 
@@ -124,13 +144,16 @@ router.get("/players/:gid(\\w+)", (req, res) => {
 router.put("/new", (req: Request, res: Response) => {
     SVEServerAccount.getByRequest(req).then((user) => {
         const gi: SVEGameInfo = req.body as SVEGameInfo;
+        // tslint:disable-next-line: no-console
         console.log("New game request: ", gi);
         if(gi.maxPlayers !== undefined && gi.name !== undefined && !games.has(gi.name)) {
             gi.host = user;
             games.set(gi.name, new SVEServerGame(user, gi));
+            // tslint:disable-next-line: no-console
             console.log("Created new game: " + gi.name);
             res.sendStatus(204);
         } else {
+            // tslint:disable-next-line: no-console
             console.log("Rejected new game: " + gi.name);
             res.sendStatus(400);
         }
@@ -174,6 +197,7 @@ router.put("/meta/:gid", (req: Request, res: Response) => {
 
 router.put("/update/:gid(\\w+)", (req: Request, res: Response) => {
     const gameID: string = req.params.gid as string;
+    // tslint:disable-next-line: no-console
     console.log("New valid update request for game: " + gameID);
     SVEServerAccount.getByRequest(req).then((user) => {
         if(games.has(gameID)) {
@@ -199,6 +223,7 @@ router.put("/update/:gid(\\w+)", (req: Request, res: Response) => {
             res.sendStatus(404);
         }
     }, err => {
+        // tslint:disable-next-line: no-console
         console.log("Invalid game update request!");
         res.sendStatus(401);
     });
