@@ -1,12 +1,13 @@
 import {games, router} from './gameapi';
-import expressWs, {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
+import {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
+import * as express from 'express';
 import * as WebSocket from 'ws';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 
 class Initializer {
     public static init(app: ExpressApp) {
         app.use("/", router);
-        app.ws("/:gid(\\w+)", (ws: WebSocket, req) => {
+        app.ws("/:gid(\\w+)", (ws: WebSocket, req: express.Request, next: express.NextFunction) => {
             SVEServerAccount.getByRequest(req).then((user) => {
                 const gameID: string = req.params.gid as string;
                 // tslint:disable-next-line: no-console
