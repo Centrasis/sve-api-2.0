@@ -4,6 +4,7 @@ import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'sv
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
 import * as ws from 'ws';
+import { Router as WsRouter } from 'express-ws';
 
 class SVEServerGame {
     public info: SVEGameInfo;
@@ -90,7 +91,7 @@ class SVEServerGame {
 }
 
 const games: Map<string, SVEServerGame> = new Map<string, SVEServerGame>();
-const router: Router = Router();
+const router: WsRouter = Router();
 ServerHelper.setupRouter(router);
 
 

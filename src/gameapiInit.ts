@@ -1,11 +1,10 @@
 import {games, router} from './gameapi';
 import {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
-import * as express from 'express';
-import * as ws from 'ws';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
+import { GameRejectReason } from 'svegamesapi';
 
 
-const handlerWS: WebsocketRequestHandler = (w: ws, req: express.Request, next: express.NextFunction) => {
+const handlerWS: WebsocketRequestHandler = (w, req) => {
     SVEServerAccount.getByRequest(req).then((user) => {
         const gameID: string = req.params.gid as string;
         // tslint:disable-next-line: no-console
@@ -20,9 +19,8 @@ const handlerWS: WebsocketRequestHandler = (w: ws, req: express.Request, next: e
                     // tslint:disable-next-line: no-console
                     console.log("Join successful!");
                 }, err => {
-                    // ws.close(Number(GameRejectReason.GameFull));
+                    w.close(Number(GameRejectReason.GameFull));
                 });
-
             };
         };
     }, err => {
@@ -33,9 +31,9 @@ const handlerWS: WebsocketRequestHandler = (w: ws, req: express.Request, next: e
 
 class Initializer {
     public static init(app: ExpressApp) {
-        app.use("/", router);
+        router.ws("/:gid(\\w+)", handlerWS);
 
-        app.ws("/:gid(\\w+)", handlerWS);
+        app.use("/", router);
     }
 }
 
