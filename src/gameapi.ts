@@ -128,7 +128,7 @@ router.get("/list/types", (req, res) => {
 
 router.get('/check', (req: Request, res: Response) => {
     const status: APIStatus = {
-        status: false, // SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
+        status: SVESystemInfo.getSystemStatus().basicSystem && SVESystemInfo.getSystemStatus().tokenSystem,
         version: "1.0"
     };
 
