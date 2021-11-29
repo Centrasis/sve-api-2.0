@@ -1,5 +1,5 @@
 import {games, router} from './gameapi';
-import expressWs, {Application as ExpressApp} from 'express-ws';
+import expressWs, {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
 import * as WebSocket from 'ws';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 
