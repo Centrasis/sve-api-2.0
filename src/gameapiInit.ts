@@ -46,6 +46,7 @@ const handlerWS: WebsocketRequestHandler = (ws: WebSocket, req: express.Request,
         console.log("Invalid game join request!");
     });
 };
+
 class Initializer {
     public static init(app: ExpressApp) {
         app.use("/", router);
