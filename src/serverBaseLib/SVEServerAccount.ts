@@ -63,7 +63,6 @@ export class SVEServerAccount extends SVEAccount {
 
     public static getByRequest(req: Request): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
-            console.log("getByRequest: ", req.headers);
             let userSessionID: string | undefined;
             if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
                 userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
@@ -71,13 +70,20 @@ export class SVEServerAccount extends SVEAccount {
                 if(req.query.sessionID !== undefined) {
                     userSessionID = req.query.sessionID as string;
                 } else {
+                    console.log("Auth header: ", req.header("authorization"));
                     if (req.header("authorization") !== undefined) {
+                        console.log("use Basic Auth");
                         const auth = atob(req.header("authorization")!.replace("Basic ", ""));
+                        console.log("Auth: ", auth);
                         if (auth.split(":").length === 2) {
+                            console.log("Valid Auth!");
                             const user = auth.split(":")[0];
                             const pw = auth.split(":")[1];
 
+                            console.log("user: ", user);
+                            console.log("pw: ", pw);
                             if (user === "sessionID") {
+                                console.log("Use with session!");
                                 userSessionID = pw;
                             }
                         }
