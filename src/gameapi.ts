@@ -122,11 +122,10 @@ router.get("/list/types", (req, res) => {
             const list: SVEStaticGameInfo[] = [];
             dirs.forEach(f => {
                 if (f.isDirectory()) {
-                    console.log("Check game folder: " + f.name);
-                    const p = path.join(f.name, "game_info.json");
+                    const p = path.join("/games/", f.name, "game_info.json");
                     if (existsSync(p)) {
                         const info = JSON.parse(readFileSync(p).toString("utf-8")) as SVEStaticGameInfo;
-                        info.assetPath = path.basename(f.name);
+                        info.assetPath = f.name;
                         list.push(info);
                     }
                 }
