@@ -63,6 +63,7 @@ export class SVEServerAccount extends SVEAccount {
 
     public static getByRequest(req: Request): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
+            console.log("getByRequest: ", req.headers);
             let userSessionID: string | undefined;
             if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
                 userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
