@@ -75,8 +75,8 @@ export class SVEServerAccount extends SVEAccount {
                         const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+\\=)");
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
-                            const m = basicAuthPattern.exec(auth);
-                            const basicAuth = Buffer.alloc(m![1].length, m![1], 'base64');
+                            const m = basicAuthPattern.exec(auth)!;
+                            const basicAuth = Buffer.alloc(m[1].length, m[1], 'base64');
                             const basicAuthDecoded = basicAuth.toString('ascii');
                             console.log("Decoded", basicAuthDecoded)
 
