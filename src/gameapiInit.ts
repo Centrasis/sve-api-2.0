@@ -25,7 +25,7 @@ const handlerWS: WebsocketRequestHandler = (ws, req) => {
         };
     }, err => {
         // tslint:disable-next-line: no-console
-        console.log("Invalid game join request!");
+        console.log("Invalid game join request!", err);
     });
 };
 

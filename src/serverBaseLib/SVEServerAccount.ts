@@ -72,15 +72,12 @@ export class SVEServerAccount extends SVEAccount {
                 } else {
                     console.log("Auth header: ", req.header("authorization"));
                     if (req.header("authorization") !== undefined) {
-                        console.log("Use Header Auth");
                         const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+\\=)");
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
-                            console.log("Use Basic Auth");
                             const m = basicAuthPattern.exec(auth);
-                            const basicAuth = m![1];
-                            console.log("Base64", basicAuth)
-                            const basicAuthDecoded = atob(basicAuth);
+                            const basicAuth = Buffer.alloc(m![1].length, m![1], 'base64');
+                            const basicAuthDecoded = basicAuth.toString('ascii');
                             console.log("Decoded", basicAuthDecoded)
 
                             if (basicAuthDecoded.includes(":")) {
@@ -104,9 +101,7 @@ export class SVEServerAccount extends SVEAccount {
             if (userSessionID !== undefined) {
                 LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
                     if(err) {
-                        // tslint:disable-next-line: no-console
-                        console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
-                        reject();
+                        reject({reason: "Mongoose Error: " + JSON.stringify(err)});
                     } else {
                         if (tokens.length > 0) {
                             const a = new SVEServerAccount({
@@ -118,12 +113,12 @@ export class SVEServerAccount extends SVEAccount {
                                 resolve(user as SVEServerAccount);
                             });
                         } else {
-                            reject();
+                            reject({reason: "Invalid SessionID"});
                         }
                     }
                 });
             } else {
-                reject();
+                reject({reason: "No Session info found"});
             }
         });
     }
