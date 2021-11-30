@@ -3,6 +3,7 @@ import {SVEAccount, LoginState, SessionUserInitializer, SessionUserInitializerTy
 import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 import mongoose from 'mongoose';
 import { Request } from "express";
+import { base64decode } from 'nodejs-base64';
 
 const loginSchema = new mongoose.Schema({
     sessionID: {
@@ -76,8 +77,8 @@ export class SVEServerAccount extends SVEAccount {
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
                             const m = basicAuthPattern.exec(auth)!;
-                            const basicAuth = Buffer.alloc(m[1].length, m[1], 'base64');
-                            const basicAuthDecoded = basicAuth.toString('ascii');
+                            const basicAuth = m[1];// Buffer.alloc(m[1].length, m[1], 'base64');
+                            const basicAuthDecoded = base64decode(basicAuth); //basicAuth.toString('ascii');
                             console.log("Decoded", basicAuthDecoded)
 
                             if (basicAuthDecoded.includes(":")) {
