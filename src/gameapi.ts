@@ -2,9 +2,11 @@ import ServerHelper from './serverhelper';
 import { Request, Response, Router } from "express";
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
-import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer } from 'svegamesapi';
+import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer, SVEStaticGameInfo } from 'svegamesapi';
 import * as ws from 'ws';
 import { Router as WsRouter } from 'express-ws';
+import { readdirSync, existsSync, readFileSync } from 'fs';
+import * as path from 'path';
 
 class SVEServerGame {
     public info: SVEGameInfo;
@@ -112,15 +114,26 @@ router.get("/list", (req, res) => {
 
 router.get("/list/types", (req, res) => {
     SVEServerAccount.getByRequest(req).then((user) => {
-        const retList: SVEGameInfo[] = [];
+        const dirs = readdirSync("/games", {withFileTypes: true});
 
-        res.json([
-            "Survival",
-            "TheGame",
-            "Uno",
-            "Busdriver",
-            "Wizard"
-        ]);
+        if (dirs === undefined || dirs.length === 0) {
+            res.json([]);
+        } else {
+            const list: SVEStaticGameInfo[] = [];
+            dirs.forEach(f => {
+                if (f.isDirectory()) {
+                    console.log("Check game folder: " + f.name);
+                    const p = path.join(f.name, "game_info.json");
+                    if (existsSync(p)) {
+                        const info = JSON.parse(readFileSync(p).toString("utf-8")) as SVEStaticGameInfo;
+                        info.assetPath = path.basename(f.name);
+                        list.push(info);
+                    }
+                }
+            });
+
+            res.json(list);
+        }
     }, err => {
         res.sendStatus(401);
     });
