@@ -71,26 +71,20 @@ export class SVEServerAccount extends SVEAccount {
                 if(req.query.sessionID !== undefined) {
                     userSessionID = req.query.sessionID as string;
                 } else {
-                    console.log("Auth header: ", req.header("authorization"));
                     if (req.header("authorization") !== undefined) {
                         const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+)");
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
                             const m = basicAuthPattern.exec(auth)!;
-                            const basicAuth = m[1];// Buffer.alloc(m[1].length, m[1], 'base64');
-                            const basicAuthDecoded = base64decode(basicAuth); //basicAuth.toString('ascii');
-                            console.log("Decoded", basicAuthDecoded)
+                            const basicAuth = m[1];
+                            const basicAuthDecoded = base64decode(basicAuth);
 
                             if (basicAuthDecoded.includes(":")) {
-                                console.log("Valid!");
                                 const params = basicAuthDecoded.split(":");
                                 const user = params[0];
                                 const pw = params[1];
 
-                                console.log("user: ", user);
-                                console.log("pw: ", pw);
                                 if (user === "sessionID") {
-                                    console.log("Use with session!");
                                     userSessionID = pw;
                                 }
                             }
