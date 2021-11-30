@@ -93,6 +93,8 @@ export class SVEServerAccount extends SVEAccount {
                                     userSessionID = pw;
                                 }
                             }
+                        } else {
+                            console.log("Request was not BasicAuth!");
                         }
                     }
                 }
