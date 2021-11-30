@@ -72,7 +72,7 @@ export class SVEServerAccount extends SVEAccount {
                 } else {
                     console.log("Auth header: ", req.header("authorization"));
                     if (req.header("authorization") !== undefined) {
-                        const basicAuthPattern = new RegExp(".*Basic\\W+(\\w+)\\=+");
+                        const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+)");
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
                             const m = basicAuthPattern.exec(auth)!;
