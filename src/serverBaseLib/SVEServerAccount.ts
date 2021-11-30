@@ -21,7 +21,7 @@ export class SVEServerAccount extends SVEAccount {
         super(user, onLogin);
     }
 
-    static makeLogin(user: String, id: Number): Promise<SVEServerAccount> {
+    static makeLogin(user: string, id: number): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
             const sessID = this.generateID();
             LoginModel.create({
@@ -31,10 +31,11 @@ export class SVEServerAccount extends SVEAccount {
                 loginState: LoginState.LoggedInByToken
             }, (err, tk) => {
                 if (err) {
+                    // tslint:disable-next-line: no-console
                     console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                     reject();
                 } else {
-                    const a = new SVEServerAccount({id: id, name: user, sessionID: sessID, loginState: LoginState.LoggedInByToken} as SessionUserInitializer, usr => {
+                    const a = new SVEServerAccount({id, name: user, sessionID: sessID, loginState: LoginState.LoggedInByToken} as SessionUserInitializer, usr => {
                         resolve(usr as SVEServerAccount);
                     });
                 }
@@ -46,6 +47,7 @@ export class SVEServerAccount extends SVEAccount {
         return new Promise<boolean>((resolve, reject) => {
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM user WHERE id = ?", [id], (err, results) => {
                 if(err) {
+                    // tslint:disable-next-line: no-console
                     console.log("SQL error: " + JSON.stringify(err));
                     this.init(LoginState.NotLoggedIn);
                     reject(err);
@@ -61,54 +63,62 @@ export class SVEServerAccount extends SVEAccount {
 
     public static getByRequest(req: Request): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
-            /*if (req.session!.user) {
-                // we have a valid session!
-                new SVEServerAccount(req.session!.user as SessionUserInitializer, (user: SVEAccount) => {
-                    resolve(user as SVEServerAccount);
-                });
-            } else {*/
-                let userSessionID: string | undefined;
-                if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
-                    userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
+            let userSessionID: string | undefined;
+            if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
+                userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
+            } else {
+                if(req.query.sessionID !== undefined) {
+                    userSessionID = req.query.sessionID as string;
                 } else {
-                    if(req.query.sessionID !== undefined) {
-                        userSessionID = req.query.sessionID as string;
-                    }
-                }
+                    if (req.header("authorization") !== undefined) {
+                        const auth = atob(req.header("authorization")!.replace("Basic ", ""));
+                        if (auth.split(":").length === 2) {
+                            const user = auth.split(":")[0];
+                            const pw = auth.split(":")[1];
 
-                if (userSessionID !== undefined) {
-                    LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
-                        if(err) {
-                            console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
-                            reject();
-                        } else {
-                            if (tokens.length > 0) {
-                                const a = new SVEServerAccount({
-                                    id: (tokens[0] as any).userID,
-                                    name: (tokens[0] as any).userName,
-                                    loginState: (tokens[0] as any).loginState as LoginState,
-                                    sessionID: userSessionID
-                                } as SessionUserInitializer, (user: SVEAccount) => {
-                                    resolve(user as SVEServerAccount);
-                                });
-                            } else {
-                                reject();
+                            if (user === "sessionID") {
+                                userSessionID = pw;
                             }
                         }
-                    });
-                } else {
-                    reject();
+                    }
                 }
-            //}  
+            }
+
+            if (userSessionID !== undefined) {
+                LoginModel.where('sessionID').equals(userSessionID).exec((err, tokens) => {
+                    if(err) {
+                        // tslint:disable-next-line: no-console
+                        console.log("MONGOOSE FIND ERROR:" + JSON.stringify(err));
+                        reject();
+                    } else {
+                        if (tokens.length > 0) {
+                            const a = new SVEServerAccount({
+                                id: (tokens[0] as any).userID,
+                                name: (tokens[0] as any).userName,
+                                loginState: (tokens[0] as any).loginState as LoginState,
+                                sessionID: userSessionID
+                            } as SessionUserInitializer, (user: SVEAccount) => {
+                                resolve(user as SVEServerAccount);
+                            });
+                        } else {
+                            reject();
+                        }
+                    }
+                });
+            } else {
+                reject();
+            }
         });
     }
 
     public static generateID(): string {
+        // tslint:disable-next-line: no-bitwise
         return [...Array(30)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
     }
 
     protected doLogin(info: BasicUserLoginInfo): Promise<LoginState> {
         if (!SVESystemInfo.getIsServer()) {
+            // tslint:disable-next-line: no-console
             console.log("Is weirdly Client!");
             return super.doLogin(info)
         } else {
@@ -116,6 +126,7 @@ export class SVEServerAccount extends SVEAccount {
                 if (typeof SVESystemInfo.getInstance().sources.persistentDatabase !== "string") {
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT * FROM user WHERE name = ? AND password = SHA1(?)", [info.name, info.pass], (err, result) => {
                         if(err) {
+                            // tslint:disable-next-line: no-console
                             console.log("LOGIN ERROR: " + JSON.stringify(err));
                             reject(this.loginState);
                             return;
@@ -132,8 +143,9 @@ export class SVEServerAccount extends SVEAccount {
                                 userID: this.id,
                                 userName: this.name,
                                 loginState: Number(this.loginState)
-                            }, (err, tk) => {
-                                if (err) {
+                            }, (err2, tk) => {
+                                if (err2) {
+                                    // tslint:disable-next-line: no-console
                                     console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                                     reject(this.loginState);
                                 } else {
@@ -142,12 +154,14 @@ export class SVEServerAccount extends SVEAccount {
                             });
                         } else {
                             if (result.length > 1) {
+                                // tslint:disable-next-line: no-console
                                 console.log("ERROR: Double entry! " + JSON.stringify(result));
                             }
                             resolve(this.loginState);
                         }
                     });
                 } else {
+                    // tslint:disable-next-line: no-console
                     console.log("ERROR: persistentDatabase was NOT connected!");
                     reject(this.loginState);
                 }
@@ -159,16 +173,18 @@ export class SVEServerAccount extends SVEAccount {
         return new Promise<SVEAccount>((resolve, reject) => {
             (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("SELECT MAX(id) as id FROM user", (idErr, idRes) => {
                 if(idErr) {
+                    // tslint:disable-next-line: no-console
                     console.log("REGISTER ERROR: " + JSON.stringify(idErr));
                     reject();
                 } else {
-                    let id = (idRes.length > 0) ? Number(idRes[0].id) + 1 : 0;
+                    const id = (idRes.length > 0) ? Number(idRes[0].id) + 1 : 0;
                     (SVESystemInfo.getInstance().sources.persistentDatabase! as mysql.Connection).query("INSERT INTO user (`id`, `name`, `password`) VALUES (?, ?, SHA1(?))", [id, login.name, login.pass], (err, result) => {
                         if(err) {
+                            // tslint:disable-next-line: no-console
                             console.log("REGISTER ERROR: " + JSON.stringify(err));
                             reject();
                         } else {
-                            new SVEServerAccount(login, (usr) => resolve(usr));
+                            const a = new SVEServerAccount(login, (usr) => resolve(usr));
                         }
                     });
                 }
@@ -181,7 +197,7 @@ export class SVEServerAccount extends SVEAccount {
             const a = new SVEServerAccount({
                 id: -9,
                 loginState: LoginState.LoggedInByToken,
-                name: name,
+                name,
                 sessionID: SVEServerAccount.generateID(),
                 requester: undefined
             } as SessionUserInitializer, usr => {
@@ -192,6 +208,7 @@ export class SVEServerAccount extends SVEAccount {
                     loginState: usr.getLoginState()
                 }, (err, tk) => {
                     if (err) {
+                        // tslint:disable-next-line: no-console
                         console.log("MONGOOSE SAVE ERROR:" + JSON.stringify(err));
                         reject();
                     } else {
