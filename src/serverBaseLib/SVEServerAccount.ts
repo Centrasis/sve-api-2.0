@@ -72,19 +72,29 @@ export class SVEServerAccount extends SVEAccount {
                 } else {
                     console.log("Auth header: ", req.header("authorization"));
                     if (req.header("authorization") !== undefined) {
-                        console.log("use Basic Auth");
-                        const auth = atob(req.header("authorization")!.replace("Basic ", ""));
-                        console.log("Auth: ", auth);
-                        if (auth.split(":").length === 2) {
-                            console.log("Valid Auth!");
-                            const user = auth.split(":")[0];
-                            const pw = auth.split(":")[1];
+                        console.log("Use Header Auth");
+                        const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+\\=)");
+                        const auth = req.header("authorization")!;
+                        if (basicAuthPattern.test(auth)) {
+                            console.log("Use Basic Auth");
+                            const m = basicAuthPattern.exec(auth);
+                            const basicAuth = m![1];
+                            console.log("Base64", basicAuth)
+                            const basicAuthDecoded = atob(basicAuth);
+                            console.log("Decoded", basicAuthDecoded)
 
-                            console.log("user: ", user);
-                            console.log("pw: ", pw);
-                            if (user === "sessionID") {
-                                console.log("Use with session!");
-                                userSessionID = pw;
+                            if (basicAuthDecoded.includes(":")) {
+                                console.log("Valid!");
+                                const params = basicAuthDecoded.split(":");
+                                const user = params[0];
+                                const pw = params[1];
+
+                                console.log("user: ", user);
+                                console.log("pw: ", pw);
+                                if (user === "sessionID") {
+                                    console.log("Use with session!");
+                                    userSessionID = pw;
+                                }
                             }
                         }
                     }
