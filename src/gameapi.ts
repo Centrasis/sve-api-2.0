@@ -3,7 +3,7 @@ import { Request, Response, Router } from "express";
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer, SVEStaticGameInfo } from 'svegamesapi';
-import * as WebSocket from 'ws';
+import * as RawWebSocket from 'ws';
 import { Router as WsRouter } from 'express-ws';
 import { readdirSync, existsSync, readFileSync } from 'fs';
 import * as path from 'path';
@@ -12,7 +12,7 @@ class SVEServerGame {
     public info: SVEGameInfo;
     public meta: any;
     public creation = new Date();
-    public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
+    public players: Map<SVEAccount, RawWebSocket> = new Map<SVEAccount, RawWebSocket>();
 
     constructor(host: SVEAccount, info: SVEGameInfo) {
         this.info = info;
@@ -20,7 +20,7 @@ class SVEServerGame {
         this.meta = {};
     }
 
-    public join(usr: SVEAccount, ws: WebSocket): Promise<void> {
+    public join(usr: SVEAccount, ws: RawWebSocket): Promise<void> {
         return new Promise<void>((reject, resolve) => {
             if (this.info.maxPlayers > this.players.size) {
                 this.info.playersCount!++;
@@ -65,7 +65,7 @@ class SVEServerGame {
         });
     }
 
-    public disconnect(w: WebSocket) {
+    public disconnect(w: RawWebSocket) {
         let toRemove: SVEAccount | undefined;
         this.players.forEach((val, key, m) => {
             if (val === w)

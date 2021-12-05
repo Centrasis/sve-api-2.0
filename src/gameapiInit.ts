@@ -2,9 +2,9 @@ import {games, router} from './gameapi';
 import {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { GameRejectReason } from 'svegamesapi';
-import * as WebSocket from 'ws';
+import * as RawWebSocket from 'ws';
 
-const handlerWS: WebsocketRequestHandler = (ws: WebSocket, req) => {
+const handlerWS: WebsocketRequestHandler = (ws: RawWebSocket, req) => {
     SVEServerAccount.getByRequest(req).then((user) => {
         const gameID: string = req.params.gid as string;
         // tslint:disable-next-line: no-console
