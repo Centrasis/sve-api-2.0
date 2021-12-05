@@ -3,7 +3,7 @@ import { Request, Response, Router } from "express";
 import { APIStatus, SessionUserInitializer, SVEAccount, SVESystemInfo } from 'svebaselib';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { Action, GameRejectReason, GameState, SVEGameInfo, SVEGameServer, SVEStaticGameInfo } from 'svegamesapi';
-import * as ws from 'ws';
+import * as WebSocket from 'ws';
 import { Router as WsRouter } from 'express-ws';
 import { readdirSync, existsSync, readFileSync } from 'fs';
 import * as path from 'path';
@@ -12,7 +12,7 @@ class SVEServerGame {
     public info: SVEGameInfo;
     public meta: any;
     public creation = new Date();
-    public players: Map<SVEAccount, ws> = new Map<SVEAccount, ws>();
+    public players: Map<SVEAccount, WebSocket> = new Map<SVEAccount, WebSocket>();
 
     constructor(host: SVEAccount, info: SVEGameInfo) {
         this.info = info;
@@ -20,26 +20,26 @@ class SVEServerGame {
         this.meta = {};
     }
 
-    public join(usr: SVEAccount, w: ws): Promise<void> {
+    public join(usr: SVEAccount, ws: WebSocket): Promise<void> {
         return new Promise<void>((reject, resolve) => {
             if (this.info.maxPlayers > this.players.size) {
                 this.info.playersCount!++;
-                this.players.set(usr, w);
+                this.players.set(usr, ws);
                 const self = this;
 
-                w.onclose = (e) => {
+                ws.onclose = (e) => {
                     // tslint:disable-next-line: no-console
                     console.log("Leave game: " + self.info.name + "!");
-                    self.disconnect(w);
+                    self.disconnect(ws);
                 };
 
-                w.onerror = (e) => {
+                ws.onerror = (e) => {
                     // tslint:disable-next-line: no-console
                     console.log("Error on game connection: " + self.info.name + "!");
-                    self.disconnect(w);
+                    self.disconnect(ws);
                 };
 
-                w.onmessage = (e) => {
+                ws.onmessage = (e) => {
                     self.broadcast(usr, e.data);
                 };
 
@@ -65,7 +65,7 @@ class SVEServerGame {
         });
     }
 
-    public disconnect(w: ws) {
+    public disconnect(w: WebSocket) {
         let toRemove: SVEAccount | undefined;
         this.players.forEach((val, key, m) => {
             if (val === w)
