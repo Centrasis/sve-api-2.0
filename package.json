@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@types/express-useragent": "^1.0.0",
-    "@types/ws": "^7.4.6"
+    "@types/ws": "^7.4.7"
   },
   "scripts": {
     "tsc": "tsc -b",
