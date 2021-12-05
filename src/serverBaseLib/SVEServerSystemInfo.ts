@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import {SVESystemInfo, SVESystemState} from 'svebaselib'
 
 class SVEServerSystemInfo extends SVESystemInfo {
-    protected constructor() { 
+    protected constructor() {
         super();
         SVESystemInfo.isServer = true;
         SVEServerSystemInfo.isServer = true;
@@ -24,9 +24,10 @@ class SVEServerSystemInfo extends SVESystemInfo {
                     tokenSystem: false
                 };
 
-                var self = (SVEServerSystemInfo.instance as SVEServerSystemInfo);
+                const self = (SVEServerSystemInfo.instance as SVEServerSystemInfo);
 
                 if (typeof this.getInstance().sources.persistentDatabase === "string") {
+                    // tslint:disable-next-line: no-console
                     console.log("SQL User: '" + this.getInstance().SQLCredentials.MySQL_User + "'");
                     this.getInstance().sources.persistentDatabase = mysql.createConnection({
                         host: this.getInstance().sources.persistentDatabase as string,
@@ -40,9 +41,9 @@ class SVEServerSystemInfo extends SVESystemInfo {
                             rejectUnauthorized: false
                         }
                     });
-                    
+
                     if(this.getInstance().sources.persistentDatabase !== undefined) {
-                        (this.getInstance().sources.persistentDatabase! as mysql.Connection).connect(function(err) {
+                        (this.getInstance().sources.persistentDatabase! as mysql.Connection).connect((err) => {
                             if (err) {
                                 reject(err);
                             } else {
@@ -56,10 +57,11 @@ class SVEServerSystemInfo extends SVESystemInfo {
                 }
 
                 if (typeof this.getInstance().sources.volatileDatabase === "string") {
-                    mongoose.connect(this.getInstance().sources.volatileDatabase as string, {useNewUrlParser: true, useUnifiedTopology: true}).then((val) => {
+                    mongoose.connect(this.getInstance().sources.volatileDatabase as string).then((val) => {
                         this.getInstance().sources.volatileDatabase = val;
                         self.systemState.tokenSystem = true;
                     }, (reason) => {
+                        // tslint:disable-next-line: no-console
                         console.log("Cannot connect to volatile DB!");
                     });
                 }
