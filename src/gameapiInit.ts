@@ -4,7 +4,7 @@ import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { GameRejectReason } from 'svegamesapi';
 import * as RawWebSocket from 'ws';
 
-const handlerWS: WebsocketRequestHandler = (ws: RawWebSocket, req) => {
+const handlerWS: WebsocketRequestHandler = (ws, req) => {
     SVEServerAccount.getByRequest(req).then((user) => {
         const gameID: string = req.params.gid as string;
         // tslint:disable-next-line: no-console

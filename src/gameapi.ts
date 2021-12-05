@@ -20,7 +20,7 @@ class SVEServerGame {
         this.meta = {};
     }
 
-    public join(usr: SVEAccount, ws: RawWebSocket): Promise<void> {
+    public join(usr: SVEAccount, ws: any): Promise<void> {
         return new Promise<void>((reject, resolve) => {
             if (this.info.maxPlayers > this.players.size) {
                 this.info.playersCount!++;
