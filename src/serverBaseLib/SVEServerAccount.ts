@@ -89,6 +89,7 @@ export class SVEServerAccount extends SVEAccount {
                                 }
                             }
                         } else {
+                            // tslint:disable-next-line: no-console
                             console.log("Request was not BasicAuth!");
                         }
                     }
