@@ -13,7 +13,7 @@ const handlerWS: WebsocketRequestHandler = (ws, req) => {
             // tslint:disable-next-line: no-console
             console.log("Issue join at: " + gameID);
             const game = games.get(gameID);
-            ws.onopen = (e) => {
+            ws.on('open', (e) => {
                 // tslint:disable-next-line: no-console
                 console.log("Open Join request...");
                 // tslint:disable-next-line: no-empty
@@ -23,14 +23,14 @@ const handlerWS: WebsocketRequestHandler = (ws, req) => {
                 }, err => {
                     ws.close(Number(GameRejectReason.GameFull));
                 });
-            };
+            });
         } else {
             // tslint:disable-next-line: no-console
             console.log("Abort Join request...");
-            ws.onclose = (e) => {
+            ws.on('close', (e) => {
                 // tslint:disable-next-line: no-console
                 console.log("Closed socket!");
-            };
+            });
             ws.close(GameRejectReason.GameEnded);
         }
     }, err => {

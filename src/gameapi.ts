@@ -27,21 +27,21 @@ class SVEServerGame {
                 this.players.set(usr, ws);
                 const self = this;
 
-                ws.onclose = (e) => {
+                ws.on('close', (e) => {
                     // tslint:disable-next-line: no-console
                     console.log("Leave game: " + self.info.name + "!");
                     self.disconnect(ws);
-                };
+                });
 
-                ws.onerror = (e) => {
+                ws.on('error', (e) => {
                     // tslint:disable-next-line: no-console
                     console.log("Error on game connection: " + self.info.name + "!");
                     self.disconnect(ws);
-                };
+                });
 
-                ws.onmessage = (e) => {
+                ws.on('message', (e) => {
                     self.broadcast(usr, e.data);
-                };
+                });
 
                 resolve();
             } else {
