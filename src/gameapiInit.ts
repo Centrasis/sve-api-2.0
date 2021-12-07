@@ -13,7 +13,7 @@ const handlerWS: WebsocketRequestHandler = (ws, req) => {
             // tslint:disable-next-line: no-console
             console.log("Issue join at: " + gameID);
             const game = games.get(gameID);
-            ws.on('open', (e) => {
+            ws.on('open', () => {
                 // tslint:disable-next-line: no-console
                 console.log("Open Join request...");
                 // tslint:disable-next-line: no-empty
