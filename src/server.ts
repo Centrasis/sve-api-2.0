@@ -82,12 +82,6 @@ process.argv.forEach((val, index, array) => {
             console.log('SVE ' + val + ' API is listening on port ' + String(servers.get(val)![1]) + '!');
         });
         const serverIO = sio(server, {
-            cors: {
-                origin: "*",
-                methods: "*",
-                allowedHeaders: "*",
-                credentials: true
-            },
             transports:["websocket", 'polling']
         } as sio.ServerOptions).listen(server);
         servers.get(val)![0].init(app, serverIO);
