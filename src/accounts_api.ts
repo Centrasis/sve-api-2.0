@@ -8,6 +8,8 @@ import {SVEServerToken as SVEToken} from './serverBaseLib/SVEServerToken';
 import { Application, Request, Response, Router } from "express";
 import { router as auth } from './authenticator';
 
+import {Server as SocketIOServer} from 'socket.io';
+
 const router = Router();
 ServerHelper.setupRouter(router);
 
@@ -141,7 +143,7 @@ router.post('/doLogin', (req: Request, res: Response) => {
 router.use("/auth", auth);
 
 class Initializer {
-    public static init(app: Application) {
+    public static init(app: Application, sio?: SocketIOServer) {
         app.use("/", router)
     }
 }

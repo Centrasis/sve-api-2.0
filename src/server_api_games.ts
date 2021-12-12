@@ -1,11 +1,11 @@
-import express, {RequestHandler, Application} from 'express';
-import {Application as ExpressApp} from 'express-ws';
+import express, {RequestHandler, Application as ExpressApp} from 'express';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {Initializer as games} from './gameapiInit';
-import expressWs from 'express-ws';
+import * as http from 'http';
+import sio from 'socket.io';
 
 if (process.argv.length <= 2) {
     SVESystemInfo.getInstance().SQLCredentials = {
@@ -28,7 +28,7 @@ if (process.argv.length <= 2) {
         exit(-1);
     });
 
-    const app: ExpressApp = expressWs(express()).app;
+    const app: ExpressApp = express();
     const port = process.env.GAME_PORT || 83;
 
     const opts: SessionOptions = {
@@ -44,9 +44,10 @@ if (process.argv.length <= 2) {
     const sess: RequestHandler = session.default(opts);
     app.use(sess);
 
-    games.init(app);
+    const server = http.createServer(app);
+    games.init(app, sio(server));
 
-    app.listen(port, () => {
+    server.listen(port, () => {
         // tslint:disable-next-line: no-console
         console.log('SVE Games API is listening on port ' + port + '!');
     });

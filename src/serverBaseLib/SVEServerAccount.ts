@@ -4,6 +4,7 @@ import {SVEServerSystemInfo as SVESystemInfo} from './SVEServerSystemInfo';
 import mongoose from 'mongoose';
 import { Request } from "express";
 import { base64decode } from 'nodejs-base64';
+import SocketIO from 'socket.io';
 
 const loginSchema = new mongoose.Schema({
     sessionID: {
@@ -62,16 +63,22 @@ export class SVEServerAccount extends SVEAccount {
         });
     }
 
-    public static getByRequest(req: Request): Promise<SVEServerAccount> {
+    public static getByRequest(req: Request | SocketIO.Handshake): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
+            if (process.env.testMode === "true") {
+                // tslint:disable-next-line: no-console
+                console.log("WARNING: Log in user as test mode user!");
+                resolve(new SVEServerAccount({id: -1, loginState: LoginState.LoggedInByUser, name: "Test", sessionID: "1234", token: "1234"}));
+                return;
+            }
             let userSessionID: string | undefined;
-            if(req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
+            if("body" in req && req.body !== undefined && (req.body.sessionID !== undefined || (req.body.user !== undefined && req.body.user.sessionID !== undefined))) {
                 userSessionID = (req.body.user !== undefined && req.body.user.sessionID !== undefined) ? req.body.user.sessionID : req.body.sessionID;
             } else {
                 if(req.query.sessionID !== undefined) {
                     userSessionID = req.query.sessionID as string;
                 } else {
-                    if (req.header("authorization") !== undefined) {
+                    if ("header" in req && req.header("authorization") !== undefined) {
                         const basicAuthPattern = new RegExp(".*Basic\\W+([\\w\\=]+)");
                         const auth = req.header("authorization")!;
                         if (basicAuthPattern.test(auth)) {
@@ -91,6 +98,10 @@ export class SVEServerAccount extends SVEAccount {
                         } else {
                             // tslint:disable-next-line: no-console
                             console.log("Request was not BasicAuth!");
+                        }
+                    } else {
+                        if ("headers" in req && (req as SocketIO.Handshake).headers.sessionID !== undefined) {
+                            userSessionID = (req as SocketIO.Handshake).headers.sessionID as string;
                         }
                     }
                 }

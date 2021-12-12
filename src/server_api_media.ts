@@ -1,6 +1,5 @@
 import express, {RequestHandler} from 'express';
 import { Initializer as sve } from './sveapi';
-//import expressWs, {Application} from 'express-ws';
 import {SessionOptions} from 'express-session';
 import * as session from "express-session";
 import { exit } from 'process';

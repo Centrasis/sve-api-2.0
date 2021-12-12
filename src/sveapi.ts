@@ -1,7 +1,7 @@
 import ServerHelper from './serverhelper';
 import {BasicUserInitializer, SVEGroup as SVEBaseGroup, SVEData as SVEBaseData, LoginState, SVEProjectType, SessionUserInitializer, SVESystemState, SVEAccount as SVEBaseAccount, SVEDataInitializer, SVEDataVersion, UserRights, QueryResultType, RawQueryResult, GroupInitializer, ProjectInitializer, SVEProjectState, TokenType, BasicUserLoginInfo, SVEDataType, SVELocalDataInfo, APIStatus} from 'svebaselib';
 import {SVEServerAccount as SVEAccount} from './serverBaseLib/SVEServerAccount';
-
+import {Server as SocketIOServer} from 'socket.io';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import {SVEServerData as SVEData} from './serverBaseLib/SVEServerData';
 import {SVEServerGroup as SVEGroup} from './serverBaseLib/SVEServerGroup';
@@ -769,7 +769,7 @@ router.get('/data/:id([\\+\\-]?\\d+)', (req: Request, res: Response) => {
 });
 
 class Initializer {
-    public static init(app: Application) {
+    public static init(app: Application, sio?: SocketIOServer) {
         app.use("/", router)
     }
 }

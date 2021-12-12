@@ -1,47 +1,45 @@
 import {games, router} from './gameapi';
-import {Application as ExpressApp, WebsocketRequestHandler} from 'express-ws';
+import {Application, NextFunction, Request} from 'express';
 import { SVEServerAccount } from './serverBaseLib/SVEServerAccount';
 import { GameRejectReason } from 'svegamesapi';
-import * as RawWebSocket from 'ws';
-
-const handlerWS: WebsocketRequestHandler = (ws, req) => {
-    SVEServerAccount.getByRequest(req).then((user) => {
-        const gameID: string = req.params.gid as string;
-        // tslint:disable-next-line: no-console
-        console.log("New valid request for game join: " + gameID);
-        if(games.has(gameID)) {
-            // tslint:disable-next-line: no-console
-            console.log("Issue join at: " + gameID);
-            const game = games.get(gameID);
-            ws.on('open', () => {
-                // tslint:disable-next-line: no-console
-                console.log("Open Join request...");
-                // tslint:disable-next-line: no-empty
-                game!.join(user, ws).then(() => {
-                    // tslint:disable-next-line: no-console
-                    console.log("Join successful!");
-                }, err => {
-                    ws.close(Number(GameRejectReason.GameFull));
-                });
-            });
-        } else {
-            // tslint:disable-next-line: no-console
-            console.log("Abort Join request...");
-            ws.on('close', (e) => {
-                // tslint:disable-next-line: no-console
-                console.log("Closed socket!");
-            });
-            ws.close(GameRejectReason.GameEnded);
-        }
-    }, err => {
-        // tslint:disable-next-line: no-console
-        console.log("Invalid game join request!", err);
-    });
-};
+import {Server as SocketIOServer, Socket} from 'socket.io';
 
 class Initializer {
-    public static init(app: ExpressApp) {
-        router.ws("/:gid(\\w+)", handlerWS);
+    public static init(app: Application, sio: SocketIOServer) {
+        sio.on('connection', (client: Socket) => {
+            console.log("New connection!");
+            SVEServerAccount.getByRequest(client.handshake).then((user) => {
+                const gameID: string = client.handshake.headers.gid as string;
+                // tslint:disable-next-line: no-console
+                console.log("New valid request for game join: " + gameID);
+                if(games.has(gameID)) {
+                    // tslint:disable-next-line: no-console
+                    console.log("Issue join at: " + gameID);
+                    const game = games.get(gameID);
+                    // tslint:disable-next-line: no-empty
+                    game!.join(user, client).then(() => {
+                        // tslint:disable-next-line: no-console
+                        console.log("Join successful!");
+                    }, err => {
+                        // tslint:disable-next-line: no-console
+                        console.log("Join failed!");
+                        client.disconnect();
+                    });
+                } else {
+                    // tslint:disable-next-line: no-console
+                    console.log("Abort Join request...");
+                    client.on('disconnect', (e) => {
+                        // tslint:disable-next-line: no-console
+                        console.log("Closed socket!");
+                    });
+                    client.disconnect(true);
+                }
+            }, err => {
+                // tslint:disable-next-line: no-console
+                console.log("Invalid game join request!", err);
+                client.disconnect(true);
+            });
+        });
 
         app.use("/", router);
     }
