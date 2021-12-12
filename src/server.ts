@@ -68,13 +68,13 @@ process.argv.forEach((val, index, array) => {
         const app: ExpressApp = express();
         app.use(sess);
         if(process.env.testMode === "true") {
-            app.use(cors({
+            /*app.use(cors({
                 origin: "*",
                 preflightContinue: true,
                 allowedHeaders: "*",
                 credentials: true,
                 methods: "*"
-            }));
+            }));*/
         }
         const server = http.createServer(app);
         server.listen(servers.get(val)![1], () => {
