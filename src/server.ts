@@ -9,8 +9,7 @@ import { exit } from 'process';
 import {SVEServerSystemInfo as SVESystemInfo} from './serverBaseLib/SVEServerSystemInfo';
 import * as http from 'http';
 import sio from 'socket.io';
-import cors from 'cors';
-import { getTokenSourceMapRange } from 'typescript';
+//import cors from 'cors';
 
 // tslint:disable-next-line: no-console
 console.log("run server with arguments: ", process.argv);
