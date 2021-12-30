@@ -22,7 +22,7 @@ class Initializer {
                         console.log("Join successful!");
                     }, err => {
                         // tslint:disable-next-line: no-console
-                        console.log("Join failed!");
+                        console.log("Join failed!", err);
                         client.disconnect();
                     });
                 } else {
