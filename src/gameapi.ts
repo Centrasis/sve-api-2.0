@@ -20,7 +20,7 @@ class SVEServerGame {
     }
 
     public join(usr: SVEAccount, ws: Socket): Promise<void> {
-        return new Promise<void>((reject, resolve) => {
+        return new Promise<void>((resolve, reject) => {
             if (this.players.size < this.info.maxPlayers) {
                 this.info.playersCount!++;
                 this.players.set(usr, ws);
@@ -44,7 +44,7 @@ class SVEServerGame {
 
                 resolve();
             } else {
-                reject();
+                reject({reason: "Game was already full!", game: this.info});
             }
         });
     }
