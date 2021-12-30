@@ -21,7 +21,7 @@ class SVEServerGame {
 
     public join(usr: SVEAccount, ws: Socket): Promise<void> {
         return new Promise<void>((reject, resolve) => {
-            if (this.info.maxPlayers < this.players.size) {
+            if (this.players.size < this.info.maxPlayers) {
                 this.info.playersCount!++;
                 this.players.set(usr, ws);
                 const self = this;
