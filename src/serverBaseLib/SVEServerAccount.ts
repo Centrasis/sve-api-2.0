@@ -100,8 +100,8 @@ export class SVEServerAccount extends SVEAccount {
                             console.log("Request was not BasicAuth!");
                         }
                     } else {
-                        if ("headers" in req && (req as SocketIO.Handshake).headers.sessionID !== undefined) {
-                            userSessionID = (req as SocketIO.Handshake).headers.sessionID as string;
+                        if ("headers" in req && (req as SocketIO.Handshake).headers.sessionid !== undefined) {
+                            userSessionID = (req as SocketIO.Handshake).headers.sessionid as string;
                         }
                     }
                 }
