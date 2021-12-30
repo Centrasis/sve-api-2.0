@@ -127,7 +127,7 @@ export class SVEServerAccount extends SVEAccount {
                     }
                 });
             } else {
-                reject({reason: "No Session info found"});
+                reject({reason: "No Session info found", headers: req.headers, query: req.query});
             }
         });
     }
