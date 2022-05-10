@@ -55,7 +55,7 @@
   },
   "scripts": {
     "tsc": "tsc -b",
-    "install": "tsc",
+    "install": "tsc -b",
     "start": "node dist/server.js accounts media ai games",
     "testGameServer": "node dist/server.js games --test",
     "accounts": "node dist/server_api_accounts.js",

@@ -8,7 +8,7 @@ COPY ./api/src/ ./api/src/
 COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
-RUN npm install -g npm@6.14.12
+RUN npm install -g npm@8.6.0
 RUN npm install --prefix ./api
 RUN npm run tsc --prefix ./api
 
