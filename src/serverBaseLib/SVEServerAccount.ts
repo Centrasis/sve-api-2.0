@@ -63,7 +63,7 @@ export class SVEServerAccount extends SVEAccount {
         });
     }
 
-    public static getByRequest(req: Request | SocketIO.Handshake): Promise<SVEServerAccount> {
+    public static getByRequest(req: Request): Promise<SVEServerAccount> {
         return new Promise<SVEServerAccount>((resolve, reject) => {
             if (process.env.testMode === "true") {
                 // tslint:disable-next-line: no-console
@@ -100,9 +100,9 @@ export class SVEServerAccount extends SVEAccount {
                             console.log("Request was not BasicAuth!");
                         }
                     } else {
-                        if ("headers" in req && (req as SocketIO.Handshake).headers.sessionid !== undefined) {
+                        /*if ("headers" in req && (req as SocketIO.Handshake).headers.sessionid !== undefined) {
                             userSessionID = (req as SocketIO.Handshake).headers.sessionid as string;
-                        }
+                        }*/
                     }
                 }
             }

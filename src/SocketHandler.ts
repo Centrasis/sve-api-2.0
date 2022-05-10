@@ -16,11 +16,11 @@ export class SocketHandler {
         }
 
         this.clientList = new Map<socketio.Socket, SVEAccount>();
-        this.server = socketio.listen(server as HttpServer);
-        if(sessionHandler !== undefined)
-            this.server.use((socket, next) => sessionHandler(socket.request, socket.request.res, next));
+        this.server = new socketio.Server(server as HttpServer);
+        /*if(sessionHandler !== undefined)
+            this.server.use((socket, next) => sessionHandler(socket.request, socket.resp, next));*/
 
-        var self = this;
+        const self = this;
         this.server.on("connection", (socket: socketio.Socket) => {
             let req = (socket.request as Request);
             console.log("Session: " + JSON.stringify(req.session));
@@ -29,7 +29,7 @@ export class SocketHandler {
 
                 self.onConnect(socket, req);
 
-                socket.on("message", function(message: any) {
+                socket.on("message", (message: any) => {
                     console.log(message);
                     self.onMessage(socket, message, req);
                 });

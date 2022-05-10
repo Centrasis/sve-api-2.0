@@ -45,10 +45,10 @@ if (process.argv.length <= 2) {
     app.use(sess);
 
     const server = http.createServer(app);
-    games.init(app, sio(server));
+    /*games.init(app, sio(server));
 
     server.listen(port, () => {
         // tslint:disable-next-line: no-console
         console.log('SVE Games API is listening on port ' + port + '!');
-    });
+    });*/
 }
