@@ -6,9 +6,9 @@ import {Server as SocketIOServer, Socket} from 'socket.io';
 
 class Initializer {
     public static init(app: Application, sio: SocketIOServer) {
-        sio.on('connection', (client: Socket) => {
+        /*sio.on('connection', (client: Socket) => {
             console.log("New connection!");
-            /*SVEServerAccount.getByRequest(client.handshake).then((user) => {
+            SVEServerAccount.getByRequest(client.handshake).then((user) => {
                 const gameID: string = client.handshake.headers.gid as string;
                 // tslint:disable-next-line: no-console
                 console.log("New valid request for game join: " + gameID);
@@ -38,8 +38,8 @@ class Initializer {
                 // tslint:disable-next-line: no-console
                 console.log("Invalid game join request!", err);
                 client.disconnect(true);
-            });*/
-        });
+            });
+        });*/
 
         app.use("/", router);
     }
