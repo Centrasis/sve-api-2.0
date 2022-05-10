@@ -5,7 +5,6 @@ RUN apt-get update
 RUN apt-get install ffmpeg libavcodec-extra -y
 COPY ./api/package.json ./api/package.json
 COPY ./api/src/ ./api/src/
-COPY ./api/package-lock.json ./api/package-lock.json
 COPY ./api/tsconfig.json ./api/tsconfig.json
 RUN echo "copy package files!"
 RUN npm install -g npm@8.9.0
